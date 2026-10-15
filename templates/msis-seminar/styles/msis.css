@@ -3,6 +3,10 @@
   Canvas is 960 x 540 px = the 13.33 x 7.5 in slide, so 1px here is exactly 1pt.
   Template fonts: Calibri (text), Arial (footer, slide number), Courier New.
   Carlito is bundled as Calibri's metric-compatible fallback for machines without Office.
+
+  Only the template itself lives here: master chrome, section titles, body frames and the
+  generic building blocks (bullets, cards, table, flow nodes). Styles that belong to one
+  talk's content go in that deck's own style.css.
 */
 @import '@fontsource/carlito/400.css';
 @import '@fontsource/carlito/700.css';
@@ -102,6 +106,7 @@
 /* ---------- baseline positioning ----------
   PowerPoint places text by baseline. --k is where the baseline sits inside a
   line-height:1 box for Calibri/Carlito, so top = baseline - k * size.
+  Usage: <div class="at" style="--y: 240; --fs: 36; left: 378.8px;">
 */
 :root {
   --k: 0.84;
@@ -147,6 +152,37 @@
 .frame-concl { left: 55.2px; right: 31.2px; top: 81.6px; }
 .frame-refs { left: 7.2px; right: 7.2px; top: 63.6px; }
 .frame-outline { left: 39.2px; right: 39.2px; top: 70.4px; }
+
+/* ---------- base typography ----------
+  What the slides used to inherit from @slidev/theme-default (layouts.css), kept here
+  so the template has no dependency on another theme.
+*/
+.slidev-layout h1 + p {
+  @apply -mt-2 opacity-50 mb-4;
+}
+.slidev-layout p + h2,
+.slidev-layout ul + h2,
+.slidev-layout table + h2 {
+  @apply mt-10;
+}
+.slidev-layout h2 {
+  @apply text-3xl;
+}
+.slidev-layout h3 {
+  @apply text-2xl;
+}
+.slidev-layout h4 {
+  @apply text-xl;
+}
+.slidev-layout h5 {
+  @apply text-base;
+}
+.slidev-layout h6 {
+  @apply text-sm pt-1 uppercase tracking-widest font-500 -ml-[0.05em];
+}
+.slidev-layout h6:not(.opacity-100) {
+  @apply opacity-40;
+}
 
 /* in-body topic line under the section title */
 .slidev-layout h1 {
@@ -201,31 +237,6 @@
 .ok { color: var(--teal); font-weight: 700; }
 .bad { color: var(--brown); font-weight: 700; }
 
-.cite {
-  font-size: 13px;
-  font-weight: 400;
-  color: var(--teal) !important;
-  text-decoration: underline !important;
-  border-bottom: none !important;
-  white-space: nowrap;
-}
-
-/* method names: always written out, colour only reinforces */
-.mpill {
-  display: inline-block;
-  font-family: var(--courier);
-  font-weight: 700;
-  font-size: 0.92em;
-  line-height: 1.2;
-  padding: 0 6px;
-  border-radius: 3px;
-  color: #fff;
-  background: #000;
-}
-.m-get { background: var(--indigo); }
-.m-post { background: var(--brown); }
-.m-query { background: var(--orange); }
-
 /* boxes in the template's table look: 1pt accent2 borders */
 .card {
   border: 1.5px solid var(--indigo);
@@ -236,83 +247,6 @@
 .cd-teal { border-color: var(--teal); background: var(--teal-t); }
 .cd-brown { border-color: var(--brown); border-width: 2px; }
 .cd-orange { border-color: var(--orange); border-width: 2px; }
-
-.kbd {
-  font-family: var(--courier);
-  font-weight: 700;
-  font-size: 0.9em;
-  border: 1px solid var(--indigo);
-  padding: 0 4px;
-  background: #fff;
-}
-.hlq {
-  background: var(--aqua);
-  font-weight: 700;
-}
-
-/* HTTP message panels, one div per line */
-.msg {
-  font-family: var(--courier);
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.45;
-  border: 1.5px solid var(--indigo);
-  background: #fff;
-  padding: 6px 10px;
-  white-space: pre;
-  color: #000;
-}
-.msg .ln {
-  min-height: 1.45em;
-}
-.msg .h {
-  font-weight: 400;
-}
-.panel-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--brown);
-  margin-bottom: 3px;
-}
-
-/* anatomy walk-throughs */
-.part {
-  transition: background 0.35s ease, box-shadow 0.35s ease;
-  box-shadow: 0 0 0 1.5px transparent;
-}
-.part.on {
-  box-shadow: 0 0 0 1.5px var(--indigo);
-  background: var(--lav);
-}
-.part.now {
-  box-shadow: 0 0 0 2px var(--orange);
-  background: var(--aqua);
-}
-.num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--indigo);
-  color: #fff;
-  font-family: var(--calibri);
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1;
-  vertical-align: 0.1em;
-  margin-left: 5px;
-}
-.legend {
-  display: grid;
-  gap: 4px 20px;
-  font-size: 18px;
-  line-height: 1.25;
-}
-.legend .num {
-  margin: 0 7px 0 0;
-}
 
 /* Light Style 3 - Accent 2, the template's literature-review table style */
 .tbl {
@@ -367,3 +301,29 @@
   align-items: center;
   justify-content: center;
 }
+
+/* ---------- layouts: title, outline, queries, thank-you ---------- */
+.ts-tech { font-weight: 700; color: var(--orange); }
+.ts-c { left: 20px; width: 936px; text-align: center; }
+.ts-title { font-weight: 700; }
+.ts-name { font-family: var(--arial); font-weight: 700; color: var(--brown); }
+.ts-p1 { left: 39.2px; }
+.ts-p2 { left: 487.2px; }
+.ts-pm { font-weight: 700; color: var(--brown); }
+
+.ol { position: relative; }
+.ol-i { position: absolute; left: 0; font-size: 20px; line-height: 1; white-space: nowrap; }
+.ol-i span { display: inline-block; width: 27px; }
+
+.qs { color: var(--brown); }
+
+/* ---------- section content: Literature Review table, References ---------- */
+.tbl.lit { font-size: 15.5px; line-height: 1.2; }
+.tbl.lit th { font-size: 18px; height: 30px; padding: 2px 6px; }
+.tbl.lit td { padding: 5px 7px; vertical-align: top; }
+.tbl.lit a { color: var(--teal) !important; text-decoration: underline; border: none !important; }
+
+.refs p { position: relative; padding-left: 72px; font-size: 14px; line-height: 1.2; margin: 0 0 7px; }
+.refs p span { position: absolute; left: 0; }
+.refs a { color: #000 !important; text-decoration: none !important; border: none !important; }
+.refs a:hover { color: var(--teal) !important; text-decoration: underline !important; }

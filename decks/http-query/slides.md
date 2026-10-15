@@ -1,58 +1,25 @@
 ---
-theme: default
+theme: ../../templates/msis-seminar
 title: HTTP QUERY Method
-titleTemplate: '%s'
 author: Anish Shobith
 info: |
   HTTP QUERY Method: A Security-Focused Literature Survey and Analysis.
   M.E. CyberSecurity technical seminar, Manipal School of Information Sciences, MAHE, Manipal.
   Built on the MSIS Seminar Template 2026-27 (order, fonts and colours kept), widened to 16:9.
-colorSchema: light
-aspectRatio: 16/9
-canvasWidth: 960
-fonts:
-  sans: Calibri
-  mono: Courier New
-  provider: none
-transition: none
 duration: 18min
-timer: stopwatch
-lineNumbers: false
-drawings:
-  persist: false
 exportFilename: HTTP_QUERY_CyberSecurity_Seminar
 download: true
-layout: cover
+layout: title
+kind: Technical Seminar
+heading:
+  - 'HTTP QUERY Method:'
+  - A Security-Focused Literature Survey and Analysis
+regno: Registration Number
+programme: M.E. CyberSecurity
+panel:
+  - { role: 'Panel Member 1:', name: Name, designation: Designation }
+  - { role: 'Panel Member 2:', name: Name, designation: Designation }
 ---
-
-<div class="at ts-tech" style="--y: 42.2; --fs: 28; right: 7.2px;">Technical Seminar</div>
-<div class="at ts-c ts-title" style="--y: 89.6; --fs: 28;">HTTP QUERY Method:</div>
-<div class="at ts-c ts-title" style="--y: 123.2; --fs: 28;">A Security-Focused Literature Survey and Analysis</div>
-<div class="at ts-c" style="--y: 201.6; --fs: 18;"><i>by</i></div>
-<div class="at ts-c ts-name" style="--y: 230.4; --fs: 18;">Anish Shobith</div>
-<div class="at ts-c" style="--y: 253.9; --fs: 18;">Registration Number</div>
-<div class="at ts-c" style="--y: 281.4; --fs: 18;">M.E. CyberSecurity</div>
-<div class="at ts-c" style="--y: 322.1; --fs: 20;"><b><i>Under the guidance of</i></b></div>
-<div class="at ts-p1 ts-pm" style="--y: 358.7; --fs: 20;">Panel Member 1:</div>
-<div class="at ts-p1 ts-pm" style="--y: 386.2; --fs: 20;">Name</div>
-<div class="at ts-p1" style="--y: 414.9; --fs: 20;">Designation</div>
-<div class="at ts-p1" style="--y: 442.3; --fs: 20;">Manipal School of Information Sciences</div>
-<div class="at ts-p1" style="--y: 479; --fs: 20;">MAHE, Manipal</div>
-<div class="at ts-p2 ts-pm" style="--y: 358.7; --fs: 20;">Panel Member 2:</div>
-<div class="at ts-p2 ts-pm" style="--y: 386.2; --fs: 20;">Name</div>
-<div class="at ts-p2" style="--y: 414.9; --fs: 20;">Designation</div>
-<div class="at ts-p2" style="--y: 442.3; --fs: 20;">Manipal School of Information Sciences</div>
-<div class="at ts-p2" style="--y: 479; --fs: 20;">MAHE, Manipal</div>
-
-<style>
-.ts-tech { font-weight: 700; color: var(--orange); }
-.ts-c { left: 20px; width: 936px; text-align: center; }
-.ts-title { font-weight: 700; }
-.ts-name { font-family: var(--arial); font-weight: 700; color: var(--brown); }
-.ts-p1 { left: 39.2px; }
-.ts-p2 { left: 487.2px; }
-.ts-pm { font-weight: 700; color: var(--brown); }
-</style>
 
 <!--
 ⏱ 0:20 (ends 0:20) · Source: RFC 10008
@@ -63,26 +30,14 @@ NEXT → Here is the outline.
 -->
 
 ---
-section: Presentation Outline
-tsize: 36
-tbase: 42.3
-frame: outline
+layout: outline
+items:
+  - 'Introduction: HTTP methods, URIs and the GET / POST semantic gap'
+  - Objectives
+  - 'Literature Review: standards and peer-reviewed studies'
+  - 'Description: the QUERY method (RFC 10008) and its security analysis'
+  - Conclusion
 ---
-
-<div class="ol">
-  <div class="ol-i" style="top: -3.4px;"><span>1.</span>Introduction: HTTP methods, URIs and the GET / POST semantic gap</div>
-  <div class="ol-i" style="top: 32.6px;"><span>2.</span>Objectives</div>
-  <div class="ol-i" style="top: 68.6px;"><span>3.</span>Literature Review: standards and peer-reviewed studies</div>
-  <div class="ol-i" style="top: 104.6px;"><span>4.</span>Description: the QUERY method (RFC 10008) and its security analysis</div>
-  <div class="ol-i" style="top: 140.6px;"><span>5.</span>Conclusion</div>
-  <div class="ol-i ol-ref" style="top: 176.6px;">References</div>
-</div>
-
-<style>
-.ol { position: relative; }
-.ol-i { position: absolute; left: 0; font-size: 20px; line-height: 1; white-space: nowrap; }
-.ol-i span { display: inline-block; width: 27px; }
-</style>
 
 <!--
 ⏱ 0:20 (ends 0:40)
@@ -501,13 +456,6 @@ frame: lit
   </tbody>
 </table>
 
-<style>
-.lit { font-size: 15.5px; line-height: 1.2; }
-.lit th { font-size: 18px; height: 30px; padding: 2px 6px; }
-.lit td { padding: 5px 7px; vertical-align: top; }
-.lit a { color: var(--teal) !important; text-decoration: underline; border: none !important; }
-</style>
-
 <!--
 ⏱ 0:45 (ends 6:55) · Sources: RFC 10008; RFC 9110; RFC 9205; RFC 9421
 
@@ -535,10 +483,8 @@ frame: lit
 <div class="lit-note">No peer-reviewed study of RFC 10008 itself was found (Crossref and web search, Sept 2026); these studies cover the mechanisms QUERY relies on.</div>
 
 <style>
-.lit { font-size: 16px; line-height: 1.22; }
-.lit th { font-size: 18px; height: 30px; padding: 2px 6px; }
-.lit td { padding: 6px 7px; vertical-align: top; }
-.lit a { color: var(--teal) !important; text-decoration: underline; border: none !important; }
+.slidev-layout .tbl.lit { font-size: 16px; line-height: 1.22; }
+.slidev-layout .tbl.lit td { padding: 6px 7px; }
 .lit-note { margin: 8px 7px 0; font-size: 15px; font-style: italic; color: var(--brown); }
 </style>
 
@@ -571,13 +517,6 @@ frame: lit
     <tr><td>O. Hartig, J. Pérez, “<a href="https://doi.org/10.1145/3178876.3186014">Semantics and Complexity of GraphQL</a>,” WWW, 2018</td><td>Formal model; experiments on practical implementations</td><td>Formalise GraphQL and analyse its complexity</td><td>Evaluation is NL-complete, yet responses can be prohibitively large; size is computable in polynomial time</td></tr>
   </tbody>
 </table>
-
-<style>
-.lit { font-size: 15.5px; line-height: 1.2; }
-.lit th { font-size: 18px; height: 30px; padding: 2px 6px; }
-.lit td { padding: 5px 7px; vertical-align: top; }
-.lit a { color: var(--teal) !important; text-decoration: underline; border: none !important; }
-</style>
 
 <!--
 ⏱ 0:45 (ends 8:25) · Sources: Jabiyev et al. 2021; Chen et al. 2018; Cha et al. 2020; Hartig & Pérez 2018
@@ -1179,13 +1118,6 @@ frame: refs
   <p><span>[14]</span>MDN Web Docs, “<a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS">Cross-Origin Resource Sharing (CORS)</a>.”</p>
 </div>
 
-<style>
-.refs p { position: relative; padding-left: 72px; font-size: 14px; line-height: 1.2; margin: 0 0 7px; }
-.refs p span { position: absolute; left: 0; }
-.refs a { color: #000 !important; text-decoration: none !important; border: none !important; }
-.refs a:hover { color: var(--teal) !important; text-decoration: underline !important; }
-</style>
-
 <!--
 Not presented. Titles link to the official sources.
 -->
@@ -1206,28 +1138,13 @@ frame: refs
   <p><span>[22]</span>J. Chen, J. Jiang, H. Duan, N. Weaver, T. Wan, and V. Paxson, “<a href="https://doi.org/10.1145/2976749.2978394">Host of Troubles: Multiple Host Ambiguities in HTTP Implementations</a>,” in Proc. ACM CCS, 2016, pp. 1516–1527, doi: 10.1145/2976749.2978394.</p>
 </div>
 
-<style>
-.refs p { position: relative; padding-left: 72px; font-size: 14px; line-height: 1.2; margin: 0 0 7px; }
-.refs p span { position: absolute; left: 0; }
-.refs a { color: #000 !important; text-decoration: none !important; border: none !important; }
-.refs a:hover { color: var(--teal) !important; text-decoration: underline !important; }
-</style>
-
 <!--
 Not presented. DOIs and page ranges verified against Crossref; USENIX papers link to the official proceedings pages.
 -->
 
 ---
-layout: cover
+layout: queries
 ---
-
-<div class="at qs" style="--y: 240; --fs: 36; left: 378.8px;">Queries</div>
-<div class="at qs" style="--y: 291.3; --fs: 36; left: 429.3px;">&amp;</div>
-<div class="at qs" style="--y: 345.3; --fs: 36; left: 342.1px;">Suggestions</div>
-
-<style>
-.qs { color: var(--brown); }
-</style>
 
 <!--
 ⏱ Q&A (2–3 min)
@@ -1246,11 +1163,5 @@ Likely questions and short answers:
 -->
 
 ---
-layout: cover
+layout: thank-you
 ---
-
-<div class="at qs" style="--y: 248.7; --fs: 36; left: 341.2px;">THANK YOU…</div>
-
-<style>
-.qs { color: var(--brown); }
-</style>

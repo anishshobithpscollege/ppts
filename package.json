@@ -1,17 +1,22 @@
 {
-  "name": "oddsemseminar",
+  "name": "ppts",
   "type": "module",
   "private": true,
+  "description": "Slidev presentations: one folder per deck in decks/, shared looks in templates/.",
+  "packageManager": "pnpm@11.10.0",
   "scripts": {
-    "build": "slidev build",
-    "dev": "slidev --open",
-    "export": "slidev export"
+    "dev": "node scripts/deck.mjs dev",
+    "build": "node scripts/deck.mjs build",
+    "export": "node scripts/deck.mjs export",
+    "new": "node scripts/deck.mjs new",
+    "decks": "node scripts/deck.mjs list"
   },
   "dependencies": {
     "@fontsource/carlito": "^5.3.0",
     "@slidev/cli": "^53.0.0",
-    "@slidev/theme-default": "latest",
-    "@slidev/theme-seriph": "latest",
+    "@slidev/client": "^53.0.0",
+    "@slidev/theme-default": "^0.25.0",
+    "@slidev/theme-seriph": "^0.25.0",
     "vue": "^3.5.33"
   },
   "devDependencies": {

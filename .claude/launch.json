@@ -2,9 +2,9 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "slidev",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["exec", "slidev"],
+      "name": "http-query",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["scripts/deck.mjs", "dev", "http-query", "--no-open", "--port", "3031"],
       "port": 3031,
       "autoPort": true
     }

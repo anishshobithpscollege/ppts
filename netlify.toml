@@ -10,7 +10,8 @@ from = "/.well-known/*"
 to = "/.well-known/:splat"
 status = 200
 
+# every deck is a single-page app under /<deck>/ (files that exist are served first)
 [[redirects]]
-from = "/*"
-to = "/index.html"
+from = "/:deck/*"
+to = "/:deck/index.html"
 status = 200

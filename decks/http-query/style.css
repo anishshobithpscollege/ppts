@@ -1,0 +1,106 @@
+/*
+  Styles for this talk's own content (HTTP messages, method pills, anatomy walk-throughs).
+  The MSIS template's chrome, colours and generic blocks come from templates/msis-seminar.
+*/
+
+.cite {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--teal) !important;
+  text-decoration: underline !important;
+  border-bottom: none !important;
+  white-space: nowrap;
+}
+
+/* method names: always written out, colour only reinforces */
+.mpill {
+  display: inline-block;
+  font-family: var(--courier);
+  font-weight: 700;
+  font-size: 0.92em;
+  line-height: 1.2;
+  padding: 0 6px;
+  border-radius: 3px;
+  color: #fff;
+  background: #000;
+}
+.m-get { background: var(--indigo); }
+.m-post { background: var(--brown); }
+.m-query { background: var(--orange); }
+
+.kbd {
+  font-family: var(--courier);
+  font-weight: 700;
+  font-size: 0.9em;
+  border: 1px solid var(--indigo);
+  padding: 0 4px;
+  background: #fff;
+}
+.hlq {
+  background: var(--aqua);
+  font-weight: 700;
+}
+
+/* HTTP message panels, one div per line */
+.msg {
+  font-family: var(--courier);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.45;
+  border: 1.5px solid var(--indigo);
+  background: #fff;
+  padding: 6px 10px;
+  white-space: pre;
+  color: #000;
+}
+.msg .ln {
+  min-height: 1.45em;
+}
+.msg .h {
+  font-weight: 400;
+}
+.panel-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--brown);
+  margin-bottom: 3px;
+}
+
+/* anatomy walk-throughs */
+.part {
+  transition: background 0.35s ease, box-shadow 0.35s ease;
+  box-shadow: 0 0 0 1.5px transparent;
+}
+.part.on {
+  box-shadow: 0 0 0 1.5px var(--indigo);
+  background: var(--lav);
+}
+.part.now {
+  box-shadow: 0 0 0 2px var(--orange);
+  background: var(--aqua);
+}
+.num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--indigo);
+  color: #fff;
+  font-family: var(--calibri);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: 0.1em;
+  margin-left: 5px;
+}
+.legend {
+  display: grid;
+  gap: 4px 20px;
+  font-size: 18px;
+  line-height: 1.25;
+}
+.legend .num {
+  margin: 0 7px 0 0;
+}
