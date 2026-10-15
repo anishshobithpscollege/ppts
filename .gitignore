@@ -147,3 +147,14 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# macOS
+.DS_Store
+
+# Slidev
+*.local
+.vite-inspect
+.remote-assets
+components.d.ts
+.slidev/
+slides-export/

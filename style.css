@@ -1,0 +1,369 @@
+/*
+  Reproduces the MSIS "Seminar Template 2026-27" (Default Design theme) at 16:9.
+  Canvas is 960 x 540 px = the 13.33 x 7.5 in slide, so 1px here is exactly 1pt.
+  Template fonts: Calibri (text), Arial (footer, slide number), Courier New.
+  Carlito is bundled as Calibri's metric-compatible fallback for machines without Office.
+*/
+@import '@fontsource/carlito/400.css';
+@import '@fontsource/carlito/700.css';
+@import '@fontsource/carlito/400-italic.css';
+@import '@fontsource/carlito/700-italic.css';
+
+:root {
+  /* template colours: CC6600 accent, 993300 emphasis, theme accent2 333399 (tables) */
+  --orange: #cc6600;
+  --brown: #993300;
+  --indigo: #333399;
+  --indigo-dk: #2d2d8a;
+  --lav: #d6d6eb; /* accent2 at 20% on white: Light Style 3 banded rows */
+  --teal: #009999; /* theme hyperlink */
+  --teal-t: #daedef; /* accent5 */
+  --aqua: #bbe0e3; /* accent1 */
+  --grey: #808080;
+  --footer: #d47d26; /* CC6600 at 85.1% alpha on white, as in the master */
+  --calibri: 'Calibri', 'Carlito', sans-serif;
+  --arial: 'Arial', 'Liberation Sans', sans-serif;
+  --courier: 'Courier New', 'Courier', monospace;
+  --slidev-theme-primary: #cc6600;
+}
+
+.slidev-layout {
+  font-family: var(--calibri);
+  color: #000;
+  background: #fff;
+}
+.slidev-layout code,
+.slidev-layout pre,
+.mono {
+  font-family: var(--courier);
+}
+
+.slidev-vclick-target {
+  transition: opacity 0.4s ease;
+}
+.slidev-vclick-hidden {
+  opacity: 0 !important;
+  pointer-events: none;
+}
+
+.slidev-layout.tpl {
+  padding: 0 !important;
+  position: relative;
+  height: 100%;
+  background: transparent; /* the master layer (slide-bottom.vue) shows through */
+}
+
+/* ---------- master: logo, double rule, footer bar, footer text, slide number ---------- */
+.tpl-logo {
+  position: absolute;
+  left: 0.34px;
+  top: 1.24px;
+  width: 46.9px;
+  height: 52.1px;
+}
+.tpl-rule {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 54.75px;
+  height: 4.5px;
+  border-top: 1px solid var(--orange);
+  border-bottom: 2.5px solid var(--orange);
+}
+.tpl-footer {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 518.4px;
+  height: 21.6px;
+  background: var(--footer);
+}
+.tpl-footer-text {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 521.1px;
+  font-family: var(--arial);
+  font-size: 12px;
+  line-height: 14px;
+  text-align: center;
+  color: #000;
+}
+.tpl-slideno {
+  position: absolute;
+  right: 37.2px;
+  top: 518.6px;
+  font-family: var(--arial);
+  font-size: 14px;
+  line-height: 16px;
+  color: #000;
+}
+
+/* ---------- baseline positioning ----------
+  PowerPoint places text by baseline. --k is where the baseline sits inside a
+  line-height:1 box for Calibri/Carlito, so top = baseline - k * size.
+*/
+:root {
+  --k: 0.84;
+}
+.at {
+  position: absolute;
+  line-height: 1;
+  white-space: nowrap;
+  font-size: calc(var(--fs) * 1px);
+  top: calc(var(--y) * 1px - var(--k) * var(--fs) * 1px);
+}
+
+/* ---------- section title (Calibri bold, CC6600, right aligned) ---------- */
+.tpl-title {
+  --fs: 28;
+  --y: 42.6;
+  position: absolute;
+  right: 7.2px;
+  line-height: 1;
+  font-size: calc(var(--fs) * 1px);
+  top: calc(var(--y) * 1px - var(--k) * var(--fs) * 1px);
+  font-family: var(--calibri);
+  font-weight: 700;
+  color: var(--orange);
+  white-space: nowrap;
+}
+.tpl-title.t36 {
+  --fs: 36;
+  --y: 48.3;
+}
+
+/* ---------- body frames: each section keeps its template placeholder position ---------- */
+.tpl-body {
+  position: absolute;
+  bottom: 26px;
+  display: flex;
+  flex-direction: column;
+}
+.frame-intro { left: 23.2px; right: 23.2px; top: 81.6px; }
+.frame-obj { left: 7.2px; right: 7.2px; top: 69.6px; }
+.frame-lit { left: 0.4px; right: 2.6px; top: 77.4px; }
+.frame-desc { left: 7.2px; right: 23.2px; top: 69.6px; }
+.frame-concl { left: 55.2px; right: 31.2px; top: 81.6px; }
+.frame-refs { left: 7.2px; right: 7.2px; top: 63.6px; }
+.frame-outline { left: 39.2px; right: 39.2px; top: 70.4px; }
+
+/* in-body topic line under the section title */
+.slidev-layout h1 {
+  margin: 0 0 10px;
+  padding: 0;
+  font-family: var(--calibri);
+  font-size: 24px;
+  line-height: 1.15;
+  font-weight: 700;
+  color: var(--brown);
+  letter-spacing: 0;
+}
+.slidev-layout p {
+  margin: 0;
+}
+.slidev-layout h1 + p {
+  opacity: 1;
+}
+
+/* master body text: bullet "•" level 1, "–" level 2 */
+.bul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.bul > li {
+  list-style: none;
+  position: relative;
+  padding-left: 27px;
+  font-size: 22px;
+  line-height: 1.2;
+  margin-top: 6px;
+}
+.bul > li::before {
+  content: '•';
+  position: absolute;
+  left: 0;
+}
+.bul .bul > li {
+  padding-left: 22.5px;
+  font-size: 19px;
+  margin-top: 4px;
+}
+.bul .bul > li::before {
+  content: '–';
+}
+
+.txt { font-size: 20px; line-height: 1.25; }
+.small { font-size: 16px; line-height: 1.25; }
+.brown { color: var(--brown); }
+.orange { color: var(--orange); }
+.ok { color: var(--teal); font-weight: 700; }
+.bad { color: var(--brown); font-weight: 700; }
+
+.cite {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--teal) !important;
+  text-decoration: underline !important;
+  border-bottom: none !important;
+  white-space: nowrap;
+}
+
+/* method names: always written out, colour only reinforces */
+.mpill {
+  display: inline-block;
+  font-family: var(--courier);
+  font-weight: 700;
+  font-size: 0.92em;
+  line-height: 1.2;
+  padding: 0 6px;
+  border-radius: 3px;
+  color: #fff;
+  background: #000;
+}
+.m-get { background: var(--indigo); }
+.m-post { background: var(--brown); }
+.m-query { background: var(--orange); }
+
+/* boxes in the template's table look: 1pt accent2 borders */
+.card {
+  border: 1.5px solid var(--indigo);
+  padding: 8px 12px;
+  background: #fff;
+}
+.cd-lav { background: var(--lav); }
+.cd-teal { border-color: var(--teal); background: var(--teal-t); }
+.cd-brown { border-color: var(--brown); border-width: 2px; }
+.cd-orange { border-color: var(--orange); border-width: 2px; }
+
+.kbd {
+  font-family: var(--courier);
+  font-weight: 700;
+  font-size: 0.9em;
+  border: 1px solid var(--indigo);
+  padding: 0 4px;
+  background: #fff;
+}
+.hlq {
+  background: var(--aqua);
+  font-weight: 700;
+}
+
+/* HTTP message panels, one div per line */
+.msg {
+  font-family: var(--courier);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.45;
+  border: 1.5px solid var(--indigo);
+  background: #fff;
+  padding: 6px 10px;
+  white-space: pre;
+  color: #000;
+}
+.msg .ln {
+  min-height: 1.45em;
+}
+.msg .h {
+  font-weight: 400;
+}
+.panel-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--brown);
+  margin-bottom: 3px;
+}
+
+/* anatomy walk-throughs */
+.part {
+  transition: background 0.35s ease, box-shadow 0.35s ease;
+  box-shadow: 0 0 0 1.5px transparent;
+}
+.part.on {
+  box-shadow: 0 0 0 1.5px var(--indigo);
+  background: var(--lav);
+}
+.part.now {
+  box-shadow: 0 0 0 2px var(--orange);
+  background: var(--aqua);
+}
+.num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--indigo);
+  color: #fff;
+  font-family: var(--calibri);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1;
+  vertical-align: 0.1em;
+  margin-left: 5px;
+}
+.legend {
+  display: grid;
+  gap: 4px 20px;
+  font-size: 18px;
+  line-height: 1.25;
+}
+.legend .num {
+  margin: 0 7px 0 0;
+}
+
+/* Light Style 3 - Accent 2, the template's literature-review table style */
+.tbl {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 17px;
+  line-height: 1.22;
+}
+.tbl th,
+.tbl td {
+  border: 1px solid var(--indigo);
+  padding: 4px 7px;
+  text-align: left;
+  vertical-align: middle;
+}
+.tbl th {
+  font-weight: 700;
+  text-align: center;
+  background: #fff;
+  border-bottom: 2px solid var(--indigo);
+}
+.tbl tbody tr:nth-child(odd) td {
+  background: var(--lav);
+}
+.tbl tbody tr:nth-child(even) td {
+  background: #fff;
+}
+
+/* flow diagrams */
+.node {
+  border: 1.5px solid var(--indigo);
+  background: var(--lav);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  font-weight: 700;
+  font-size: 16px;
+  line-height: 1.1;
+  padding: 4px 3px;
+}
+.node svg {
+  font-size: 24px;
+  margin-bottom: 2px;
+  color: var(--indigo);
+}
+.arrow {
+  color: #000;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
