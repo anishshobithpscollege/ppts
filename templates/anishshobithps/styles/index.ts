@@ -1,0 +1,5 @@
+import '@slidev/client/styles/layouts-base.css'
+import '@fontsource-variable/manrope/index.css'
+import '@fontsource-variable/bricolage-grotesque/opsz.css'
+import '@fontsource-variable/fira-code/index.css'
+import './site.css'

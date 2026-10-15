@@ -1,0 +1,17 @@
+/*
+  Styles for this deck's own content. Frame, type, tokens and the Card / Pill / Terminal /
+  IsoStack / Logo components come from templates/anishshobithps and load first.
+*/
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 24px;
+}
+
+.end-row {
+  display: flex;
+  align-items: center;
+  gap: 56px;
+}

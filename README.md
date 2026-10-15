@@ -10,13 +10,17 @@ decks/
     style.css              styles for this deck's own content
     components/            Vue components used only by this deck
     exports/               PDF and PPTX deliverables
+  exifleak/                5-minute talk on a modular Bash EXIF-leak scanner
+    exifleak.sh            the script the talk is about (tested)
 templates/
   msis-seminar/            MSIS (MAHE) Seminar Template 2026-27, 16:9
     layouts/ styles/ …     the template itself; see its README for layouts and classes
     starter/               what `pnpm new` copies into a new deck
+  anishshobithps/          the look of anishshobithps.com: brand green, hatch frame, A mascot,
+                           isometric slabs, light and dark (components/, layouts/, starter/)
 scripts/
   deck.mjs                 list / dev / build / export / new
-  pptx-widescreen.py       turns Slidev's PPTX into 13.33 × 7.5 in with Calibri
+  pptx-widescreen.py       turns Slidev's PPTX into 13.33 × 7.5 in (Carlito → Calibri only)
 ```
 
 ## Use it
@@ -33,6 +37,7 @@ pnpm build                         # every deck into dist/<name>/ plus dist/inde
 pnpm build http-query              # one deck
 pnpm new zero-trust                # new deck from a template (asks for title and author)
 pnpm new zero-trust -t msis-seminar --title "Zero Trust" --author "Anish Shobith"
+pnpm new demo-day -t anishshobithps --title "Demo day"
 ```
 
 A deck name can be shortened: `pnpm dev http` works when it matches one deck. Flags the CLI
@@ -86,6 +91,8 @@ single-page app at `dist/<name>/`. `netlify.toml` and `vercel.json` publish `dis
 - The MSIS template follows the college PowerPoint exactly (section order, fonts, colours,
   footer) at 16:9. Changing `templates/msis-seminar` can change every MSIS deck, so check by
   exporting and comparing slides.
+- The `anishshobithps` template is built from the website's own tokens, logo and motion; its
+  README lists what maps to what. Its fonts are npm packages, so decks work offline.
 - Layout inspired by [antfu/talks](https://github.com/antfu/talks) (one folder per talk,
   shared pieces kept out of the decks) and
   [slidev-decks](https://github.com/afonsojramos/slidev-decks) (`decks/`, picker, starter

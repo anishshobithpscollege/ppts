@@ -12,6 +12,9 @@
     "decks": "node scripts/deck.mjs list"
   },
   "dependencies": {
+    "@fontsource-variable/bricolage-grotesque": "^5.3.0",
+    "@fontsource-variable/fira-code": "^5.3.0",
+    "@fontsource-variable/manrope": "^5.3.0",
     "@fontsource/carlito": "^5.3.0",
     "@slidev/cli": "^53.0.0",
     "@slidev/client": "^53.0.0",

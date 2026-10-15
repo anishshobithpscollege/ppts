@@ -1,0 +1,29 @@
+{
+  "name": "slidev-template-anishshobithps",
+  "version": "1.0.0",
+  "private": true,
+  "description": "anishshobithps.com look for Slidev: 16:9, Bricolage / Manrope / Fira Code, brand green, hatch rules, the A mascot, isometric slabs, light and dark.",
+  "engines": {
+    "slidev": ">=52.0.0"
+  },
+  "slidev": {
+    "colorSchema": "auto",
+    "defaults": {
+      "aspectRatio": "16/9",
+      "canvasWidth": 1280,
+      "colorSchema": "auto",
+      "titleTemplate": "%s",
+      "transition": "snappy",
+      "lineNumbers": false,
+      "timer": "stopwatch",
+      "drawings": {
+        "persist": false
+      },
+      "fonts": {
+        "sans": "Manrope Variable",
+        "mono": "Fira Code Variable",
+        "provider": "none"
+      }
+    }
+  }
+}

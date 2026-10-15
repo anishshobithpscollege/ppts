@@ -201,14 +201,14 @@ async function cmdExport(argv) {
   mkdirSync(out, { recursive: true })
   const base = join(out, deck.exportFilename)
   const jobs = []
+  // The exporter counts slides right after "network idle", which can come before the slides have
+  // mounted and then yields an empty PDF/PPTX. One short wait makes it reliable.
+  const settle = forward.includes('--wait') ? [] : ['--wait', '3000']
   if (kind !== 'pptx') {
-    // The one-piece PDF export counts slides right after "network idle", which can come before
-    // the slides have mounted and then yields an empty PDF. One short wait makes it reliable.
-    const settle = forward.includes('--wait') ? [] : ['--wait', '3000']
     jobs.push([`${base}.pdf`, settle], [`${base}_click-steps.pdf`, ['--with-clicks', ...settle]])
   }
   if (kind !== 'pdf') {
-    jobs.push([`${base}.pptx`, ['--format', 'pptx-editable', '--with-clicks=false']], [`${base}_click-steps.pptx`, ['--format', 'pptx-editable', '--with-clicks']])
+    jobs.push([`${base}.pptx`, ['--format', 'pptx-editable', '--with-clicks=false', ...settle]], [`${base}_click-steps.pptx`, ['--format', 'pptx-editable', '--with-clicks', ...settle]])
   }
   for (const [file, extra] of jobs) {
     console.log(`\n== ${relative(ROOT, file)}`)

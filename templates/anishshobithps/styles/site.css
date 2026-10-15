@@ -1,0 +1,555 @@
+/*
+  anishshobithps template.
+
+  Tokens are the website's (anishshobithps.com/src/app/global.css), converted from oklch to
+  sRGB hex once so every export path (PDF, PNG, editable PPTX) reads plain colours. The
+  original oklch value is in each comment. Light is :root, dark is .dark (Slidev toggles it
+  with `d`), exactly like the site's next-themes setup.
+*/
+
+:root {
+  /* surfaces and text */
+  --background: #fdfffe; /* oklch(1 0.005 155) */
+  --foreground: #09090b; /* oklch(0.141 0.005 285.823) */
+  --card: #fdfffe;
+  --muted: #f4f4f5; /* oklch(0.967 0.001 286.375) */
+  --muted-foreground: #71717b; /* oklch(0.552 0.016 285.938) */
+  --line: #e4e4e7; /* oklch(0.92 0.004 286.32) */
+  --hatch: #e4e4e7; /* --line, drawn at 1px on a 10px grid like the site's `hatch` utility */
+
+  /* brand */
+  --brand: #0e9254; /* oklch(0.58 0.14 155) */
+  --brand-text: #006630; /* oklch(0.44 0.13 155) */
+  --selection-bg: #63e197; /* oklch(0.82 0.155 155) */
+  --selection-fg: #030504; /* oklch(0.112 0.008 155) */
+  --warning: #fe9a00; /* oklch(0.769 0.188 70.08) */
+  --destructive: #e7000b; /* oklch(0.577 0.245 27.325) */
+  --heart: #ff2056; /* oklch(0.645 0.246 16.439) */
+
+  /* color-mix(in oklab, <token> N%, var(--background)), precomputed */
+  --fg-3: #f4f7f5;
+  --fg-6: #ecefed;
+  --fg-11: #dde1df;
+  --fg-15: #d2d5d4;
+  --fg-29: #acafae;
+  --fg-47: #7e7f80;
+  --fg-80: #303133;
+  --brand-4: #f4fcf6;
+  --brand-9: #eaf6ee;
+  --brand-16: #dceee1;
+  --brand-wash: #e4f3e8;
+  --brand-border: #bfdfc9;
+  --glow: rgba(14, 146, 84, 0.1); /* oklch(0.58 0.14 155 / 0.1) */
+  --shadow: rgba(9, 9, 11, 0.07);
+
+  /* type */
+  --font-display: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-sans: 'Manrope Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Fira Code Variable', ui-monospace, 'SF Mono', Menlo, monospace;
+  --ease-snappy: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-pop: cubic-bezier(0.3, 1.6, 0.5, 1);
+  --ease-out: cubic-bezier(0.33, 1, 0.68, 1);
+
+  /* Slidev hooks */
+  --slidev-slide-container-background: var(--background);
+  --slidev-theme-primary: var(--brand);
+  --slidev-code-background: var(--fg-3);
+  --slidev-code-foreground: var(--foreground);
+  --slidev-code-font-family: var(--font-mono);
+  --slidev-code-font-size: 21px;
+  --slidev-code-line-height: 1.65;
+  --slidev-code-padding: 20px 24px;
+  --slidev-code-radius: 14px;
+  --slidev-code-tab-width: 2;
+}
+
+.dark {
+  --background: #09090b; /* oklch(0.141 0.005 285.823) */
+  --foreground: #fafafa; /* oklch(0.985 0 0) */
+  --card: #18181b; /* oklch(0.21 0.006 285.885) */
+  --muted: #27272a; /* oklch(0.274 0.006 286.033) */
+  --muted-foreground: #9f9fa9; /* oklch(0.705 0.015 286.067) */
+  --line: #1c1c1e; /* oklch(1 0 0 / 10%) over the background */
+  --hatch: #232326;
+  --brand-text: #43c07a; /* oklch(0.72 0.15 155) */
+  --destructive: #ff6467; /* oklch(0.704 0.191 22.216) */
+
+  --fg-3: #0e0e11;
+  --fg-6: #141416;
+  --fg-11: #1d1d20;
+  --fg-15: #262628;
+  --fg-29: #444446;
+  --fg-47: #6e6e6f;
+  --fg-80: #c3c3c3;
+  --brand-4: #0b0d0e;
+  --brand-9: #0d1311;
+  --brand-16: #101c16;
+  --brand-wash: #121b17;
+  --brand-border: #1d3829;
+  --glow: rgba(200, 175, 160, 0.08); /* oklch(0.8 0.03 40 / 0.08) */
+  --shadow: rgba(0, 0, 0, 0.5);
+  --slidev-code-background: var(--card);
+}
+
+/* ---------- base ---------- */
+
+html,
+body {
+  background: var(--background);
+}
+
+.slidev-layout {
+  position: relative;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  padding: 0;
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  font-size: 24px;
+  line-height: 1.55;
+  font-feature-settings: 'cv11', 'ss01';
+  -webkit-font-smoothing: antialiased;
+}
+
+.slidev-layout ::selection,
+.slidev-layout mark {
+  background: var(--selection-bg);
+  color: var(--selection-fg);
+}
+
+.slidev-layout h1,
+.slidev-layout h2,
+.slidev-layout h3,
+.slidev-layout h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-optical-sizing: auto;
+  letter-spacing: -0.025em;
+  line-height: 1.1;
+  text-wrap: balance;
+  color: var(--foreground);
+}
+
+/* slide title, the site's TypographyH2 scaled to the canvas */
+.slidev-layout h1 {
+  font-size: 48px;
+  font-weight: 700;
+}
+.slidev-layout h1 + p,
+.slidev-layout h1 + div {
+  margin-top: 18px;
+}
+.slidev-layout h2 {
+  font-size: 40px;
+  font-weight: 700;
+}
+.slidev-layout h3 {
+  font-size: 28px;
+  font-weight: 600;
+}
+.slidev-layout h4 {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.slidev-layout p {
+  margin: 0;
+  text-wrap: pretty;
+}
+
+/* lead paragraph (site's TypographyLead) */
+.slidev-layout .lead {
+  font-size: 26px;
+  line-height: 1.5;
+  color: var(--muted-foreground);
+  max-width: 30em;
+}
+.slidev-layout .lead b,
+.slidev-layout .lead strong {
+  color: var(--foreground);
+}
+
+.byline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  margin-top: 6px;
+  font-size: 15px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.byline span + span::before {
+  content: '/';
+  margin-right: 22px;
+  color: var(--fg-29);
+}
+
+.slidev-layout mark {
+  padding: 0 0.25em;
+  border-radius: 4px;
+  font-style: normal;
+}
+
+.slidev-layout a {
+  color: inherit;
+  border-bottom: 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: var(--fg-29);
+}
+
+.slidev-layout strong {
+  font-weight: 700;
+}
+
+.slidev-layout :not(pre) > code {
+  padding: 0.15em 0.35em;
+  border-radius: 6px;
+  background: var(--muted);
+  color: var(--foreground);
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  font-weight: 600;
+}
+
+.slidev-layout ul,
+.slidev-layout ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.slidev-layout li {
+  position: relative;
+  margin: 0;
+  padding-left: 1.4em;
+}
+.slidev-layout li + li {
+  margin-top: 0.5em;
+}
+.slidev-layout ul > li::before {
+  content: '';
+  position: absolute;
+  left: 0.15em;
+  top: 0.68em;
+  width: 0.42em;
+  height: 0.42em;
+  border-radius: 2px;
+  background: var(--brand);
+  rotate: 45deg;
+}
+.slidev-layout ol {
+  counter-reset: item;
+}
+.slidev-layout ol > li {
+  counter-increment: item;
+}
+.slidev-layout ol > li::before {
+  content: counter(item, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 0.35em;
+  font-family: var(--font-mono);
+  font-size: 0.6em;
+  color: var(--brand-text);
+}
+.slidev-layout ol > li {
+  padding-left: 2.1em;
+}
+
+.slidev-layout blockquote {
+  margin: 0;
+  padding-left: 1.2em;
+  border-left: 2px solid var(--brand);
+  color: var(--muted-foreground);
+  font-style: italic;
+}
+
+.slidev-layout kbd {
+  padding: 0.1em 0.45em;
+  border: 1px solid var(--line);
+  border-bottom-width: 2px;
+  border-radius: 6px;
+  background: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 0.75em;
+}
+
+.slidev-layout table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8em;
+}
+.slidev-layout th {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  font-family: var(--font-mono);
+  font-size: 0.7em;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.slidev-layout td {
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* ---------- code ---------- */
+
+.slidev-layout pre.slidev-code,
+.slidev-layout .slidev-code-wrapper pre,
+.slidev-layout .shiki-magic-move-container {
+  border: 1px solid var(--line);
+  box-shadow: 0 1px 0 var(--shadow);
+}
+.slidev-layout .slidev-code {
+  font-feature-settings: 'calt', 'liga';
+}
+.slidev-layout .shiki-magic-move-container {
+  padding: var(--slidev-code-padding);
+  border-radius: var(--slidev-code-radius);
+  background: var(--slidev-code-background);
+  font-family: var(--font-mono);
+  font-size: var(--slidev-code-font-size);
+  line-height: var(--slidev-code-line-height);
+}
+
+/* ---------- motion ---------- */
+
+/* v-click reveals like the site's <Reveal>: fade and rise 20px over 700ms, ease-out. */
+.slidev-vclick-target {
+  transition:
+    opacity 0.55s var(--ease-out),
+    translate 0.55s var(--ease-out);
+}
+.slidev-vclick-hidden {
+  translate: 0 18px;
+}
+.slidev-vclick-hidden.slidev-vclick-fade {
+  translate: 0 0;
+}
+
+/* slide-to-slide: the site's 280ms view transition */
+.snappy-enter-active,
+.snappy-leave-active {
+  transition:
+    opacity 0.28s var(--ease-out),
+    translate 0.28s var(--ease-out);
+}
+.snappy-enter-from {
+  opacity: 0;
+  translate: 0 12px;
+}
+.snappy-leave-to {
+  opacity: 0;
+  translate: 0 -6px;
+}
+
+@keyframes site-march {
+  to {
+    stroke-dashoffset: -12;
+  }
+}
+@keyframes site-float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 var(--lift, -6px);
+  }
+}
+@keyframes site-ripple {
+  from {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: scale(2.4);
+  }
+}
+@keyframes site-blink {
+  50% {
+    opacity: 0;
+  }
+}
+@keyframes site-rise {
+  from {
+    opacity: 0;
+    translate: 0 24px;
+  }
+}
+@keyframes site-pop {
+  from {
+    scale: 0;
+  }
+}
+
+/* entrance helpers, same timing as `animate-in fade-in-0 slide-in-from-bottom-6 duration-700` */
+.rise {
+  animation: site-rise 0.7s var(--ease-out) backwards;
+  animation-delay: var(--d, 0ms);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rise,
+  .snappy-enter-active,
+  .snappy-leave-active {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---------- fillets: the site's card-grid and panel ----------
+   Source: anishshobithps.com global.css `@layer components` (card-grid) and page.tsx (Panel,
+   PanelRow), plus blogs/post-grid.ts (cellCorners).
+
+   Cells sit on a --line background with 1px gaps. Every corner is rounded with --panel-radius
+   (radius + 4px = 14px) EXCEPT where a cell meets the edge of its grid:
+     - first cell:           top-left 0 (stacked: top-right 0 too)
+     - last cell:            bottom-right 0 (stacked: bottom-left 0 too)
+     - last cell of row 1:   top-right 0
+     - first cell of last row (a full row): bottom-left 0
+   So fillets appear only where cells meet cells, never at a rail or a hatch band, and the grid
+   bleeds to the rails like the site's edge-to-edge grids (-mx-gutter, border-y).
+     <div class="cells c2"><div>...</div> x4</div>      c1 (stacked) | c2 | c3 | c4
+     <div class="panel"><div>row</div><div>row</div></div>                              */
+
+.cells {
+  --panel-radius: 14px;
+  display: grid;
+  gap: 1px;
+  margin-inline: -55px;
+  border-block: 1px solid var(--line);
+  background: var(--line);
+}
+.cells.c1 { grid-template-columns: 1fr; }
+.cells.c2 { grid-template-columns: repeat(2, 1fr); }
+.cells.c3 { grid-template-columns: repeat(3, 1fr); }
+.cells.c4 { grid-template-columns: repeat(4, 1fr); }
+
+.cells > * {
+  min-width: 0;
+  box-sizing: border-box;
+  padding: 18px 28px;
+  border-radius: var(--panel-radius);
+  background: var(--card);
+}
+.cells > :first-child { border-top-left-radius: 0; }
+.cells > :last-child { border-bottom-right-radius: 0; }
+/* stacked (one column): the first and last cells are flat on both sides */
+.cells.c1 > :first-child { border-top-right-radius: 0; }
+.cells.c1 > :last-child { border-bottom-left-radius: 0; }
+/* several columns: the end of the first row, the start of the last row */
+.cells.c2 > :nth-child(2),
+.cells.c3 > :nth-child(3),
+.cells.c4 > :nth-child(4) { border-top-right-radius: 0; }
+.cells.c2 > :nth-child(odd):nth-last-child(2),
+.cells.c2 > :nth-child(odd):last-child,
+.cells.c3 > :nth-child(3n + 1):nth-last-child(3),
+.cells.c3 > :nth-child(3n + 1):last-child,
+.cells.c4 > :nth-child(4n + 1):nth-last-child(4),
+.cells.c4 > :nth-child(4n + 1):last-child { border-bottom-left-radius: 0; }
+
+/* text in the outer columns lines up with the slide's content column */
+.cells.c1 > *,
+.cells.c2 > :nth-child(odd),
+.cells.c3 > :nth-child(3n + 1),
+.cells.c4 > :nth-child(4n + 1) { padding-left: 55px; }
+.cells.c1 > *,
+.cells.c2 > :nth-child(even),
+.cells.c3 > :nth-child(3n),
+.cells.c4 > :nth-child(4n) { padding-right: 55px; }
+
+.cells > .lit { background: var(--brand-wash); }
+.cells > .warn { background: color-mix(in srgb, var(--warning) 8%, var(--card)); }
+
+/* PanelRow: rounded rows on a --line background, first row flat on top, last flat below */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--line);
+}
+.panel > * {
+  border-radius: 14px;
+  background: var(--card);
+}
+.panel > :first-child {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+.panel > :last-child {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* staggered entrance for a whole grid or panel, no clicks needed */
+.cells.stagger > *,
+.panel.stagger > * {
+  animation: site-rise 0.7s var(--ease-out) backwards;
+  animation-delay: calc(var(--i, 0) * 90ms + 120ms);
+}
+.cells.stagger > :nth-child(1), .panel.stagger > :nth-child(1) { --i: 0; }
+.cells.stagger > :nth-child(2), .panel.stagger > :nth-child(2) { --i: 1; }
+.cells.stagger > :nth-child(3), .panel.stagger > :nth-child(3) { --i: 2; }
+.cells.stagger > :nth-child(4), .panel.stagger > :nth-child(4) { --i: 3; }
+.cells.stagger > :nth-child(5), .panel.stagger > :nth-child(5) { --i: 4; }
+.cells.stagger > :nth-child(6), .panel.stagger > :nth-child(6) { --i: 5; }
+.cells.stagger > :nth-child(7), .panel.stagger > :nth-child(7) { --i: 6; }
+@media (prefers-reduced-motion: reduce) {
+  .cells.stagger > *,
+  .panel.stagger > * {
+    animation-duration: 0.01ms;
+    animation-delay: 0ms;
+  }
+}
+
+/* ---------- drawing-sheet primitives ---------- */
+
+.hatch {
+  background-image: repeating-linear-gradient(
+    315deg,
+    var(--hatch) 0,
+    var(--hatch) 1px,
+    transparent 0,
+    transparent 50%
+  );
+  background-size: 10px 10px;
+}
+
+/* the site's SectionLabel */
+.label {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+.label.accent {
+  color: var(--brand-text);
+}
+
+.mono {
+  font-family: var(--font-mono);
+}
+.muted {
+  color: var(--muted-foreground);
+}
+.brand {
+  color: var(--brand-text);
+}
+.display {
+  font-family: var(--font-display);
+  letter-spacing: -0.025em;
+}
