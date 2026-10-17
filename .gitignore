@@ -56,3 +56,5 @@ __pycache__/
 # Claude Code: per-machine settings and agent worktrees (launch.json and skills stay tracked)
 .claude/settings.local.json
 .claude/worktrees/
+.vercel
+.env*

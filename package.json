@@ -12,7 +12,8 @@
     "build": "node scripts/deck.mjs build",
     "export": "node scripts/deck.mjs export",
     "new": "node scripts/deck.mjs new",
-    "decks": "node scripts/deck.mjs list"
+    "decks": "node scripts/deck.mjs list",
+    "installCommand": "PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 pnpm install --frozen-lockfile"
   },
   "dependencies": {
     "@fontsource-variable/bricolage-grotesque": "^5.3.0",
