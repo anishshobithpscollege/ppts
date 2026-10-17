@@ -1,0 +1,8 @@
+HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Location: /contacts/stored-results/17
+Location: /contacts/stored-queries/42
+Last-Modified: Sat, 25 Aug 2012 23:34:45 GMT
+
+[ { "surname": "Smith", "givenname": "John",
+    "email": "smith@example.org" }, … ]

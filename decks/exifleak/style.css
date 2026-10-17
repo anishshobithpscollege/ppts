@@ -1,6 +1,6 @@
 /*
-  Styles for this deck's own content. Frame, type, tokens, Card/Pill/Terminal/IsoStack come
-  from templates/anishshobithps and load first.
+  Styles for this deck's own content. Frame, type and tokens come from templates/anishshobithps;
+  Snippet, Terminal, Cite and the shadcn-vue primitives from addons/shadcn. Tokens only.
 */
 
 /* ---------- cover ---------- */
@@ -35,7 +35,7 @@
 
 .fields .head {
   padding: 12px 22px;
-  background: var(--fg-3);
+  background: var(--muted);
   font-size: 13px;
 }
 .fields .field {
@@ -86,7 +86,7 @@
 .case-year {
   font-size: 13px;
   letter-spacing: 0.18em;
-  color: var(--brand-text);
+  color: var(--primary);
 }
 .case h3 {
   font-size: 26px;
@@ -156,12 +156,12 @@
   place-items: center;
   width: 26px;
   height: 26px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--border);
   border-radius: 50%;
   background: var(--card);
   font-family: var(--font-mono);
   font-size: 14px;
-  color: var(--brand-text);
+  color: var(--primary);
 }
 .chips {
   display: flex;
@@ -171,13 +171,13 @@
 .chips li {
   margin: 0 !important;
   padding: 6px 10px !important;
-  border: 1px solid var(--brand-border);
+  border: 1px solid color-mix(in oklab, var(--ring) 30%, var(--border));
   border-radius: 8px;
   background: var(--background);
   font-family: var(--font-mono);
   font-size: 14px;
   font-weight: 500;
-  color: var(--brand-text);
+  color: var(--primary);
 }
 .chips li::before {
   display: none;
@@ -189,10 +189,15 @@
   color: var(--muted-foreground);
 }
 
-/* ---------- 05 script (Monaco) ---------- */
+/* ---------- 05 script (shadcn Code Block via <Snippet>, scrolled by its click steps) ---------- */
 
-.slidev-layout .mc {
-  margin-top: -4px;
+.slidev-layout .content > .script {
+  flex: 1 1 0;
+  min-height: 0;
+  background: var(--card);
+}
+.script [data-slot='code-block-content'] {
+  scrollbar-width: none;
 }
 
 /* ---------- 06 how it works ---------- */
@@ -224,12 +229,12 @@
   align-self: flex-start;
   max-width: 100%;
   padding: 3px 9px !important;
-  border: 1px solid var(--brand-border);
+  border: 1px solid color-mix(in oklab, var(--ring) 30%, var(--border));
   border-radius: 8px !important;
-  background: var(--brand-wash) !important;
+  background: var(--accent) !important;
   font-size: 15.5px !important;
   white-space: nowrap;
-  color: var(--brand-text) !important;
+  color: var(--primary) !important;
 }
 .steps li > span {
   font-size: 16px;
@@ -290,6 +295,6 @@
   margin-top: 22px;
 }
 .arrow-sep {
-  color: var(--brand);
+  color: var(--ring);
   font-weight: 500;
 }

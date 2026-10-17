@@ -1,0 +1,10 @@
+{
+  "name": "slidev-addon-shadcn",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "shadcn-vue primitives for Slidev: the registry components, compiled by Tailwind CSS v4, styled only through shadcn design tokens.",
+  "engines": {
+    "slidev": ">=52.0.0"
+  }
+}

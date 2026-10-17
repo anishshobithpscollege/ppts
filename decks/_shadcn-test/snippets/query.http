@@ -1,0 +1,6 @@
+QUERY /feed HTTP/1.1
+Host: example.org
+Content-Type: application/json
+Accept: application/json
+
+{ "q": "cybersecurity", "limit": 20 }

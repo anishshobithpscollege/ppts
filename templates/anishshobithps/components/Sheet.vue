@@ -48,11 +48,11 @@ const pad = (n: number) => String(n).padStart(2, '0')
 }
 .band-top {
   top: 0;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--border);
 }
 .band-bottom {
   bottom: 0;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--border);
 }
 
 .rail {
@@ -60,7 +60,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
   top: 16px;
   bottom: 16px;
   width: 1px;
-  background: var(--line);
+  background: var(--border);
 }
 .rail-l {
   left: 56px;
@@ -79,7 +79,7 @@ const pad = (n: number) => String(n).padStart(2, '0')
   align-items: center;
   justify-content: space-between;
   padding: 0 32px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--border);
 }
 .head-meta {
   display: flex;
@@ -91,6 +91,6 @@ const pad = (n: number) => String(n).padStart(2, '0')
   color: var(--muted-foreground);
 }
 .head-count {
-  color: var(--brand-text);
+  color: var(--primary);
 }
 </style>

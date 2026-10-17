@@ -1,106 +1,232 @@
 /*
-  Styles for this talk's own content (HTTP messages, method pills, anatomy walk-throughs).
-  The MSIS template's chrome, colours and generic blocks come from templates/msis-seminar.
+  Styles for this talk's own content. The MSIS template (chrome, tokens, bullets) and the
+  shadcn-vue primitives (Card, Table, Alert, Badge, Snippet, Terminal, Cite) load first.
+  Colours are design tokens only.
 */
 
-.cite {
-  font-size: 13px;
-  font-weight: 400;
-  color: var(--teal) !important;
-  text-decoration: underline !important;
-  border-bottom: none !important;
-  white-space: nowrap;
-}
-
-/* method names: always written out, colour only reinforces */
-.mpill {
-  display: inline-block;
-  font-family: var(--courier);
-  font-weight: 700;
-  font-size: 0.92em;
-  line-height: 1.2;
-  padding: 0 6px;
-  border-radius: 3px;
-  color: #fff;
-  background: #000;
-}
-.m-get { background: var(--indigo); }
-.m-post { background: var(--brown); }
-.m-query { background: var(--orange); }
-
-.kbd {
-  font-family: var(--courier);
-  font-weight: 700;
-  font-size: 0.9em;
-  border: 1px solid var(--indigo);
-  padding: 0 4px;
-  background: #fff;
-}
-.hlq {
-  background: var(--aqua);
-  font-weight: 700;
-}
-
-/* HTTP message panels, one div per line */
-.msg {
-  font-family: var(--courier);
-  font-size: 16px;
-  font-weight: 700;
-  line-height: 1.45;
-  border: 1.5px solid var(--indigo);
-  background: #fff;
-  padding: 6px 10px;
-  white-space: pre;
-  color: #000;
-}
-.msg .ln {
-  min-height: 1.45em;
-}
-.msg .h {
-  font-weight: 400;
-}
-.panel-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--brown);
-  margin-bottom: 3px;
-}
-
-/* anatomy walk-throughs */
-.part {
-  transition: background 0.35s ease, box-shadow 0.35s ease;
-  box-shadow: 0 0 0 1.5px transparent;
-}
-.part.on {
-  box-shadow: 0 0 0 1.5px var(--indigo);
-  background: var(--lav);
-}
-.part.now {
-  box-shadow: 0 0 0 2px var(--orange);
-  background: var(--aqua);
-}
-.num {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  background: var(--indigo);
-  color: #fff;
-  font-family: var(--calibri);
-  font-size: 13px;
-  font-weight: 700;
-  line-height: 1;
-  vertical-align: 0.1em;
-  margin-left: 5px;
-}
+/* numbered legends under code (Badge + text) */
 .legend {
   display: grid;
-  gap: 4px 20px;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 16px;
+  font-size: 15px;
+  line-height: 1.25;
+}
+.legend > div {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+}
+.legend [data-slot='badge'] {
+  flex: none;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1;
+}
+.legend-2 {
+  font-size: 16px;
+}
+
+/* vertical legend next to a listing (Badge + text) */
+.slidev-layout .legend-v {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.slidev-layout .legend-v > li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  font-size: 20px;
+  line-height: 1.3;
+}
+.legend-v [data-slot='badge'] {
+  flex: none;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 999px;
+  font-size: 14px;
+  line-height: 1;
+  transform: translateY(-2px);
+}
+
+/* larger bullets on slides with little else */
+.slidev-layout .big > li {
+  font-size: 21px;
+  margin-top: 14px;
+}
+.slidev-layout .big > li:first-child {
+  margin-top: 0;
+}
+
+/* bullet lists used next to code */
+.slidev-layout .props > li,
+.slidev-layout .facts > li,
+.slidev-layout .risks > li,
+.slidev-layout .rules > li,
+.slidev-layout .cors > li,
+.slidev-layout .sig > li {
+  font-size: 18px;
+  margin-top: 7px;
+}
+.slidev-layout .props > li:first-child,
+.slidev-layout .facts > li:first-child,
+.slidev-layout .risks > li:first-child,
+.slidev-layout .rules > li:first-child,
+.slidev-layout .cors > li:first-child,
+.slidev-layout .sig > li:first-child {
+  margin-top: 0;
+}
+.caption {
+  font-size: 14px;
+  color: var(--muted-foreground);
+}
+
+/* ---------- URI anatomy ---------- */
+.uri {
+  margin: 2px 0 34px;
+  font-family: var(--font-mono);
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+}
+.seg {
+  position: relative;
+  padding: 1px 0 3px;
+  border-bottom: 4px solid var(--seg);
+}
+.lab {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 5px);
+  transform: translateX(-50%);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--seg);
+}
+.uri-lg {
+  margin: 18px 0 64px;
+  font-size: 28px;
+}
+.uri-lg .lab {
+  top: calc(100% + 8px);
+  font-size: 19px;
+}
+.u1 { --seg: var(--chart-2); }
+.u2 { --seg: var(--chart-3); }
+.u3 { --seg: var(--foreground); }
+.u4 { --seg: var(--primary); background: var(--accent); }
+.u5 { --seg: var(--destructive); }
+
+/* ---------- where URI data is recorded ---------- */
+.hops {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 18px;
+  margin-bottom: 10px;
+}
+.hop {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 4px 8px;
+  border: 1.5px solid var(--border);
+  background: var(--secondary);
+  line-height: 1.15;
+}
+.hop b {
+  font-size: 16px;
+}
+.hop span {
+  font-size: 13px;
+  color: var(--destructive);
+  font-weight: 700;
+}
+.hop:not(:last-child)::after {
+  content: '→';
+  position: absolute;
+  right: -16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  color: var(--foreground);
+}
+
+/* ---------- the semantic-gap grid ---------- */
+.gapgrid {
+  display: grid;
+  grid-template-columns: 112px 1fr 1fr;
+  grid-template-rows: auto 1fr 1fr;
+  gap: 10px;
+}
+.gg-ch {
+  align-self: end;
+  font-size: 18px;
+  text-align: center;
+}
+.gg-rh {
+  align-self: center;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--destructive);
+}
+.slidev-layout .gg-cell {
+  min-height: 132px;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px;
   font-size: 18px;
   line-height: 1.25;
 }
-.legend .num {
-  margin: 0 7px 0 0;
+.gg-cell [data-slot='badge'] {
+  align-self: flex-start;
+  font-size: 19px;
+}
+.gg-q {
+  font-size: 46px;
+  font-weight: 700;
+  line-height: 1;
+  text-align: center;
+  color: var(--primary);
+}
+
+/* ---------- objectives, literature, conclusion ---------- */
+.slidev-layout .obj {
+  margin-top: 18px;
+}
+.slidev-layout .obj > li {
+  font-size: 24px;
+  margin-top: 16px;
+}
+.lit-note {
+  margin: 8px 7px 0;
+  font-size: 15px;
+  font-style: italic;
+  color: var(--destructive);
+}
+.slidev-layout .tight > li {
+  font-size: 19px;
+  margin-top: 3px;
+  padding-left: 20px;
+}
+.slidev-layout .take {
+  margin-top: 18px;
+}
+.slidev-layout .take > li {
+  font-size: 22px;
+  margin-top: 10px;
+}
+.slidev-layout .deploy code {
+  font-size: 0.9em;
 }

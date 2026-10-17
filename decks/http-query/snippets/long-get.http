@@ -1,0 +1,4 @@
+GET /search?q=laptop&brand=lenovo,dell,hp&price_min=40000&price_max=100000&ram=16,32&sort=price&page=2&filters=%7B%22gpu%22%3A%5B%22rtx-4060%22%2C%22rx-7600%22%5D%7D HTTP/1.1
+Host: shop.example
+
+HTTP/1.1 414 URI Too Long

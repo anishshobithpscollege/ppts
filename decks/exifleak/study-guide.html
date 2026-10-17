@@ -1,0 +1,2148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>exifleak Study Guide</title>
+<meta name="description" content="Diagrams, a full code walk, limits, and a question bank for the exifleak talk. Written in simple technical English.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=Fira+Code:wght@400;500&family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+/* ---------- tokens ---------- */
+:root{
+  --bg:#fdfffe; --fg:#09090b; --muted:#f4f4f5; --muted-fg:#52525b; --line:#e4e4e7; --line-2:#d4d4d8;
+  --card:#ffffff; --code-bg:#f6f8f7;
+  --brand:#0e9254; --brand-text:#006630; --brand-bg:#eaf6ee; --brand-bd:#bfdfc9;
+  --warn:#92400e; --warn-bg:#fff6e5; --warn-bd:#f1c984;
+  --bad:#b91c1c; --bad-bg:#fdecec; --bad-bd:#f3b4b4;
+  --blue:#1d4ed8; --blue-bg:#e8f0fe; --blue-bd:#b6cdf7;
+  --t-kw:#9333ea; --t-str:#0b7a45; --t-var:#1d4ed8; --t-cmt:#71717a; --t-bi:#b45309; --t-fn:#0369a1; --t-opt:#be185d; --t-op:#52525b;
+  --shadow:0 1px 2px rgba(9,9,11,.06);
+  --f-display:'Bricolage Grotesque',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-sans:'Manrope',ui-sans-serif,system-ui,-apple-system,'Segoe UI',sans-serif;
+  --f-mono:'Fira Code',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#09090b; --fg:#fafafa; --muted:#27272a; --muted-fg:#a1a1aa; --line:#27272a; --line-2:#3f3f46;
+    --card:#121214; --code-bg:#111113;
+    --brand:#43c07a; --brand-text:#43c07a; --brand-bg:#0f2a1b; --brand-bd:#1e5c3a;
+    --warn:#fbbf24; --warn-bg:#2b2008; --warn-bd:#6b4a0d;
+    --bad:#ff6467; --bad-bg:#2e1214; --bad-bd:#6b2226;
+    --blue:#7cb3ff; --blue-bg:#12233f; --blue-bd:#1f3d6b;
+    --t-kw:#c084fc; --t-str:#6ee7a1; --t-var:#7cb3ff; --t-cmt:#8b8b94; --t-bi:#fbbf24; --t-fn:#67c8ff; --t-opt:#f472b6; --t-op:#a1a1aa;
+    --shadow:0 1px 2px rgba(0,0,0,.5);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#09090b; --fg:#fafafa; --muted:#27272a; --muted-fg:#a1a1aa; --line:#27272a; --line-2:#3f3f46;
+  --card:#121214; --code-bg:#111113;
+  --brand:#43c07a; --brand-text:#43c07a; --brand-bg:#0f2a1b; --brand-bd:#1e5c3a;
+  --warn:#fbbf24; --warn-bg:#2b2008; --warn-bd:#6b4a0d;
+  --bad:#ff6467; --bad-bg:#2e1214; --bad-bd:#6b2226;
+  --blue:#7cb3ff; --blue-bg:#12233f; --blue-bd:#1f3d6b;
+  --t-kw:#c084fc; --t-str:#6ee7a1; --t-var:#7cb3ff; --t-cmt:#8b8b94; --t-bi:#fbbf24; --t-fn:#67c8ff; --t-opt:#f472b6; --t-op:#a1a1aa;
+  --shadow:0 1px 2px rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+
+/* ---------- base ---------- */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:76px;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 17px/1.65 var(--f-sans);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+::selection{background:#63e197;color:#030504}
+a{color:var(--brand-text);text-underline-offset:3px}
+a:hover{text-decoration-thickness:2px}
+code,kbd,samp,pre{font-family:var(--f-mono);font-variant-ligatures:none}
+code{font-size:.86em;background:var(--muted);border:1px solid var(--line);border-radius:5px;padding:.08em .35em;white-space:break-spaces;overflow-wrap:anywhere}
+h1,h2,h3,h4{font-family:var(--f-display);line-height:1.15;letter-spacing:-.01em;margin:0}
+p{margin:0 0 .9em;max-width:74ch}
+ul,ol{margin:0 0 1em;padding-left:1.35em;max-width:74ch}
+li{margin:.25em 0}
+li>p{margin:0}
+strong{font-weight:700}
+hr{border:0;border-top:1px solid var(--line);margin:2.5rem 0}
+.mono{font-family:var(--f-mono)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:4px}
+
+/* ---------- top bar ---------- */
+.topbar{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1280px;margin:0 auto;padding:0 16px;height:56px;display:flex;align-items:center;gap:12px}
+.brand{font:700 1.05rem var(--f-display);color:var(--fg);text-decoration:none;display:flex;align-items:center;gap:.5rem;white-space:nowrap}
+.brand span{white-space:nowrap}
+.brand i{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:7px;background:var(--brand);color:#fff;font:700 .85rem var(--f-display);font-style:normal}
+.spacer{flex:1}
+.btn{flex:none;white-space:nowrap;font:600 .85rem var(--f-sans);color:var(--fg);background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:.45rem .7rem;cursor:pointer;display:inline-flex;align-items:center;gap:.4rem;line-height:1}
+.btn:hover{border-color:var(--brand)}
+.btn[aria-pressed="true"]{background:var(--brand-bg);border-color:var(--brand)}
+.toc-m{position:static}
+.toc-m summary{list-style:none}
+.toc-m summary::-webkit-details-marker{display:none}
+.toc-m[open] .toc-pop{display:block}
+.toc-pop{display:none;position:fixed;right:16px;top:64px;width:min(360px,calc(100vw - 32px));max-height:calc(100vh - 80px);overflow:auto;background:var(--card);border:1px solid var(--line-2);border-radius:12px;padding:8px;box-shadow:0 12px 40px rgba(0,0,0,.18)}
+@media(min-width:1040px){.toc-m{display:none}}
+@media(max-width:520px){.brand .long{display:none}.topbar-in{gap:8px}}
+
+/* ---------- layout ---------- */
+.shell{max-width:1280px;margin:0 auto;padding:0 16px 80px;display:grid;grid-template-columns:minmax(0,1fr);gap:0 48px}
+@media(min-width:1040px){.shell{grid-template-columns:250px minmax(0,1fr)}}
+aside.toc{display:none}
+@media(min-width:1040px){
+  aside.toc{display:block;position:sticky;top:76px;align-self:start;max-height:calc(100vh - 96px);overflow:auto;padding:20px 0}
+}
+.toc-title{font:600 .72rem var(--f-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted-fg);padding:0 10px 8px}
+.toc a,.toc-pop a{display:flex;gap:.6rem;align-items:baseline;padding:.4rem .6rem;border-radius:8px;color:var(--muted-fg);text-decoration:none;font-size:.92rem;line-height:1.3}
+.toc a b,.toc-pop a b{font:500 .72rem var(--f-mono);color:var(--muted-fg);opacity:.8;min-width:1.6rem}
+.toc a:hover,.toc-pop a:hover{background:var(--muted);color:var(--fg)}
+.toc a.on{background:var(--brand-bg);color:var(--brand-text);font-weight:700}
+main{min-width:0}
+
+/* ---------- hero ---------- */
+.hero{margin:0;padding:56px 0 36px;background:
+  repeating-linear-gradient(135deg,transparent 0 9px,var(--line) 9px 10px),var(--bg);border-bottom:1px solid var(--line)}
+.hero-in{max-width:1280px;margin:0 auto;padding:0 16px}
+.kicker{font:500 .78rem var(--f-mono);text-transform:uppercase;letter-spacing:.1em;color:var(--brand-text);margin-bottom:14px}
+.hero h1{font-size:clamp(2.2rem,6.5vw,4rem);font-weight:700;max-width:16ch;background:var(--bg);display:inline;box-decoration-break:clone;-webkit-box-decoration-break:clone;padding:.05em .18em .05em 0}
+.hero .lead{font-size:clamp(1.05rem,2.4vw,1.3rem);color:var(--muted-fg);max-width:60ch;margin:18px 0 20px;background:var(--bg);display:inline-block;padding:.2rem .6rem .2rem 0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none;max-width:none}
+.chips li{margin:0;font:500 .78rem var(--f-mono);background:var(--card);border:1px solid var(--line-2);border-radius:999px;padding:.35rem .75rem;color:var(--muted-fg)}
+.chips li b{color:var(--fg)}
+
+/* ---------- sections ---------- */
+.sec{padding-top:56px}
+.sec>h2{font-size:clamp(1.7rem,4.2vw,2.5rem);font-weight:700;display:flex;gap:.7rem;align-items:baseline;flex-wrap:wrap;margin-bottom:.35rem}
+.sec>h2 .num{font:500 .85rem var(--f-mono);color:var(--brand-text);background:var(--brand-bg);border:1px solid var(--brand-bd);border-radius:6px;padding:.2rem .5rem;transform:translateY(-.25em)}
+.sec>.intro{font-size:1.08rem;color:var(--muted-fg);margin-bottom:1.6rem}
+.sec h3{font-size:1.4rem;font-weight:700;margin:2.4rem 0 .7rem}
+.sec h4{font-size:1.08rem;font-weight:700;margin:1.6rem 0 .4rem;font-family:var(--f-sans)}
+
+/* ---------- badges and callouts ---------- */
+.b{display:inline-block;font:600 .68rem var(--f-mono);text-transform:uppercase;letter-spacing:.06em;border-radius:5px;padding:.18rem .45rem;border:1px solid;vertical-align:.12em;white-space:nowrap}
+.b-deck{color:var(--brand-text);background:var(--brand-bg);border-color:var(--brand-bd)}
+.b-tested{color:var(--blue);background:var(--blue-bg);border-color:var(--blue-bd)}
+.b-source{color:var(--muted-fg);background:var(--muted);border-color:var(--line-2)}
+.b-analysis{color:var(--warn);background:var(--warn-bg);border-color:var(--warn-bd)}
+.co{border:1px solid var(--line-2);border-left-width:4px;border-radius:10px;padding:.8rem 1rem;margin:1.2rem 0;background:var(--card);max-width:80ch}
+.co>:last-child{margin-bottom:0}
+.co .t{font:700 .78rem var(--f-mono);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.35rem;display:block}
+.co-note{border-left-color:var(--blue);background:var(--blue-bg)} .co-note .t{color:var(--blue)}
+.co-tip{border-left-color:var(--brand);background:var(--brand-bg)} .co-tip .t{color:var(--brand-text)}
+.co-warn{border-left-color:#d97706;background:var(--warn-bg)} .co-warn .t{color:var(--warn)}
+.co-bad{border-left-color:var(--bad);background:var(--bad-bg)} .co-bad .t{color:var(--bad)}
+.say{border:1px dashed var(--brand);border-radius:10px;padding:.8rem 1rem;margin:1rem 0;background:var(--card);max-width:80ch}
+.say .t{font:700 .72rem var(--f-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--brand-text);display:block;margin-bottom:.25rem}
+.say p{margin:0;font-size:1.02rem}
+
+/* ---------- cards and grids ---------- */
+.grid{display:grid;gap:14px;margin:1rem 0 1.4rem}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr))}
+.card{background:var(--card);border:1px solid var(--line-2);border-radius:12px;padding:1rem 1.05rem;box-shadow:var(--shadow)}
+.card h4{margin:0 0 .35rem;font-size:1.05rem}
+.card p{margin:0 0 .5rem;font-size:.97rem}
+.card p:last-child,.card>:last-child{margin-bottom:0}
+.card .yr{font:500 .8rem var(--f-mono);color:var(--brand-text)}
+.card .src{font-size:.82rem;color:var(--muted-fg)}
+.stat{text-align:left}
+.stat b{display:block;font:700 2rem var(--f-display);color:var(--brand-text);line-height:1}
+.stat span{font-size:.88rem;color:var(--muted-fg)}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line-2);border-radius:12px;background:var(--card)}
+.tw table{width:100%;border-collapse:collapse;font-size:.94rem;min-width:520px}
+.tw th,.tw td{padding:.6rem .8rem;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+.tw th{font:600 .72rem var(--f-mono);text-transform:uppercase;letter-spacing:.06em;background:var(--muted);color:var(--muted-fg);white-space:nowrap}
+.tw tr:last-child td{border-bottom:0}
+.tw td p{margin:0 0 .4em}
+.tw td>:last-child{margin-bottom:0}
+.tw td ul{margin:0;padding-left:1.1em}
+.tw td.k{white-space:nowrap}
+.tw tr.hit td{background:var(--brand-bg)}
+
+/* ---------- code ---------- */
+pre{margin:0}
+.code,.hl{background:var(--code-bg);border:1px solid var(--line-2);border-radius:12px;padding:.9rem 1rem;overflow:auto;font-size:.86rem;line-height:1.6;tab-size:4;margin:1rem 0 1.4rem;position:relative;max-width:100%}
+.code code,.hl code{background:none;border:0;padding:0;font-size:inherit;white-space:pre;overflow-wrap:normal}
+.t-kw{color:var(--t-kw);font-weight:500}.t-s{color:var(--t-str)}.t-v{color:var(--t-var)}.t-c{color:var(--t-cmt);font-style:italic}.t-b{color:var(--t-bi)}.t-f{color:var(--t-fn);font-weight:500}.t-o{color:var(--t-opt)}.t-p{color:var(--t-op)}
+.copy{position:absolute;top:8px;right:8px;font:600 .72rem var(--f-mono);background:var(--card);color:var(--muted-fg);border:1px solid var(--line-2);border-radius:6px;padding:.25rem .5rem;cursor:pointer}
+.copy:hover{color:var(--fg);border-color:var(--brand)}
+.listing{background:var(--code-bg);border:1px solid var(--line-2);border-radius:12px;overflow:auto;margin:1rem 0 1.4rem;max-height:560px}
+.listing .cl{display:flex;font:400 .84rem/1.6 var(--f-mono);min-width:max-content}
+.listing .cl:hover{background:var(--muted)}
+.listing .n{flex:none;width:3.2rem;text-align:right;padding:0 .8rem 0 0;color:var(--muted-fg);user-select:none;position:sticky;left:0;background:var(--code-bg)}
+.listing .cl:hover .n{background:var(--muted)}
+.listing .n a{color:inherit;text-decoration:none}
+.listing .n a:hover{color:var(--brand-text);text-decoration:underline}
+.listing .tx{white-space:pre;padding-right:1rem}
+.listing .zone{border-top:1px dashed var(--line-2)}
+
+/* line-by-line tables */
+.walk{border:1px solid var(--line-2);border-radius:12px;overflow:hidden;background:var(--card);margin:.8rem 0 1.6rem}
+.walk table{width:100%;border-collapse:collapse;font-size:.94rem}
+.walk td{padding:.55rem .75rem;vertical-align:top;border-bottom:1px solid var(--line)}
+.walk tr:last-child td{border-bottom:0}
+.walk td.ln{width:3rem;font:500 .78rem var(--f-mono);color:var(--muted-fg);text-align:right;white-space:nowrap}
+.walk td.cd{width:42%;background:var(--code-bg);font:400 .82rem/1.55 var(--f-mono);white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}
+.walk td.me p{margin:0 0 .45em}.walk td.me>:last-child{margin-bottom:0}
+.walk tr:target td{background:var(--brand-bg)}
+.walk-h{display:flex;flex-wrap:wrap;gap:.5rem .8rem;align-items:baseline;margin:2rem 0 .3rem}
+.walk-h h4{margin:0;font-size:1.15rem}
+.walk-h .rng{font:500 .78rem var(--f-mono);color:var(--brand-text);background:var(--brand-bg);border:1px solid var(--brand-bd);border-radius:5px;padding:.1rem .45rem}
+@media(max-width:720px){
+  .walk table,.walk tbody{display:block}
+  .walk tr{display:grid;grid-template-columns:2.6rem 1fr;border-bottom:1px solid var(--line)}
+  .walk tr:last-child{border-bottom:0}
+  .walk td{border:0}
+  .walk td.cd{width:auto}
+  .walk td.me{grid-column:1 / -1;padding-top:0}
+}
+
+/* ---------- diagrams ---------- */
+figure.diagram{margin:1.4rem 0 1.8rem;background:var(--card);border:1px solid var(--line-2);border-radius:14px;box-shadow:var(--shadow);position:relative}
+figure.diagram .dg-top{display:flex;gap:.6rem;align-items:center;justify-content:space-between;padding:.6rem .8rem;border-bottom:1px solid var(--line)}
+figure.diagram .dg-top b{font:600 .72rem var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted-fg)}
+.dg-body{overflow:auto;padding:14px 12px;text-align:center;min-height:90px;-webkit-overflow-scrolling:touch}
+.dg-body svg{max-width:100%;height:auto;display:inline-block;overflow:visible}
+.dg-hint{display:none;font:500 .72rem var(--f-sans);color:var(--muted-fg);margin-left:auto}
+figure.pannable .dg-hint{display:inline}
+.dg-body .pending{color:var(--muted-fg);font-size:.9rem;padding:2rem 0}
+figure.diagram figcaption{padding:.75rem 1rem 1rem;border-top:1px solid var(--line);font-size:.95rem}
+figcaption .cap-t{display:block;font-weight:700;margin-bottom:.25rem}
+figcaption .inwords{display:block;color:var(--muted-fg)}
+.mm-error{white-space:pre-wrap;text-align:left;font-size:.8rem;color:var(--bad);background:var(--bad-bg);border:1px solid var(--bad-bd);border-radius:8px;padding:.7rem}
+dialog.zoom{width:min(1200px,96vw);height:min(86vh,900px);max-width:none;padding:0;border:1px solid var(--line-2);border-radius:14px;background:var(--card);color:var(--fg);overflow:hidden}
+dialog.zoom[open]{display:flex;flex-direction:column}
+dialog.zoom::backdrop{background:rgba(0,0,0,.55)}
+dialog.zoom header{display:flex;gap:.5rem;align-items:center;padding:.6rem .8rem;border-bottom:1px solid var(--line)}
+dialog.zoom header b{flex:1;font:600 .85rem var(--f-sans);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+dialog.zoom .zbody{flex:1;overflow:auto;padding:16px;touch-action:pan-x pan-y pinch-zoom}
+dialog.zoom .zbody svg{display:block;margin:0 auto;height:auto}
+
+/* ---------- Q and A ---------- */
+.qa-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:1rem 0 1.2rem}
+.qa-tools input{flex:1 1 240px;font:500 .95rem var(--f-sans);color:var(--fg);background:var(--card);border:1px solid var(--line-2);border-radius:10px;padding:.65rem .85rem;min-width:0}
+.qa-tools .count{font:500 .8rem var(--f-mono);color:var(--muted-fg)}
+.qa-group{margin-top:2rem}
+.qa-group>h3{margin-top:0;display:flex;gap:.6rem;align-items:baseline}
+.qa-group>h3 small{font:500 .78rem var(--f-mono);color:var(--muted-fg)}
+details.qa{border:1px solid var(--line-2);border-radius:10px;background:var(--card);margin:.5rem 0;max-width:86ch}
+details.qa>summary{cursor:pointer;list-style:none;padding:.75rem 2.6rem .75rem 1rem;font-weight:700;position:relative;line-height:1.4}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::after{content:"+";position:absolute;right:1rem;top:.55rem;font:500 1.3rem var(--f-mono);color:var(--brand-text)}
+details.qa[open]>summary::after{content:"\2212"}
+details.qa[open]>summary{border-bottom:1px solid var(--line)}
+details.qa .a{padding:.8rem 1rem .9rem}
+details.qa .a p{margin:0 0 .6em}
+details.qa .a>:last-child{margin-bottom:0}
+details.qa .a .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:.6rem}
+details.qa[hidden]{display:none}
+
+/* ---------- misc ---------- */
+.kv{display:grid;grid-template-columns:auto 1fr;gap:.35rem 1rem;margin:.6rem 0 1rem;max-width:80ch}
+.kv dt{font:600 .8rem var(--f-mono);color:var(--brand-text);padding-top:.15rem}
+.kv dd{margin:0}
+.steps{counter-reset:s;list-style:none;padding:0;max-width:80ch}
+.steps>li{counter-increment:s;position:relative;padding:.1rem 0 .1rem 2.6rem;margin:.7rem 0}
+.steps>li::before{content:counter(s);position:absolute;left:0;top:0;width:1.9rem;height:1.9rem;border-radius:50%;background:var(--brand-bg);border:1px solid var(--brand-bd);color:var(--brand-text);display:grid;place-items:center;font:600 .85rem var(--f-mono)}
+.foot{margin-top:4rem;padding-top:1.5rem;border-top:1px solid var(--line);color:var(--muted-fg);font-size:.9rem}
+.nowrap{white-space:nowrap}
+@media print{
+  .topbar,aside.toc,.btn,.copy{display:none!important}
+  .shell{display:block}
+  details.qa .a{display:block}
+  body{font-size:12px}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<a class="sr" href="#start">Skip to content</a>
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="#top"><i>e</i> <span>exifleak<span class="long"> study guide</span></span></a>
+    <span class="spacer"></span>
+    <details class="toc-m">
+      <summary class="btn" aria-label="Open contents">Contents</summary>
+      <nav class="toc-pop" aria-label="Contents (mobile)" id="toc-m"></nav>
+    </details>
+    <button class="btn" id="theme" type="button" aria-label="Change colour theme">Theme: auto</button>
+  </div>
+</header>
+
+<div class="hero" id="top">
+  <div class="hero-in">
+    <div class="kicker">Shell scripting / M.E. CyberSecurity</div>
+    <h1>Understand exifleak from every angle.</h1><br>
+    <p class="lead">Diagrams, a full code walk, the limits, and a bank of likely questions. All in simple technical English.</p>
+    <ul class="chips">
+      <li><b>Script</b> 87 lines, Bash</li>
+      <li><b>Talk</b> 9 slides, about 4:15</li>
+      <li><b>Tested</b> macOS, bash 3.2.57, ExifTool 13.55</li>
+      <li><b>Diagrams</b> <span id="dg-count">0</span> (Mermaid)</li>
+    </ul>
+  </div>
+</div>
+
+<div class="shell">
+<aside class="toc" aria-label="Contents">
+  <div class="toc-title">Contents</div>
+  <nav id="toc"></nav>
+</aside>
+<main id="main">
+
+<!-- ================= 00 START ================= -->
+<section class="sec" id="start" data-num="00" data-toc="Start here">
+  <h2><span class="num">00</span> Start here</h2>
+  <p class="intro">Read this part first. It gives you the whole talk on one page. The other parts go deeper.</p>
+
+  <h3>How to trust each statement</h3>
+  <p>Each important fact has a label. The label tells you where the fact comes from.</p>
+  <dl class="kv">
+    <dt><span class="b b-deck">Deck</span></dt><dd>The slides or the speaker notes say it.</dd>
+    <dt><span class="b b-tested">Tested</span></dt><dd>I ran it on this Mac. The tools were bash 3.2.57 and ExifTool 13.55. The date was 16 October 2026.</dd>
+    <dt><span class="b b-source">Source</span></dt><dd>An outside page says it. A link is next to it.</dd>
+    <dt><span class="b b-analysis">Analysis</span></dt><dd>This is my reading of the code. The deck does not say it. Present it as your own view.</dd>
+  </dl>
+  <div class="co co-note">
+    <span class="t">Writing style</span>
+    <p>The text follows the ASD-STE100 rules as far as possible. Sentences are short. Each sentence has one idea. Each word has one meaning. This is not an official check. Technical names such as <code>grep</code> and <code>awk</code> stay as they are.</p>
+    <p>Fixed terms: a <b>tag</b> is the name of a metadata item, for example <code>Artist</code>. A <b>value</b> is the data of a tag. A <b>leak</b> is a tag that tells a reader something private. A <b>detector</b> is a function that looks for one type of leak. To <b>scan</b> is to run the script without <code>-s</code>. To <b>scrub</b> is to run it with <code>-s</code>.</p>
+  </div>
+
+  <h3>The talk in 60 seconds</h3>
+  <ol class="steps">
+    <li>A photo file holds two things: the pixels, and a hidden <b>EXIF block</b>.</li>
+    <li>The camera writes the block. It can hold the place, the device, the serial number, a name, and the software.</li>
+    <li>Email, cloud links, AirDrop, and "send as document" keep the block. Instagram, Facebook, X, and Signal usually remove it on upload.</li>
+    <li>The block has already hurt people. The slides show four cases and one research paper.</li>
+    <li><b>exifleak</b> is a Bash script of 87 lines. It runs <code>exiftool</code> one time for each file. Then it runs one small function for each type of leak.</li>
+    <li>It prints one <code>[TAG]</code> line for each leak: LOCATION, DEVICE, IDENTITY, SOFTWARE. It also turns the GPS numbers into a map link.</li>
+    <li>With the <code>-s</code> flag, it removes all metadata from the file, in place.</li>
+    <li>It has limits. It reads ExifTool's label text. It scans one folder level. The wipe is not total for every format. ExifTool itself had security bugs.</li>
+    <li>The habit to keep: share the scrubbed copy, never the original.</li>
+  </ol>
+
+  <figure class="diagram" data-title="The big picture" data-minw="430">
+    <script type="text/plain" class="mm">
+flowchart TD
+  A["Phone or camera<br/>takes a photo"]:::blue --> B["JPEG file<br/>pixels + EXIF block"]:::blue
+  B --> C{"How do you<br/>share the file?"}
+  C -->|"email, cloud link,<br/>AirDrop, as document"| D["EXIF block stays<br/>in the file"]:::bad
+  C -->|"upload to Instagram,<br/>Facebook, X, Signal"| E["Platform usually removes<br/>the EXIF block"]:::ok
+  D --> F["Any reader runs a tool<br/>and reads the tags"]:::bad
+  F --> G["Place, device, name<br/>and software leak"]:::bad
+  B --> H["exifleak scan<br/>shows the leaks"]:::ok
+  H --> I["exifleak -s<br/>wipes the tags"]:::ok
+  I --> J["Share the<br/>scrubbed copy"]:::ok
+    </script>
+    <figcaption><span class="cap-t">The whole story in one picture.</span>
+      <span class="inwords">In words: the camera writes the block. Some ways of sharing keep it, and then any reader can see it. exifleak finds the leaks and wipes them. You share the wiped copy.</span></figcaption>
+  </figure>
+
+  <h3>Numbers to remember</h3>
+  <div class="grid g4">
+    <div class="card stat"><b>87</b><span>lines in <code>exifleak.sh</code></span></div>
+    <div class="card stat"><b>4</b><span>detector functions</span></div>
+    <div class="card stat"><b>6</b><span>tag look-ups with <code>show</code>, plus 1 map link</span></div>
+    <div class="card stat"><b>1</b><span><code>exiftool</code> call for each file when you scan</span></div>
+    <div class="card stat"><b>9</b><span>slides</span></div>
+    <div class="card stat"><b>4:15</b><span>timed length of the notes (5 minute cap)</span></div>
+    <div class="card stat"><b>5</b><span>clicks in the whole deck</span></div>
+    <div class="card stat"><b>11 m</b><span>precision of 4 decimal places in the map link <span class="b b-analysis">Analysis</span></span></div>
+  </div>
+
+  <h3>Answers at three lengths</h3>
+  <div class="say"><span class="t">10 seconds</span><p>exifleak is a small Bash script. It shows what a photo tells about you, and it can remove that data.</p></div>
+  <div class="say"><span class="t">30 seconds</span><p>A photo carries a hidden block called EXIF. It can hold your location, your phone, its serial number, and your name. Many apps keep it when you share the file. exifleak reads the block with ExifTool and prints each leak with a tag. One flag wipes the block.</p></div>
+  <div class="say"><span class="t">2 minutes</span><p>Add the cases: geotagged photos helped attackers find four Apache helicopters in 2007. Then add the design: one function for each type of leak, all named in one variable. One helper, <code>show</code>, prints every line. Location needs <code>awk</code> to turn degrees, minutes, and seconds into decimal numbers for a map link. End with the limits. It depends on ExifTool's label text. It scans one folder level. It can print "clean" when it did not read the file.</p></div>
+</section>
+
+<!-- ================= 01 CONCEPTS ================= -->
+<section class="sec" id="concepts" data-num="01" data-toc="Concepts">
+  <h2><span class="num">01</span> Concepts you need</h2>
+  <p class="intro">Learn these ideas first. The code is simple when the ideas are clear.</p>
+
+  <h3>Metadata and EXIF</h3>
+  <p>Metadata is data about data. A photo has pixels. It also has facts about the photo: when, where, and with which device.</p>
+  <p>EXIF is one standard for these facts. The name means <i>Exchangeable image file format</i>. Cameras and phones write it into JPEG files and other image files. The newest version, Exif 3.0, adds UTF-8 text <span class="b b-source">Source</span> <a href="https://iptc.org/news/exif-3-0-released-featuring-utf-8-support/" target="_blank" rel="noopener">IPTC</a>.</p>
+  <p>The slide shows five lines that the script hunts: <code>GPS Position</code>, <code>Camera Model Name</code>, <code>Serial Number</code>, <code>Artist</code>, and <code>Software</code> <span class="b b-deck">Deck</span>. The script also reads <code>Owner Name</code> <span class="b b-tested">Tested</span>.</p>
+
+  <h3>Where the block sits in a JPEG</h3>
+  <p>A JPEG file is a list of segments. Each segment starts with a marker. The EXIF block lives in an <code>APP1</code> segment. Inside it, the data uses the TIFF layout: one header, then tables called IFDs (image file directories). The GPS data has its own IFD.</p>
+  <figure class="diagram" data-title="Inside a JPEG file" data-minw="460">
+    <script type="text/plain" class="mm">
+flowchart TD
+  subgraph FILE["One JPEG file, from first byte to last byte"]
+    direction TB
+    S["SOI<br/>start of image"]:::mute --> J["APP0 JFIF<br/>basic header"]:::mute
+    J --> X["APP1 EXIF<br/>the EXIF block"]:::bad
+    X --> P["APP1 XMP and APP13 IPTC<br/>other metadata, if present"]:::warn
+    P --> T["Tables and frame header<br/>how to decode"]:::mute
+    T --> D["Compressed pixel data"]:::blue
+    D --> E["EOI<br/>end of image"]:::mute
+  end
+  X --> H["TIFF header<br/>byte order II or MM"]:::bad
+  H --> I0["IFD0<br/>Make, Model, Software, Artist"]:::bad
+  H --> IE["EXIF IFD<br/>date, lens, owner, serial"]:::bad
+  H --> IG["GPS IFD<br/>latitude, longitude, letters"]:::bad
+  H --> I1["IFD1<br/>thumbnail"]:::bad
+    </script>
+    <figcaption><span class="cap-t">The EXIF block is a small file inside the JPEG.</span>
+      <span class="inwords">In words: the JPEG has markers and segments. The EXIF block is one segment. It has its own header and its own tables. Pixels are in a different segment. The order of segments in real files can differ.</span></figcaption>
+  </figure>
+  <p>ExifTool prints the byte order of the block. In my test file it printed <code>Exif Byte Order : Big-endian (Motorola, MM)</code> <span class="b b-tested">Tested</span>. <code>MM</code> means big-endian. <code>II</code> means little-endian.</p>
+
+  <h3>The metadata families</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Family</th><th>Where in the JPEG</th><th>Who writes it</th><th>Example tags</th><th>Does exifleak see it?</th></tr></thead>
+    <tbody>
+      <tr><td class="k"><b>EXIF</b></td><td>APP1</td><td>Camera, phone, editors</td><td><code>Make</code>, <code>Camera Model Name</code>, <code>Software</code>, <code>Artist</code>, GPS tags</td><td>Only 6 tag names. <code>Make</code>, <code>Lens Model</code>, <code>Host Computer</code>, <code>Copyright</code>, and dates are not read <span class="b b-tested">Tested</span></td></tr>
+      <tr><td class="k"><b>XMP</b></td><td>APP1 (own name space)</td><td>Editors and apps</td><td><code>Creator</code>, <code>Rights</code></td><td>No. An XMP <code>Creator</code> printed "clean" <span class="b b-tested">Tested</span></td></tr>
+      <tr><td class="k"><b>IPTC</b></td><td>APP13</td><td>News and photo tools</td><td><code>By-line</code>, <code>Caption</code>, <code>Keywords</code></td><td>No. An IPTC <code>By-line</code> printed "clean" <span class="b b-tested">Tested</span></td></tr>
+      <tr><td class="k"><b>JFIF</b></td><td>APP0</td><td>The encoder</td><td><code>X Resolution</code>, <code>Resolution Unit</code></td><td>No</td></tr>
+      <tr><td class="k"><b>Thumbnail</b></td><td>Inside the EXIF block (IFD1)</td><td>Camera</td><td><code>ThumbnailImage</code></td><td>No. But <code>-s</code> removes it <span class="b b-tested">Tested</span></td></tr>
+      <tr><td class="k"><b>File data</b></td><td>The file system, not the JPEG</td><td>The operating system</td><td>File name, size, dates</td><td>No. <code>-s</code> does not remove it <span class="b b-tested">Tested</span></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>GPS: from degrees to a map link</h3>
+  <p>The GPS IFD stores a latitude as three numbers and one letter. The numbers are degrees, minutes, and seconds. The letter is <code>N</code> or <code>S</code>. Longitude works the same way with <code>E</code> or <code>W</code>.</p>
+  <p>A map link needs one decimal number for each axis. One degree has 60 minutes. One minute has 60 seconds. So one degree has 3600 seconds. This is why the script divides by 60 and by 3600.</p>
+  <figure class="diagram" data-title="From degrees, minutes, seconds to decimal" data-minw="430">
+    <script type="text/plain" class="mm">
+flowchart TD
+  A["EXIF stores 3 numbers and 1 letter<br/>13 deg, 21 min, 9.00 sec, N"]:::blue
+  A --> B["degrees<br/>13"]
+  A --> C["minutes<br/>21 / 60 = 0.35"]
+  A --> D["seconds<br/>9.00 / 3600 = 0.0025"]
+  B --> S["13 + 0.35 + 0.0025<br/>= 13.3525"]:::ok
+  C --> S
+  D --> S
+  S --> Q{"Letter is<br/>S or W?"}
+  Q -->|yes| N["Put a minus sign<br/>in front"]:::warn
+  Q -->|no| P["Keep the number"]:::ok
+  N --> U["Map link<br/>maps.google.com/?q=lat,lon"]:::blue
+  P --> U
+    </script>
+    <figcaption><span class="cap-t">The same sum is in the <code>awk</code> code.</span>
+      <span class="inwords">In words: add the degrees, the minutes divided by 60, and the seconds divided by 3600. If the letter is S or W, the result is negative. Then put the two numbers in a map link.</span></figcaption>
+  </figure>
+  <div class="tw"><table>
+    <thead><tr><th>Input from ExifTool</th><th>Latitude sum</th><th>Longitude sum</th><th>Result for the link</th></tr></thead>
+    <tbody>
+      <tr><td><code>13 deg 21' 9.00" N, 74 deg 47' 34.08" E</code> <span class="b b-deck">Deck</span></td><td>13 + 21/60 + 9/3600 = 13.3525</td><td>74 + 47/60 + 34.08/3600 = 74.7928</td><td><code>13.3525,74.7928</code></td></tr>
+      <tr><td><code>33 deg 52' 4.00" S, 151 deg 12' 30.00" W</code> <span class="b b-tested">Tested</span></td><td>33.8678, then the sign flips</td><td>151.2083, then the sign flips</td><td><code>-33.8678,-151.2083</code></td></tr>
+    </tbody>
+  </table></div>
+  <p><b>Precision.</b> The script prints four decimal places. One step of 0.0001 degree of latitude is about 11 metres <span class="b b-analysis">Analysis</span>. That is enough to point at one house.</p>
+  <p><b>GPS Position.</b> ExifTool builds the <code>GPS Position</code> line from the separate latitude and longitude tags. It is a <i>composite</i> tag. It appeared in my test output after the separate tags <span class="b b-tested">Tested</span>.</p>
+
+  <h3>Who keeps the block, and who removes it</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Way to share</th><th>Usually</th><th>Slide</th></tr></thead>
+    <tbody>
+      <tr><td>Email</td><td><b>kept</b></td><td rowspan="4" class="k">"Usually kept" <span class="b b-deck">Deck</span></td></tr>
+      <tr><td>Cloud links</td><td><b>kept</b></td></tr>
+      <tr><td>AirDrop</td><td><b>kept</b></td></tr>
+      <tr><td>Sent as document</td><td><b>kept</b></td></tr>
+      <tr><td>Instagram, Facebook, X, Signal</td><td><b>removed on upload</b></td><td class="k">"Usually stripped on upload" <span class="b b-deck">Deck</span></td></tr>
+    </tbody>
+  </table></div>
+  <div class="co co-warn">
+    <span class="t">Do not claim more than the deck</span>
+    <p>The word is "usually". Behaviour changes with the app and its version. The README says: test with your own file <span class="b b-source">Source</span>. The deck says the platforms strip the EXIF block on upload. It does not say what the platform keeps on its servers <span class="b b-analysis">Analysis</span>.</p>
+  </div>
+
+  <h3>What is ExifTool?</h3>
+  <p>ExifTool is a free command-line program by Phil Harvey. It reads and writes metadata in many file types. exifleak does not parse EXIF bytes itself. It asks <code>exiftool</code> for the text and works on that text.</p>
+  <p>This choice has a result. The script is short, and it works for many file types. But the script depends on the label text that ExifTool prints. If ExifTool changes a label, a <code>grep</code> in the script can fail.</p>
+</section>
+
+<!-- ================= 02 WHY ================= -->
+<section class="sec" id="why" data-num="02" data-toc="Why it matters">
+  <h2><span class="num">02</span> Why it matters</h2>
+  <p class="intro">This part answers the question "is this a real problem?". Use the cases as proof.</p>
+
+  <figure class="diagram" data-title="Cases on slide 3" data-minw="460">
+    <script type="text/plain" class="mm">
+timeline
+  title Cases on slide 3
+  2007 : US Army in Iraq
+       : Geotagged photos help attackers find four Apache helicopters
+  2010 : Adam Savage tweets a photo of his car
+       : Friedland and Sommer publish the geotag study
+  2012 : The Army tells the public about the Apache case
+       : Higinio Ochoa is traced with a photo
+       : A photo of John McAfee shows Guatemala
+    </script>
+    <figcaption><span class="cap-t">Five events, in time order.</span>
+      <span class="inwords">In words: the first harm was in 2007. The public learned of it in 2012. Savage and the research paper are from 2010. Ochoa and McAfee are from 2012.</span></figcaption>
+  </figure>
+
+  <div class="grid g2">
+    <div class="card"><span class="yr">2007</span><h4>US Army, Iraq</h4>
+      <p>Geotagged flightline photos helped attackers find four new Apache helicopters. Mortars destroyed them. The Army disclosed it in 2012.</p>
+      <p class="src"><span class="b b-deck">Deck</span> <a href="https://www.itnews.com.au/news/apaches-destroyed-using-geotagged-photo-data-293745" target="_blank" rel="noopener">iTnews, 2012</a> · <a href="https://www.military.com/defensetech/2012/03/15/insurgents-used-cell-phone-geotags-to-destroy-ah-64s-in-iraq" target="_blank" rel="noopener">Military.com, 2012</a></p></div>
+    <div class="card"><span class="yr">2010</span><h4>Adam Savage</h4>
+      <p>He tweeted a photo of his car outside his home, with the words "off to work". The geotag gave the address.</p>
+      <p class="src"><span class="b b-deck">Deck</span> <a href="https://www.benton.org/headlines/web-photos-reveal-secrets-where-you-live" target="_blank" rel="noopener">NYT via Benton, Aug 2010</a></p></div>
+    <div class="card"><span class="yr">2012</span><h4>Higinio Ochoa</h4>
+      <p>The FBI says the GPS data in a photo of his girlfriend pointed to her home in Australia. He was arrested in March.</p>
+      <p class="src"><span class="b b-deck">Deck</span> <a href="https://www.computerworld.com/article/1432091/embedded-data-not-breasts-brought-down-hacker-2.html" target="_blank" rel="noopener">Computerworld, 2012</a> · These are allegations, as reported.</p></div>
+    <div class="card"><span class="yr">2012</span><h4>John McAfee</h4>
+      <p>A published photo carried GPS data that put him in Guatemala. He was arrested two days later. He later said he faked the data.</p>
+      <p class="src"><span class="b b-deck">Deck</span> <a href="https://thenextweb.com/insider/2012/12/03/it-gets-stranger-now-mcafee-claims-that-he-falsely-edited-the-metadata-on-the-photo-that-placed-him-in-guatemala/" target="_blank" rel="noopener">The Next Web, 2012</a></p></div>
+  </div>
+  <div class="card">
+    <span class="yr">Research · 2010</span><h4>Friedland and Sommer, HotSec 2010</h4>
+    <p>Geotags on Craigslist, YouTube, and Twitter revealed homes and away-times. The paper title is "Cybercasing the Joint".</p>
+    <p class="src"><span class="b b-deck">Deck</span> <a href="https://www.usenix.org/conference/hotsec10/cybercasing-joint-privacy-implications-geo-tagging" target="_blank" rel="noopener">USENIX HotSec 2010</a></p>
+  </div>
+  <div class="co co-warn">
+    <span class="t">Handle disputed claims with care</span>
+    <p>Say "the FBI says" for Ochoa. Say "he later claimed he faked it" for McAfee. These words match the slide and the README. Do not state them as plain fact.</p>
+  </div>
+
+  <h3>How an attacker uses one photo</h3>
+  <figure class="diagram" data-title="From photo to street view" data-minw="560">
+    <script type="text/plain" class="mm">
+sequenceDiagram
+  autonumber
+  actor P as Person
+  participant C as Phone camera
+  participant S as Share channel
+  actor V as Viewer, the attacker
+  participant X as ExifTool
+  participant M as Map service
+  P->>C: Take a photo at home
+  C->>C: Write GPS, model, serial number in EXIF
+  P->>S: Send the file by email or cloud link
+  S->>V: Deliver the same file bytes
+  V->>X: Run exiftool on the file
+  X-->>V: GPS Position, model, serial number
+  V->>M: Open a map link with the numbers
+  M-->>V: See the place
+    </script>
+    <figcaption><span class="cap-t">No hacking is needed. The reader only needs the file.</span>
+      <span class="inwords">In words: the phone writes the tags. The channel delivers the same bytes. The reader runs a tool and gets the numbers. A map shows the place.</span></figcaption>
+  </figure>
+
+  <h3>What each leak tells a reader</h3>
+  <figure class="diagram" data-title="Leak types" data-minw="440">
+    <script type="text/plain" class="mm">
+mindmap
+  root((EXIF leak))
+    LOCATION
+      Home or work place
+      Away times
+      Map link in seconds
+    DEVICE
+      Phone or camera model
+      Serial number links photos
+    IDENTITY
+      Artist field
+      Owner name
+    SOFTWARE
+      System or editor version
+      Old version may have known bugs
+    </script>
+    <figcaption><span class="cap-t">The four types in the script.</span>
+      <span class="inwords">In words: the script groups leaks by what they tell. Place, device, person, and software. The notes on serial numbers and old versions are my reading <span class="b b-analysis">Analysis</span>.</span></figcaption>
+  </figure>
+  <div class="tw"><table>
+    <thead><tr><th>Detector</th><th>Tag text it looks for</th><th>Label printed</th><th>What a reader learns</th></tr></thead>
+    <tbody>
+      <tr><td><code>detect_location</code></td><td><code>GPS Position</code> (and a computed map link)</td><td><code>[LOCATION]</code></td><td>Where the photo was taken</td></tr>
+      <tr><td><code>detect_device</code></td><td><code>Camera Model</code>, <code>Serial Number</code></td><td><code>[DEVICE]</code></td><td>Which device took it. Same serial number means same device</td></tr>
+      <tr><td><code>detect_identity</code></td><td><code>Artist</code>, <code>Owner Name</code></td><td><code>[IDENTITY]</code></td><td>A name</td></tr>
+      <tr><td><code>detect_software</code></td><td><code>Software</code></td><td><code>[SOFTWARE]</code></td><td>The system or editor, and its version</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Threat model in five questions</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Question</th><th>Answer</th></tr></thead>
+    <tbody>
+      <tr><td class="k">Who is the reader?</td><td>Anyone who gets the file, or a copy of it, and runs a tool such as <code>exiftool</code>.</td></tr>
+      <tr><td class="k">What do they need?</td><td>The file with its EXIF block. They do not need a password or an exploit.</td></tr>
+      <tr><td class="k">What do you lose?</td><td>Privacy: your place, your habits, your device, and your name.</td></tr>
+      <tr><td class="k">What does exifleak do?</td><td>It finds the tags, prints them, and can erase them.</td></tr>
+      <tr><td class="k">What does it not do?</td><td>It does not hide what the picture shows. It does not change the file name. It cannot recall copies that you already sent <span class="b b-analysis">Analysis</span>.</td></tr>
+    </tbody>
+  </table></div>
+  <div class="co co-tip">
+    <span class="t">EXIF is evidence, not proof</span>
+    <p>Anyone can write any tag with one command. I wrote the GPS tags of my test photo this way <span class="b b-tested">Tested</span>. McAfee said he faked the data <span class="b b-deck">Deck</span>. So a map link from EXIF is a lead. It is not proof.</p>
+  </div>
+</section>
+
+<!-- ================= 03 DESIGN ================= -->
+<section class="sec" id="design" data-num="03" data-toc="Design" >
+  <h2><span class="num">03</span> Design: one job per function</h2>
+  <p class="intro">Slide 4 shows the design in four steps. This part shows the same design in more detail.</p>
+
+  <h3>The four steps</h3>
+  <figure class="diagram" data-title="Four steps" data-minw="440">
+    <script type="text/plain" class="mm">
+flowchart TD
+  A["01 files<br/>for loop over the arguments<br/>a file, or every image in a folder"]:::blue --> B["02 fetch<br/>meta=$(exiftool FILE)<br/>one call, kept in a variable"]:::blue
+  B --> C["03 detect<br/>for d in DETECTORS: run d"]:::ok
+  C --> C1["detect_location"]:::mute
+  C --> C2["detect_device"]:::mute
+  C --> C3["detect_identity"]:::mute
+  C --> C4["detect_software"]:::mute
+  C1 --> D["04 report<br/>show prints one [TAG] line"]:::ok
+  C2 --> D
+  C3 --> D
+  C4 --> D
+    </script>
+    <figcaption><span class="cap-t">The loop never names a check.</span>
+      <span class="inwords">In words: the script reads the file one time and keeps the text. Then it runs each detector in the list. Each detector asks <code>show</code> to print its lines.</span></figcaption>
+  </figure>
+  <p class="co co-tip" style="padding:.8rem 1rem"><b>The key sentence on slide 4:</b> a new check is one function and one name in <code>DETECTORS</code> <span class="b b-deck">Deck</span>.</p>
+
+  <h3>Who calls whom</h3>
+  <figure class="diagram" data-title="Parts of the script" data-minw="520">
+    <script type="text/plain" class="mm">
+flowchart TD
+  M["main code<br/>lines 58 to 87"]:::blue
+  M -->|"action is inspect"| I["inspect FILE<br/>lines 41 to 51"]:::ok
+  M -->|"action is scrub (flag -s)"| S["scrub FILE<br/>lines 53 to 56"]:::warn
+  I --> X["exiftool FILE<br/>read all tags as text"]:::mute
+  S --> X2["exiftool -overwrite_original -all= FILE<br/>erase all tags"]:::mute
+  I -->|"for d in DETECTORS"| D1["detect_location"]
+  I --> D2["detect_device"]
+  I --> D3["detect_identity"]
+  I --> D4["detect_software"]
+  D1 --> SH["show LABEL TAG<br/>lines 8 to 13"]:::blue
+  D2 --> SH
+  D3 --> SH
+  D4 --> SH
+  D1 --> AW["grep, cut, tr, awk pipeline<br/>makes the map link"]:::blue
+  SH --> OUT["stdout<br/>[LABEL] line"]:::ok
+  AW --> OUT
+    </script>
+    <figcaption><span class="cap-t">Two actions, four detectors, one helper.</span>
+      <span class="inwords">In words: main code picks <code>inspect</code> or <code>scrub</code>. <code>inspect</code> calls every detector. Every detector uses <code>show</code>. Only <code>detect_location</code> also builds a map link with a longer pipeline.</span></figcaption>
+  </figure>
+
+  <h3>How the list becomes calls</h3>
+  <p>The list is a string. The shell cuts the string into words. Each word is the name of a function. The variable <code>$d</code> holds one name at a time. Then the shell runs it as a command.</p>
+  <figure class="diagram" data-title="Run time dispatch" data-minw="560">
+    <script type="text/plain" class="mm">
+sequenceDiagram
+  autonumber
+  participant I as inspect
+  participant S as bash shell
+  participant D as detect_device
+  participant H as show
+  I->>S: report is the output of the loop over DETECTORS
+  S->>S: Cut DETECTORS into four words
+  S->>D: d is detect_device, so run d as a command
+  D->>H: show DEVICE "Camera Model"
+  H-->>D: prints one DEVICE line
+  D->>H: show DEVICE "Serial Number"
+  H-->>D: prints one DEVICE line
+  D-->>S: ends, its output joins the report
+  S-->>I: report holds the lines of all detectors
+    </script>
+    <figcaption><span class="cap-t">One name in the list becomes one function call.</span>
+      <span class="inwords">In words: the shell splits the list. It runs each name. The names print lines to standard output. The shell collects all the lines in <code>report</code>.</span></figcaption>
+  </figure>
+
+  <h3>How to add a detector</h3>
+  <p>Add a time detector. You change two places. Everything else stays the same.</p>
+  <ol class="steps">
+    <li>Write the function above <code>inspect</code>.</li>
+    <li>Add its name to the <code>DETECTORS</code> string.</li>
+  </ol>
+<pre class="hl copyable"><code>detect_time() {
+    show TIME "Date/Time Original"
+}
+
+DETECTORS="detect_location detect_device detect_identity detect_software detect_time"</code></pre>
+  <p>Result on my test photo: <code>[TIME] Date/Time Original : 2026:10:16 09:30:00</code> <span class="b b-tested">Tested</span>. To remove a check, delete its name from the string.</p>
+
+  <h3>Design choices and their cost</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Choice</th><th>Reason</th><th>Cost</th></tr></thead>
+    <tbody>
+      <tr><td>Call <code>exiftool</code> one time and keep the text in <code>$meta</code></td><td>One process, one source of truth. All detectors see the same text.</td><td>Every detector must parse text.</td></tr>
+      <tr><td>One function for each leak type</td><td>Each check is small. You can add or remove one without a change to the loop.</td><td>More names to keep in step.</td></tr>
+      <tr><td>A <code>DETECTORS</code> list</td><td>The loop does not name any check <span class="b b-deck">Deck</span>.</td><td>The names are text. A wrong name gives a "command not found" error at run time <span class="b b-analysis">Analysis</span>.</td></tr>
+      <tr><td>One <code>show</code> helper</td><td>The <code>grep | head | tr</code> chain exists once.</td><td>It matches the start of a line only.</td></tr>
+      <tr><td>Detectors print text and do not return it</td><td>A shell function returns only a number from 0 to 255. Text goes out through standard output <span class="b b-analysis">Analysis</span>.</td><td>You cannot tell output from error text by the return value.</td></tr>
+      <tr><td>Save the report, then check if it is empty</td><td>The script must print "clean" when nothing was found.</td><td>Output appears only after all detectors end.</td></tr>
+      <tr><td>The <code>$action</code> variable</td><td>The same loop serves scan and scrub.</td><td>An indirect call is harder to read.</td></tr>
+      <tr><td>No <code>set -e</code></td><td>An earlier draft ended the scan at the first photo without a <code>Software</code> tag <span class="b b-source">README</span>.</td><td>An error does not stop the script.</td></tr>
+      <tr><td>A string, no <code>declare -A</code>, no <code>globstar</code></td><td>macOS ships bash 3.2. The script runs on 3.2 and on 5 <span class="b b-deck">Deck</span>.</td><td>Less power than bash 4.</td></tr>
+      <tr><td>Plain tools: <code>echo</code>, <code>grep</code>, <code>awk</code></td><td>Everyone knows them. The talk topic is shell scripting.</td><td>The script breaks if ExifTool changes a label.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Variables and scope</h3>
+  <p>The script does not use <code>local</code>. All variables are global. Functions share them. This is how <code>show</code> can read <code>$meta</code> without an argument <span class="b b-analysis">Analysis</span>.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Name</th><th>Set at line</th><th>Read at line</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>DETECTORS</code></td><td>6</td><td>45</td><td>The list of detector names. Set one time.</td></tr>
+      <tr><td><code>meta</code></td><td>42</td><td>9, 17</td><td>All ExifTool text for the current file. Each call to <code>inspect</code> replaces it.</td></tr>
+      <tr><td><code>line</code></td><td>9</td><td>10, 11</td><td>The one line that <code>show</code> found.</td></tr>
+      <tr><td><code>maps</code></td><td>17</td><td>22, 23</td><td>The two numbers for the map link. It is not the whole link.</td></tr>
+      <tr><td><code>report</code></td><td>45</td><td>46, 49</td><td>All lines that the detectors printed.</td></tr>
+      <tr><td><code>d</code></td><td>45</td><td>45</td><td>One detector name at a time.</td></tr>
+      <tr><td><code>action</code></td><td>70, 72</td><td>82, 85</td><td>The name of the function to run: <code>inspect</code> or <code>scrub</code>.</td></tr>
+      <tr><td><code>target</code></td><td>77</td><td>79 to 85</td><td>One command-line argument at a time.</td></tr>
+      <tr><td><code>file</code></td><td>80</td><td>82</td><td>One file from the folder pattern.</td></tr>
+      <tr><td><code>$1</code>, <code>$2</code></td><td>by the call</td><td>inside each function</td><td>Inside a function, they are the arguments of that function. In <code>show</code>: label and tag. In <code>inspect</code> and <code>scrub</code>: the file.</td></tr>
+    </tbody>
+  </table></div>
+  <figure class="diagram" data-title="Subshell and variables" data-minw="520">
+    <script type="text/plain" class="mm">
+flowchart TD
+  subgraph MAIN["Main shell"]
+    A["inspect sets meta"]:::blue --> B["report = output of $( ... )"]:::blue
+  end
+  subgraph SUB["Subshell made by $( ), a copy of the main shell"]
+    C["for d in DETECTORS: run d"]:::ok --> D["show sets line<br/>detect_location sets maps"]:::ok
+  end
+  B --> C
+  D -->|"only standard output returns"| B
+  D -.->|"line and maps stay inside"| X["Not visible later<br/>in the main shell"]:::mute
+    </script>
+    <figcaption><span class="cap-t">What comes back from <code>$( )</code> is text, not variables.</span>
+      <span class="inwords">In words: the loop runs in a copy of the shell. The copy sees <code>meta</code>. The lines it prints come back. The variables it sets do not come back. The script does not need them later.</span></figcaption>
+  </figure>
+</section>
+
+<!-- ================= 04 CODE WALK ================= -->
+<section class="sec" id="code" data-num="04" data-toc="Code walk">
+  <h2><span class="num">04</span> The code, line by line</h2>
+  <p class="intro">This part explains every line of <code>exifleak.sh</code>. The code shown here is read from the real file <span class="b b-tested">Tested</span>. Click a line number in the listing to jump to its row.</p>
+
+  <h3>The whole script</h3>
+  <div class="listing" id="listing" aria-label="Full source of exifleak.sh with line numbers"></div>
+  <p>Where the 75 non-blank lines go:</p>
+  <figure class="diagram" data-title="Where the lines go" data-minw="400">
+    <script type="text/plain" class="mm">
+pie showData title Non-blank lines in the script (75)
+  "Header and DETECTORS" : 5
+  "show helper" : 6
+  "4 detectors" : 22
+  "inspect" : 11
+  "scrub" : 4
+  "main code" : 27
+    </script>
+    <figcaption><span class="cap-t">More than a third of the script is argument handling.</span>
+      <span class="inwords">In words: the main code (27 lines) is the biggest part. It checks arguments, checks for ExifTool, reads the flag, and loops. The detectors are 22 lines. I counted lines with <code>awk</code> on the file <span class="b b-tested">Tested</span>.</span></figcaption>
+  </figure>
+
+  <h3>Definition order is not run order</h3>
+  <p>A new reader often asks: "where does it start?". The answer: at line 58. Lines 1 to 56 only <i>define</i> things. Bash reads them and stores them. It runs a function only when a line calls it.</p>
+  <figure class="diagram" data-title="Define first, run second" data-minw="520">
+    <script type="text/plain" class="mm">
+sequenceDiagram
+  autonumber
+  participant B as bash
+  participant F as stored functions
+  participant M as main code
+  Note over B,F: Phase 1, lines 1 to 56
+  B->>F: store show, the detect functions, inspect, scrub
+  B->>F: store the DETECTORS string
+  Note over B,M: Phase 2, lines 58 to 87
+  B->>M: check the arguments
+  B->>M: check that exiftool exists
+  B->>M: choose the action
+  loop each target
+    M->>F: call inspect or scrub
+    F-->>M: the function ends
+  end
+    </script>
+    <figcaption><span class="cap-t">The functions wait until the main code calls them.</span>
+      <span class="inwords">In words: first bash stores the definitions. Then it runs the main code. The main code calls <code>inspect</code> or <code>scrub</code>.</span></figcaption>
+  </figure>
+
+  <h3>The main flow</h3>
+  <figure class="diagram" data-title="Main flow of the script" data-minw="520">
+    <script type="text/plain" class="mm">
+flowchart TD
+  A(["Start: ./exifleak.sh args"]):::blue --> B{"Argument count<br/>is 0?"}
+  B -->|yes| U["Print the usage line<br/>exit 1"]:::bad
+  B -->|no| C["Run exiftool -ver<br/>hide all output"]
+  C --> D{"Exit status<br/>is not 0?"}
+  D -->|yes| E["Print: install exiftool first<br/>exit 1"]:::bad
+  D -->|no| F["action = inspect"]
+  F --> G{"First argument<br/>is -s?"}
+  G -->|yes| H["action = scrub<br/>shift drops -s"]:::warn
+  G -->|no| I["shopt -s extglob nocaseglob"]
+  H --> I
+  I --> J{"Another target<br/>in the list?"}
+  J -->|no| Z(["End"]):::blue
+  J -->|yes| K{"Target is<br/>a folder?"}
+  K -->|no| L["Run action on the target"]:::ok
+  K -->|yes| M["Expand the pattern<br/>folder/*.jpg, jpeg, png, heic, tiff"]
+  M --> N{"Another<br/>match?"}
+  N -->|no| J
+  N -->|yes| O{"Match is a<br/>regular file?"}
+  O -->|yes| P["Run action on the file"]:::ok
+  O -->|no| N
+  P --> N
+  L --> J
+    </script>
+    <figcaption><span class="cap-t">Two guards, one flag, two loops.</span>
+      <span class="inwords">In words: stop if there are no arguments. Stop if ExifTool is missing. Pick scan or scrub. For each target, run the action once if it is a file. If it is a folder, run the action on each image in it.</span></figcaption>
+  </figure>
+
+  <!-- ---- chunk A ---- -->
+  <div class="walk-h"><h4>A. The header and the list</h4><span class="rng">lines 1 to 6</span></div>
+  <div class="walk"><table><tbody>
+    <tr data-l="1"><td class="me"><p>The <b>shebang</b>. The two characters <code>#!</code> at the start tell the system which program runs the file. Here it is <code>/bin/bash</code>. On macOS this is bash 3.2. The script works on 3.2 and on 5.</p></td></tr>
+    <tr data-l="2"><td class="me"><p>A comment. The shell ignores all text after <code>#</code>. This line says what the script does.</p></td></tr>
+    <tr data-l="3"><td class="me"><p>Usage note. Give files and folders. The script reports.</p></td></tr>
+    <tr data-l="4"><td class="me"><p>Usage note. With <code>-s</code> the script wipes all metadata.</p></td></tr>
+    <tr data-l="6"><td class="me"><p>A string with four words. Each word is the name of a function. Spaces separate the words. The order of the words is the order of the report.</p><p>It is a string and not an array. This keeps the code simple and portable <span class="b b-analysis">Analysis</span>. The name is in capital letters because many parts use it.</p></td></tr>
+  </tbody></table></div>
+
+  <!-- ---- chunk B ---- -->
+  <div class="walk-h"><h4>B. The helper that prints</h4><span class="rng">lines 8 to 13</span></div>
+  <p><code>show</code> is the only code that prints a leak line. All four detectors use it. It takes two arguments: <code>$1</code> is the label, and <code>$2</code> is the start of the tag name.</p>
+  <div class="walk"><table><tbody>
+    <tr data-l="8"><td class="me"><p>Define the function <code>show</code>. The comment after it shows the call form: <code>show LABEL "Tag name"</code>.</p></td></tr>
+    <tr data-l="9"><td class="me"><p>The main line. Read it from left to right:</p>
+      <ul>
+        <li><code>echo "$meta"</code> prints all ExifTool text. The quotes keep the line breaks.</li>
+        <li><code>grep -i "^$2"</code> keeps lines that <i>start</i> with the tag text. <code>-i</code> ignores case. <code>^</code> means "start of line".</li>
+        <li><code>head -1</code> keeps only the first of those lines.</li>
+        <li><code>tr -s ' '</code> squeezes each run of spaces into one space.</li>
+        <li><code>line=$( ... )</code> saves the final text in the variable <code>line</code>.</li>
+      </ul></td></tr>
+    <tr data-l="10"><td class="me"><p>Test. <code>-n</code> is true when the text is <i>not empty</i>. If <code>grep</code> found nothing, <code>line</code> is empty and the script prints nothing.</p></td></tr>
+    <tr data-l="11"><td class="me"><p>Print two spaces, the label in square brackets, a space, and the line. The two spaces indent the lines under the file name.</p></td></tr>
+    <tr data-l="12"><td class="me"><p>End of the <code>if</code>. The word <code>fi</code> is <code>if</code> backwards.</p></td></tr>
+    <tr data-l="13"><td class="me"><p>End of the function.</p></td></tr>
+  </tbody></table></div>
+  <figure class="diagram" data-title="Data flow inside show" data-minw="480">
+    <script type="text/plain" class="mm">
+flowchart TD
+  A["$meta<br/>all ExifTool text"]:::blue -->|"echo with quotes"| B["every line, with line breaks"]
+  B -->|"grep -i ^Artist"| C["Artist . . . . . : Anish Shobith"]
+  C -->|"head -1"| D["only the first matching line"]
+  D -->|"tr -s space"| E["Artist : Anish Shobith"]
+  E -->|"saved in line"| F{"line is<br/>not empty?"}
+  F -->|yes| G["prints  [IDENTITY] Artist : Anish Shobith"]:::ok
+  F -->|no| H["prints nothing"]:::mute
+    </script>
+    <figcaption><span class="cap-t">One tag, five small steps.</span>
+      <span class="inwords">In words: take all the text. Keep the lines that start with the tag. Keep the first. Squeeze the spaces. Print it with the label.</span></figcaption>
+  </figure>
+  <div class="co co-note">
+    <span class="t">Prefix match</span>
+    <p>The pattern is <code>^</code> plus the text. So <code>Camera Model</code> matches the line <code>Camera Model Name</code>. This is why the detectors use short text <span class="b b-tested">Tested</span>. The text is also a <i>regular expression</i>, not a plain string. The tag names in the script have no special characters, so this is safe here <span class="b b-analysis">Analysis</span>.</p>
+  </div>
+
+  <!-- ---- chunk C ---- -->
+  <div class="walk-h"><h4>C. The location detector</h4><span class="rng">lines 15 to 25</span></div>
+  <p>This is the longest function. It does two jobs: print the raw GPS line, then build a map link.</p>
+  <div class="walk"><table><tbody>
+    <tr data-l="15"><td class="me"><p>Define <code>detect_location</code>.</p></td></tr>
+    <tr data-l="16"><td class="me"><p>Print the raw line with <code>show</code>. Example: <code>GPS Position : 13 deg 21' 9.00" N, 74 deg 47' 34.08" E</code>.</p></td></tr>
+    <tr data-l="17"><td class="me"><p>Start a pipeline that fills <code>maps</code>:</p>
+      <ul>
+        <li><code>grep "^GPS Position"</code> picks the GPS line. There is no <code>-i</code> here. ExifTool always prints this exact text.</li>
+        <li><code>cut -d: -f2-</code> cuts the line at each colon (<code>-d:</code>) and keeps field 2 and all fields after it (<code>-f2-</code>). The first colon is the one after the label. So only the value remains.</li>
+        <li><code>tr -d "\"',"</code> deletes three characters: the double quote, the single quote, and the comma. After this, the text is <code>13 deg 21 9.00 N 74 deg 47 34.08 E</code>.</li>
+        <li>The <code>|</code> at the end of the line tells bash that the command continues on the next line.</li>
+      </ul></td></tr>
+    <tr data-l="18"><td class="me"><p><code>awk</code> reads the line and cuts it at spaces. Field <code>$1</code> is the first word, <code>$2</code> the second, and so on.</p>
+      <ul>
+        <li><code>$1</code> = 13 · <code>$2</code> = deg · <code>$3</code> = 21 · <code>$4</code> = 9.00 · <code>$5</code> = N</li>
+        <li><code>$6</code> = 74 · <code>$7</code> = deg · <code>$8</code> = 47 · <code>$9</code> = 34.08 · <code>$10</code> = E</li>
+      </ul>
+      <p>Latitude is degrees + minutes/60 + seconds/3600. Longitude uses fields 6, 8, and 9. The semicolon separates two statements. <code>awk</code> turns text such as <code>"21"</code> into a number when you do a sum.</p></td></tr>
+    <tr data-l="19"><td class="me"><p>If the letter is <code>S</code>, make latitude negative.</p></td></tr>
+    <tr data-l="20"><td class="me"><p>If the letter is <code>W</code>, make longitude negative.</p></td></tr>
+    <tr data-l="21"><td class="me"><p><code>printf "%.4f,%.4f\n"</code> prints two numbers with four digits after the point. A comma goes between them. <code>\n</code> ends the line. Then <code>}</code> ends the <code>awk</code> block, <code>'</code> ends the <code>awk</code> program, and <code>)</code> closes <code>$(</code>. The result goes in <code>maps</code>.</p></td></tr>
+    <tr data-l="22"><td class="me"><p>If <code>maps</code> is not empty, there was a GPS tag. If the photo has no GPS tag, <code>grep</code> prints nothing, <code>awk</code> prints nothing, and <code>maps</code> stays empty <span class="b b-tested">Tested</span>.</p></td></tr>
+    <tr data-l="23"><td class="me"><p>Print the map link. The variable <code>maps</code> holds only the two numbers. The rest of the link is plain text.</p></td></tr>
+    <tr data-l="24"><td class="me"><p>End of the <code>if</code>.</p></td></tr>
+    <tr data-l="25"><td class="me"><p>End of the function.</p></td></tr>
+  </tbody></table></div>
+  <figure class="diagram" data-title="The location pipeline, stage by stage" data-minw="560">
+    <script type="text/plain" class="mm">
+flowchart TD
+  A["ExifTool text in $meta"]:::blue -->|"grep ^GPS Position"| B["GPS Position : 13 deg 21' 9.00#quot; N, 74 deg 47' 34.08#quot; E"]
+  B -->|"cut -d: -f2-"| C["13 deg 21' 9.00#quot; N, 74 deg 47' 34.08#quot; E"]
+  C -->|"tr -d quote, apostrophe, comma"| D["13 deg 21 9.00 N 74 deg 47 34.08 E"]
+  D -->|"awk splits into fields 1 to 10"| E["$1=13  $3=21  $4=9.00  $5=N<br/>$6=74  $8=47  $9=34.08  $10=E"]
+  E -->|"degrees + minutes/60 + seconds/3600"| F["lat = 13.3525<br/>lon = 74.7928"]
+  F -->|"S or W would add a minus sign<br/>then printf %.4f,%.4f"| H["13.3525,74.7928"]:::ok
+  H -->|"saved in maps"| I["[LOCATION] https://maps.google.com/?q=13.3525,74.7928"]:::ok
+    </script>
+    <figcaption><span class="cap-t">The text changes at every pipe.</span>
+      <span class="inwords">In words: pick the line. Cut off the label. Delete the marks. Split into fields. Do the sum. Print with four decimals. Add the link. I ran each stage by hand and the values match <span class="b b-tested">Tested</span>.</span></figcaption>
+  </figure>
+  <div class="co co-tip">
+    <span class="t">Why is the pipeline so long?</span>
+    <p>ExifTool prints degrees as text such as <code>21'</code> and <code>9.00"</code>. A map link needs plain numbers. So the script removes the marks and then does the sum in <code>awk</code>. This is the only place with arithmetic.</p>
+  </div>
+
+  <!-- ---- chunk D ---- -->
+  <div class="walk-h"><h4>D. The three small detectors</h4><span class="rng">lines 27 to 39</span></div>
+  <p>These functions only call <code>show</code>. Each line is one look-up.</p>
+  <div class="walk"><table><tbody>
+    <tr data-l="27"><td class="me"><p>Define <code>detect_device</code>.</p></td></tr>
+    <tr data-l="28"><td class="me"><p>Look for a line that starts with <code>Camera Model</code>. It matches <code>Camera Model Name</code> <span class="b b-tested">Tested</span>. The label is DEVICE.</p></td></tr>
+    <tr data-l="29"><td class="me"><p>Look for <code>Serial Number</code>. The label is DEVICE.</p></td></tr>
+    <tr data-l="30"><td class="me"><p>End of the function.</p></td></tr>
+    <tr data-l="32"><td class="me"><p>Define <code>detect_identity</code>.</p></td></tr>
+    <tr data-l="33"><td class="me"><p>Look for <code>Artist</code>. The label is IDENTITY.</p></td></tr>
+    <tr data-l="34"><td class="me"><p>Look for <code>Owner Name</code>. The label is IDENTITY.</p></td></tr>
+    <tr data-l="35"><td class="me"><p>End of the function.</p></td></tr>
+    <tr data-l="37"><td class="me"><p>Define <code>detect_software</code>.</p></td></tr>
+    <tr data-l="38"><td class="me"><p>Look for <code>Software</code>. The label is SOFTWARE.</p></td></tr>
+    <tr data-l="39"><td class="me"><p>End of the function.</p></td></tr>
+  </tbody></table></div>
+
+  <!-- ---- chunk E ---- -->
+  <div class="walk-h"><h4>E. Scan one file</h4><span class="rng">lines 41 to 51</span></div>
+  <div class="walk"><table><tbody>
+    <tr data-l="41"><td class="me"><p>Define <code>inspect</code>. It takes one argument: the file name in <code>$1</code>.</p></td></tr>
+    <tr data-l="42"><td class="me"><p>Run <code>exiftool</code> on the file and save its output in <code>meta</code>. <code>2> /dev/null</code> sends error messages to the "bit bucket", so the screen stays clean. The variable has no <code>local</code>, so <code>show</code> and <code>detect_location</code> can read it.</p></td></tr>
+    <tr data-l="43"><td class="me"><p>Print an empty line. It separates one file from the next.</p></td></tr>
+    <tr data-l="44"><td class="me"><p>Print the file name. The quotes keep names with spaces in one piece.</p></td></tr>
+    <tr data-l="45"><td class="me"><p>Run each detector and save everything they print in <code>report</code>.</p>
+      <ul>
+        <li><code>for d in $DETECTORS</code>: the shell cuts the string into four words. <code>d</code> gets one word each time. There are no quotes around <code>$DETECTORS</code> on purpose. With quotes, the four names stay as one word.</li>
+        <li><code>$d</code> runs the function with that name.</li>
+        <li><code>$( ... )</code> captures what they print.</li>
+      </ul></td></tr>
+    <tr data-l="46"><td class="me"><p>Test. <code>-z</code> is true when the text is <i>empty</i>.</p></td></tr>
+    <tr data-l="47"><td class="me"><p>No detector printed a line. Print <code>clean</code>.</p></td></tr>
+    <tr data-l="48"><td class="me"><p>The other case.</p></td></tr>
+    <tr data-l="49"><td class="me"><p>Print the report. The quotes keep the line breaks.</p></td></tr>
+    <tr data-l="50"><td class="me"><p>End of the <code>if</code>.</p></td></tr>
+    <tr data-l="51"><td class="me"><p>End of the function.</p></td></tr>
+  </tbody></table></div>
+  <figure class="diagram" data-title="Flow of inspect" data-minw="420">
+    <script type="text/plain" class="mm">
+flowchart TD
+  A(["inspect FILE"]):::blue --> B["meta = exiftool FILE<br/>errors hidden"]
+  B --> C["print an empty line<br/>then the file name"]
+  C --> D["report = all lines printed<br/>by the four detectors"]
+  D --> E{"report<br/>is empty?"}
+  E -->|yes| F["print: clean"]:::ok
+  E -->|no| G["print the report"]:::bad
+    </script>
+    <figcaption><span class="cap-t">"Clean" means no detector printed a line.</span>
+      <span class="inwords">In words: read the file, run the detectors, and print either their lines or the word "clean". The word does not mean the file has no metadata. See the limits.</span></figcaption>
+  </figure>
+
+  <!-- ---- chunk F ---- -->
+  <div class="walk-h"><h4>F. Scrub one file</h4><span class="rng">lines 53 to 56</span></div>
+  <div class="walk"><table><tbody>
+    <tr data-l="53"><td class="me"><p>Define <code>scrub</code>. It takes the file name in <code>$1</code>.</p></td></tr>
+    <tr data-l="54"><td class="me"><p>One <code>exiftool</code> call:</p>
+      <ul>
+        <li><code>-all=</code> sets every tag to "nothing". This removes them all.</li>
+        <li><code>-overwrite_original</code> changes the file in place. Without it, ExifTool keeps the old file as <code>NAME_original</code> <span class="b b-source">ExifTool docs</span>. In my test no backup file appeared <span class="b b-tested">Tested</span>.</li>
+        <li><code>> /dev/null 2>&1</code> hides normal output and error output.</li>
+      </ul></td></tr>
+    <tr data-l="55"><td class="me"><p>Print <code>scrubbed</code> and the file name. The script prints this line <b>every time</b>, even when <code>exiftool</code> failed <span class="b b-tested">Tested</span>.</p></td></tr>
+    <tr data-l="56"><td class="me"><p>End of the function.</p></td></tr>
+  </tbody></table></div>
+  <figure class="diagram" data-title="Life of a file" data-minw="420">
+    <script type="text/plain" class="mm">
+stateDiagram-v2
+  state "Original file with EXIF" as Original
+  state "Scrubbed file without EXIF" as Scrubbed
+  [*] --> Original : camera writes the file
+  Original --> Original : scan, the file is only read
+  Original --> Scrubbed : scrub with -s, in place
+  Scrubbed --> Scrubbed : scan prints clean
+  note right of Scrubbed
+    No backup file.
+    The old tags are gone.
+  end note
+    </script>
+    <figcaption><span class="cap-t">Scan reads. Scrub changes the file.</span>
+      <span class="inwords">In words: a scan never changes the file. A scrub changes it in place and leaves no copy. So keep a backup if you want the original.</span></figcaption>
+  </figure>
+
+  <!-- ---- chunk G ---- -->
+  <div class="walk-h"><h4>G. Start-up checks</h4><span class="rng">lines 58 to 68</span></div>
+  <div class="walk"><table><tbody>
+    <tr data-l="58"><td class="me"><p>A comment. It marks where the main code starts.</p></td></tr>
+    <tr data-l="59"><td class="me"><p><code>$#</code> is the number of arguments. <code>-eq</code> compares numbers. Is the count 0?</p></td></tr>
+    <tr data-l="60"><td class="me"><p>Print a usage line. <code>$0</code> is the name of the script as you typed it.</p></td></tr>
+    <tr data-l="61"><td class="me"><p>Stop with exit status 1. A status other than 0 means "error".</p></td></tr>
+    <tr data-l="62"><td class="me"><p>End of the <code>if</code>.</p></td></tr>
+    <tr data-l="64"><td class="me"><p>Run <code>exiftool -ver</code>. This prints the version number. The script does not want the text. It wants to know if the command works. <code>> /dev/null 2>&1</code> hides both output streams.</p></td></tr>
+    <tr data-l="65"><td class="me"><p><code>$?</code> is the exit status of the last command. <code>-ne</code> means "not equal". If <code>exiftool</code> does not exist, the shell gives status 127 <span class="b b-tested">Tested</span>.</p></td></tr>
+    <tr data-l="66"><td class="me"><p>Tell the user what to do.</p></td></tr>
+    <tr data-l="67"><td class="me"><p>Stop with status 1.</p></td></tr>
+    <tr data-l="68"><td class="me"><p>End of the <code>if</code>.</p></td></tr>
+  </tbody></table></div>
+
+  <!-- ---- chunk H ---- -->
+  <div class="walk-h"><h4>H. The <code>-s</code> flag</h4><span class="rng">lines 70 to 74</span></div>
+  <div class="walk"><table><tbody>
+    <tr data-l="70"><td class="me"><p>The default action is <code>inspect</code>. The value is a function name.</p></td></tr>
+    <tr data-l="71"><td class="me"><p>Is the first argument exactly <code>-s</code>? The quotes protect the test. Only the first argument is checked.</p></td></tr>
+    <tr data-l="72"><td class="me"><p>Change the action to <code>scrub</code>.</p></td></tr>
+    <tr data-l="73"><td class="me"><p><code>shift</code> removes the first argument. The old <code>$2</code> becomes <code>$1</code>. After this, <code>"$@"</code> holds only the files and folders.</p></td></tr>
+    <tr data-l="74"><td class="me"><p>End of the <code>if</code>.</p></td></tr>
+  </tbody></table></div>
+
+  <!-- ---- chunk I ---- -->
+  <div class="walk-h"><h4>I. The main loop</h4><span class="rng">lines 76 to 87</span></div>
+  <div class="walk"><table><tbody>
+    <tr data-l="76"><td class="me"><p><code>shopt -s</code> switches on two shell options.</p>
+      <ul>
+        <li><code>extglob</code> allows the pattern <code>@(a|b)</code>, which means "a or b".</li>
+        <li><code>nocaseglob</code> makes file patterns ignore case. So <code>.JPG</code> matches <code>jpg</code>.</li>
+      </ul></td></tr>
+    <tr data-l="77"><td class="me"><p>Loop over the arguments. <code>"$@"</code> gives each argument as one word, and it keeps spaces inside a name.</p></td></tr>
+    <tr data-l="78"><td class="me"><p><code>do</code> starts the loop body.</p></td></tr>
+    <tr data-l="79"><td class="me"><p>Is the target a folder? <code>-d</code> tests for a directory.</p></td></tr>
+    <tr data-l="80"><td class="me"><p>Loop over a pattern. <code>"$target"/*.@(jpg|jpeg|png|heic|tiff)</code> means: in this folder, every name that ends in one of these five extensions. The folder name is in quotes so spaces are safe. The pattern part is outside the quotes so the shell expands it.</p></td></tr>
+    <tr data-l="81"><td class="me"><p>Start of the inner loop body.</p></td></tr>
+    <tr data-l="82"><td class="me"><p><code>[ -f "$file" ]</code> is true for a regular file. <code>&amp;&amp;</code> means "run the next part only if the left part worked". So <code>$action "$file"</code> runs only for real files. This test is needed: when nothing matches, bash keeps the pattern as plain text. That text is not a file <span class="b b-tested">Tested</span>.</p><p>The variable <code>$action</code> holds <code>inspect</code> or <code>scrub</code>. The shell expands it and runs that function.</p></td></tr>
+    <tr data-l="83"><td class="me"><p>End of the inner loop.</p></td></tr>
+    <tr data-l="84"><td class="me"><p>The target is not a folder.</p></td></tr>
+    <tr data-l="85"><td class="me"><p>Run the action on the target. There is no check of the file type here. Any name works, even a text file <span class="b b-tested">Tested</span>.</p></td></tr>
+    <tr data-l="86"><td class="me"><p>End of the folder test.</p></td></tr>
+    <tr data-l="87"><td class="me"><p>End of the outer loop. The script ends. Its exit status is the status of the last command that ran.</p></td></tr>
+  </tbody></table></div>
+
+  <h3>Which files does a folder scan pick?</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Name</th><th>Scanned in folder mode?</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td><code>IMG_4821.jpg</code></td><td>Yes <span class="b b-tested">Tested</span></td><td>It ends in <code>jpg</code>.</td></tr>
+      <tr><td><code>UPPER.JPG</code></td><td>Yes <span class="b b-tested">Tested</span></td><td><code>nocaseglob</code> ignores case.</td></tr>
+      <tr><td><code>a.jpeg</code>, <code>b.png</code>, <code>c.heic</code>, <code>d.tiff</code></td><td>Yes</td><td>They are in the pattern (<code>tiff</code> was tested).</td></tr>
+      <tr><td><code>e.tif</code></td><td>No <span class="b b-tested">Tested</span></td><td>The list has <code>tiff</code>, not <code>tif</code>.</td></tr>
+      <tr><td><code>f.webp</code>, <code>g.gif</code>, <code>h.mp4</code></td><td>No</td><td>Not in the list <span class="b b-analysis">Analysis</span>.</td></tr>
+      <tr><td><code>notes.txt</code></td><td>No</td><td>Not in the list. If you name it directly, the script runs on it and prints "clean" <span class="b b-tested">Tested</span>.</td></tr>
+      <tr><td><code>sub/deep.jpg</code></td><td>No <span class="b b-tested">Tested</span></td><td>The pattern has no <code>**</code>. It reads one folder level <span class="b b-deck">Deck</span>.</td></tr>
+      <tr><td><code>.hidden.jpg</code></td><td>No <span class="b b-tested">Tested</span></td><td>The <code>*</code> does not match a leading dot.</td></tr>
+      <tr><td>A folder with no match</td><td>Prints nothing <span class="b b-tested">Tested</span></td><td>The <code>-f</code> test fails. The exit status of the script becomes 1.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Edge cases that I ran</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Input</th><th>Result</th><th>Comment</th></tr></thead>
+    <tbody>
+      <tr><td>No arguments</td><td>Usage line, exit 1</td><td>By design.</td></tr>
+      <tr><td>ExifTool not on the path</td><td><code>install exiftool first</code>, exit 1</td><td>By design.</td></tr>
+      <tr><td>File name with spaces (<code>my folder/my photo.jpg</code>)</td><td>Works for scan and scrub</td><td>All uses of the name are in quotes.</td></tr>
+      <tr><td>Photo with no tags</td><td><code>clean</code></td><td>Correct.</td></tr>
+      <tr><td>Photo with only <code>Model</code></td><td>One DEVICE line</td><td>Correct. Matches the second photo in the demo.</td></tr>
+      <tr><td>Photo without GPS</td><td>No LOCATION lines</td><td><code>maps</code> stays empty.</td></tr>
+      <tr><td>South and west coordinates</td><td>Negative numbers in the link</td><td>The two <code>if</code> lines in <code>awk</code>.</td></tr>
+      <tr><td>A file that does not exist</td><td><code>clean</code> (scan) and <code>scrubbed</code> (scrub)</td><td><b>False result.</b> Nothing was read or changed.</td></tr>
+      <tr><td>A name that starts with <code>-</code> (for example <code>-x.jpg</code>)</td><td><code>clean</code> (scan). <code>scrubbed</code>, but the GPS tag stays (scrub)</td><td><b>False result.</b> ExifTool reads the name as an option. Write <code>./-x.jpg</code> instead.</td></tr>
+      <tr><td>Scrub a folder of two images</td><td>Both are scrubbed. A second scan prints <code>clean</code> for both</td><td>Correct.</td></tr>
+      <tr><td>Scrub, then scan again</td><td><code>clean</code></td><td>The demo on slide 7 shows this.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Each row above has the label <span class="b b-tested">Tested</span>. I ran them with the real script in <code>/bin/bash</code> 3.2.57. I did not run bash 5. The README says the script also runs on bash 5 <span class="b b-source">README</span>.</p>
+</section>
+
+<!-- ================= 05 SHELL ================= -->
+<section class="sec" id="shell" data-num="05" data-toc="Shell and tools">
+  <h2><span class="num">05</span> Shell and tool reference</h2>
+  <p class="intro">Every symbol and every command in the script, in one place. Use this part when someone asks "what does this character do?".</p>
+
+  <h3>Shell syntax used in the script</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Syntax</th><th>Name</th><th>Meaning</th><th>Lines</th></tr></thead>
+    <tbody>
+      <tr><td class="k"><code>#!/bin/bash</code></td><td>Shebang</td><td>Says which program runs the file.</td><td>1</td></tr>
+      <tr><td class="k"><code>#</code></td><td>Comment</td><td>The shell ignores the rest of the line.</td><td>2–4, 58</td></tr>
+      <tr><td class="k"><code>NAME=value</code></td><td>Assignment</td><td>Store text in a variable. No spaces around <code>=</code>.</td><td>6, 70, 72</td></tr>
+      <tr><td class="k"><code>$name</code></td><td>Expansion</td><td>Replace the name with its value.</td><td>many</td></tr>
+      <tr><td class="k"><code>"…"</code></td><td>Double quotes</td><td>Keep spaces together. Still expand <code>$name</code>.</td><td>many</td></tr>
+      <tr><td class="k"><code>'…'</code></td><td>Single quotes</td><td>Keep every character as it is. The <code>awk</code> program uses them.</td><td>9, 18–21</td></tr>
+      <tr><td class="k"><code>\"</code></td><td>Escaped quote</td><td>A literal double quote inside double quotes.</td><td>17</td></tr>
+      <tr><td class="k"><code>$( … )</code></td><td>Command substitution</td><td>Run the command and use its output as text.</td><td>9, 17, 42, 45</td></tr>
+      <tr><td class="k"><code>a | b</code></td><td>Pipe</td><td>Send the output of <code>a</code> to the input of <code>b</code>.</td><td>9, 17–20</td></tr>
+      <tr><td class="k"><code>&gt;</code></td><td>Redirect output</td><td>Send normal output to a file.</td><td>54, 64</td></tr>
+      <tr><td class="k"><code>2&gt;</code></td><td>Redirect errors</td><td>Send error output (stream 2) to a file.</td><td>42</td></tr>
+      <tr><td class="k"><code>2&gt;&amp;1</code></td><td>Join streams</td><td>Send errors to where normal output goes.</td><td>54, 64</td></tr>
+      <tr><td class="k"><code>/dev/null</code></td><td>Null device</td><td>A file that drops everything written to it.</td><td>42, 54, 64</td></tr>
+      <tr><td class="k"><code>&amp;&amp;</code></td><td>And</td><td>Run the right side only if the left side worked.</td><td>82</td></tr>
+      <tr><td class="k"><code>;</code></td><td>Separator</td><td>End one command and start another on the same line.</td><td>10, 22, 45, 46, 59, 65, 71, 79</td></tr>
+      <tr><td class="k"><code>$#</code></td><td>Argument count</td><td>How many arguments the script got.</td><td>59</td></tr>
+      <tr><td class="k"><code>$0</code></td><td>Script name</td><td>The name you typed to start the script.</td><td>60</td></tr>
+      <tr><td class="k"><code>$1</code>, <code>$2</code></td><td>Positional parameters</td><td>The first and second argument of the script or of the function.</td><td>9, 11, 42–44, 54–55, 71</td></tr>
+      <tr><td class="k"><code>"$@"</code></td><td>All arguments</td><td>Each argument as its own word. Spaces stay inside a word.</td><td>77</td></tr>
+      <tr><td class="k"><code>$?</code></td><td>Exit status</td><td>The result of the last command. 0 means success.</td><td>65</td></tr>
+      <tr><td class="k"><code>[ … ]</code></td><td>Test</td><td>A command that checks a condition. It needs spaces inside the brackets.</td><td>10, 22, 46, 59, 65, 71, 79, 82</td></tr>
+      <tr><td class="k"><code>-n</code> · <code>-z</code></td><td>String tests</td><td><code>-n</code>: text is not empty. <code>-z</code>: text is empty.</td><td>10, 22 · 46</td></tr>
+      <tr><td class="k"><code>-f</code> · <code>-d</code></td><td>File tests</td><td><code>-f</code>: a regular file exists. <code>-d</code>: a directory exists.</td><td>82 · 79</td></tr>
+      <tr><td class="k"><code>-eq</code> · <code>-ne</code></td><td>Number tests</td><td>Equal. Not equal.</td><td>59 · 65</td></tr>
+      <tr><td class="k"><code>=</code> inside <code>[ ]</code></td><td>String equal</td><td>Do the two texts match?</td><td>71</td></tr>
+      <tr><td class="k"><code>if … then … else … fi</code></td><td>Condition</td><td>Choose a path. <code>fi</code> closes it.</td><td>10–12, 22–24, 46–50, 59–62, 65–68, 71–74, 79–86</td></tr>
+      <tr><td class="k"><code>for x in list; do … done</code></td><td>Loop</td><td>Run the body once for each word.</td><td>45, 77–87, 80–83</td></tr>
+      <tr><td class="k"><code>name() { … }</code></td><td>Function</td><td>Store commands under a name. Run them later by name.</td><td>8, 15, 27, 32, 37, 41, 53</td></tr>
+      <tr><td class="k"><code>shift</code></td><td>Shift</td><td>Drop the first argument. The others move up.</td><td>73</td></tr>
+      <tr><td class="k"><code>exit 1</code></td><td>Exit</td><td>Stop the script and return status 1.</td><td>61, 67</td></tr>
+      <tr><td class="k"><code>shopt -s</code></td><td>Shell option</td><td>Switch on a shell option.</td><td>76</td></tr>
+      <tr><td class="k"><code>*</code></td><td>Glob</td><td>Any text. The shell turns the pattern into file names.</td><td>80</td></tr>
+      <tr><td class="k"><code>@(a|b)</code></td><td>Extended glob</td><td>One of the choices. It needs <code>extglob</code>.</td><td>80</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Quotes: where they matter</h3>
+  <p>Most bugs in shell scripts come from missing quotes. This table shows what each quote does in this script, and what happens without it.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Code</th><th>Lines</th><th>Why the quotes are there</th><th>Without them</th></tr></thead>
+    <tbody>
+      <tr><td><code>echo "$meta"</code></td><td>9, 17</td><td>Keep the line breaks.</td><td>All lines join into one line. The <code>^</code> anchor then finds no match, and every file prints "clean". I got 0 matches instead of 1 <span class="b b-tested">Tested</span>.</td></tr>
+      <tr><td><code>grep -i "^$2"</code></td><td>9</td><td>Keep the pattern as one word.</td><td>A tag such as <code>Camera Model</code> splits in two. <code>grep</code> then reads the second word as a file name <span class="b b-analysis">Analysis</span>.</td></tr>
+      <tr><td><code>[ -n "$line" ]</code></td><td>10, 22</td><td>Keep an empty value as an empty word.</td><td>With an empty value, bash sees <code>[ -n ]</code>. That is true. The test says true when the answer must be false <span class="b b-tested">Tested</span>.</td></tr>
+      <tr><td><code>"$1"</code>, <code>"$file"</code>, <code>"$target"</code></td><td>42, 44, 54, 82, 85</td><td>File names can hold spaces.</td><td><code>my photo.jpg</code> becomes two words: <code>my</code> and <code>photo.jpg</code>.</td></tr>
+      <tr><td><code>"$@"</code></td><td>77</td><td>Each argument stays one word.</td><td>Arguments with spaces split.</td></tr>
+      <tr><td><code>"$report"</code></td><td>49</td><td>Keep the line breaks of the report.</td><td>The report prints on one line.</td></tr>
+      <tr><td><code>$DETECTORS</code> (no quotes)</td><td>45</td><td>On purpose: the shell must cut it into four words.</td><td>With quotes, the loop runs one time with one long word. I confirmed the difference <span class="b b-tested">Tested</span>.</td></tr>
+      <tr><td><code>$action</code> (no quotes)</td><td>82, 85</td><td>On purpose: it must become a command name.</td><td>Not applicable. The value is one safe word.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Streams and redirection</h3>
+  <p>Each process has three streams. Stream 0 is input. Stream 1 is normal output. Stream 2 is error output. A pipe joins stream 1 of one command to stream 0 of the next. A redirect sends a stream to a file.</p>
+  <figure class="diagram" data-title="The three streams" data-minw="460">
+    <script type="text/plain" class="mm">
+flowchart TD
+  K["stream 0<br/>input"]:::mute --> P["a process<br/>for example exiftool"]:::blue
+  P -->|"stream 1, normal output"| O["terminal, a pipe,<br/>or a $( ) capture"]:::ok
+  P -->|"stream 2, error output"| E["terminal<br/>by default"]:::bad
+  E -.->|"2> /dev/null"| N["/dev/null<br/>drops everything"]:::mute
+  O -.->|"> /dev/null"| N
+    </script>
+    <figcaption><span class="cap-t">Errors and normal output are two different roads.</span>
+      <span class="inwords">In words: normal output goes to the pipe or the capture. Errors go to the screen. A redirect sends either road to <code>/dev/null</code>.</span></figcaption>
+  </figure>
+  <div class="tw"><table>
+    <thead><tr><th>Code</th><th>Line</th><th>Normal output</th><th>Errors</th></tr></thead>
+    <tbody>
+      <tr><td><code>meta=$(exiftool "$1" 2&gt; /dev/null)</code></td><td>42</td><td>Captured in <code>meta</code></td><td>Dropped</td></tr>
+      <tr><td><code>exiftool -ver &gt; /dev/null 2&gt;&amp;1</code></td><td>64</td><td>Dropped</td><td>Dropped</td></tr>
+      <tr><td><code>exiftool -overwrite_original -all= "$1" &gt; /dev/null 2&gt;&amp;1</code></td><td>54</td><td>Dropped</td><td>Dropped</td></tr>
+    </tbody>
+  </table></div>
+  <div class="co co-note">
+    <span class="t">Order matters</span>
+    <p><code>&gt; /dev/null 2&gt;&amp;1</code> reads left to right. First, stream 1 goes to the null device. Then stream 2 goes to where stream 1 goes now, which is the null device. Both are hidden. The reverse order, <code>2&gt;&amp;1 &gt; /dev/null</code>, sends errors to the old stream 1 (the screen). In my test the error message still appeared <span class="b b-tested">Tested</span>.</p>
+  </div>
+
+  <h3>Exit status</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Status</th><th>Meaning</th><th>In this script</th></tr></thead>
+    <tbody>
+      <tr><td class="k">0</td><td>Success</td><td>A normal end, when the last command worked.</td></tr>
+      <tr><td class="k">1</td><td>General error</td><td>Lines 61 and 67 set it on purpose. It also appears at the end of the script when the last <code>[ -f … ]</code> test fails, for example for an empty folder <span class="b b-tested">Tested</span>.</td></tr>
+      <tr><td class="k">127</td><td>Command not found</td><td>The status that <code>$?</code> shows when <code>exiftool</code> is missing <span class="b b-tested">Tested</span>.</td></tr>
+    </tbody>
+  </table></div>
+  <p>The script does not use the status to say "a leak was found". A scan that finds leaks still ends with status 0 <span class="b b-tested">Tested</span>.</p>
+
+  <h3>The external commands</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Command</th><th>Job</th><th>Options in the script</th><th>Example from the script</th></tr></thead>
+    <tbody>
+      <tr><td class="k"><code>exiftool</code></td><td>Read and write metadata.</td><td><code>-ver</code> prints the version. <code>-all=</code> deletes all tags. <code>-overwrite_original</code> changes the file in place.</td><td>Output looks like <code>Artist . . . . : Anish Shobith</code>: a name, padding, a colon, and a value.</td></tr>
+      <tr><td class="k"><code>grep</code></td><td>Keep lines that match a pattern.</td><td><code>-i</code> ignores case. <code>^</code> means "start of line".</td><td><code>grep -i "^Artist"</code></td></tr>
+      <tr><td class="k"><code>head</code></td><td>Keep the first lines.</td><td><code>-1</code> means one line.</td><td><code>head -1</code></td></tr>
+      <tr><td class="k"><code>tr</code></td><td>Change or delete single characters.</td><td><code>-s ' '</code> squeezes repeated spaces to one. <code>-d "…"</code> deletes the listed characters.</td><td><code>tr -d "\"',"</code></td></tr>
+      <tr><td class="k"><code>cut</code></td><td>Keep chosen fields of each line.</td><td><code>-d:</code> sets the separator to a colon. <code>-f2-</code> keeps field 2 to the end.</td><td><code>cut -d: -f2-</code></td></tr>
+      <tr><td class="k"><code>awk</code></td><td>A small language for lines and fields.</td><td>A program in single quotes. <code>$1</code>…<code>$10</code> are fields. <code>printf</code> formats numbers.</td><td>The sum on lines 18–21.</td></tr>
+      <tr><td class="k"><code>echo</code></td><td>Print text and a new line.</td><td>None.</td><td><code>echo "  [$1] $line"</code></td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Bash 3.2 and newer</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Feature</th><th>bash 3.2 (macOS <code>/bin/bash</code>)</th><th>bash 4 and 5</th><th>Used here?</th></tr></thead>
+    <tbody>
+      <tr><td><code>declare -A</code> (associative array)</td><td>No</td><td>Yes</td><td>No. An earlier draft used it <span class="b b-source">README</span>.</td></tr>
+      <tr><td><code>globstar</code> (<code>**</code>)</td><td>No</td><td>Yes</td><td>No. This is why the scan is one level <span class="b b-deck">Deck</span>.</td></tr>
+      <tr><td><code>shopt -s extglob nocaseglob</code></td><td>Yes <span class="b b-tested">Tested</span></td><td>Yes</td><td>Yes (line 76).</td></tr>
+      <tr><td><code>$( )</code>, functions, <code>[ ]</code></td><td>Yes</td><td>Yes</td><td>Yes.</td></tr>
+    </tbody>
+  </table></div>
+  <p>The script uses <code>shopt</code> and <code>@( )</code>. These are Bash features. They do not work in a plain POSIX <code>sh</code> <span class="b b-analysis">Analysis</span>. This is why line 1 says <code>/bin/bash</code>.</p>
+</section>
+
+<!-- ================= 06 RUN IT ================= -->
+<section class="sec" id="run" data-num="06" data-toc="Run it">
+  <h2><span class="num">06</span> Run it, and read the output</h2>
+  <p class="intro">Slide 7 shows a real run. This part shows what happens in each step. It also gives you commands to repeat every stage by hand.</p>
+
+  <figure class="diagram" data-title="The demo on slide 7" data-minw="560">
+    <script type="text/plain" class="mm">
+sequenceDiagram
+  autonumber
+  actor U as You
+  participant X as exifleak.sh
+  participant E as exiftool
+  U->>X: ./exifleak.sh demo
+  loop each image in demo
+    X->>E: exiftool FILE
+    E-->>X: all tags as text
+    X->>X: run the four detectors
+    X-->>U: file name, then [TAG] lines or clean
+  end
+  U->>X: ./exifleak.sh -s demo/IMG_4821.jpg
+  X->>E: exiftool -overwrite_original -all= FILE
+  E-->>X: the file is changed in place
+  X-->>U: scrubbed demo/IMG_4821.jpg
+  U->>X: ./exifleak.sh demo/IMG_4821.jpg
+  X-->>U: clean
+    </script>
+    <figcaption><span class="cap-t">Scan, scrub, scan again.</span>
+      <span class="inwords">In words: the first command scans a folder. The second wipes one file. The third scans the same file and shows that it is clean.</span></figcaption>
+  </figure>
+
+  <h3>How to read the output</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Output line</th><th>Made by</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><i>(empty line)</i></td><td>line 43</td><td>Separates the files.</td></tr>
+      <tr><td><code>demo/IMG_4821.jpg</code></td><td>line 44</td><td>The file under test.</td></tr>
+      <tr><td><code>  [LOCATION] GPS Position : 13 deg 21' 9.00" N, 74 deg 47' 34.08" E</code></td><td><code>show</code> from line 16</td><td>The raw GPS tag.</td></tr>
+      <tr><td><code>  [LOCATION] https://maps.google.com/?q=13.3525,74.7928</code></td><td>line 23</td><td>The computed map link. Open it in a browser.</td></tr>
+      <tr><td><code>  [DEVICE] Camera Model Name : iPhone 15 Pro</code></td><td><code>show</code> from line 28</td><td>The phone model.</td></tr>
+      <tr><td><code>  [DEVICE] Serial Number : F2LDEMO12345</code></td><td><code>show</code> from line 29</td><td>The device serial number (a demo value).</td></tr>
+      <tr><td><code>  [IDENTITY] Artist : Anish Shobith</code></td><td><code>show</code> from line 33</td><td>A name in the file.</td></tr>
+      <tr><td><code>  [SOFTWARE] Software : iOS 18.1</code></td><td><code>show</code> from line 38</td><td>The software that made or changed the file.</td></tr>
+      <tr><td><code>  clean</code></td><td>line 47</td><td>No detector found a line.</td></tr>
+      <tr><td><code>scrubbed demo/IMG_4821.jpg</code></td><td>line 55</td><td>The script ran the wipe. It does not prove that the wipe worked.</td></tr>
+    </tbody>
+  </table></div>
+  <p>The lines are simple to filter, because each starts with a tag in brackets. For example: <code>./exifleak.sh demo | grep '\[LOCATION\]'</code> <span class="b b-tested">Tested</span>.</p>
+
+  <h3>Repeat each stage by hand</h3>
+  <p>Run these in a folder that has <code>demo/IMG_4821.jpg</code>. Each command adds one stage to the one before it. Watch how the text changes.</p>
+<pre class="hl copyable"><code>exiftool demo/IMG_4821.jpg                                  # every tag, one line each
+exiftool demo/IMG_4821.jpg | grep -i "^Artist"              # keep lines that start with Artist
+exiftool demo/IMG_4821.jpg | grep -i "^Artist" | head -1 | tr -s ' '
+exiftool demo/IMG_4821.jpg | grep "^GPS Position" | cut -d: -f2-
+exiftool demo/IMG_4821.jpg | grep "^GPS Position" | cut -d: -f2- | tr -d "\"',"
+exiftool demo/IMG_4821.jpg | grep "^GPS Position" | cut -d: -f2- | tr -d "\"'," \
+  | awk '{ lat = $1 + $3/60 + $4/3600; lon = $6 + $8/60 + $9/3600
+           if ($5 == "S") lat = -lat
+           if ($10 == "W") lon = -lon
+           printf "%.4f,%.4f\n", lat, lon }'</code></pre>
+  <p>The last command prints <code>13.3525,74.7928</code> <span class="b b-tested">Tested</span>.</p>
+
+  <h3>Make your own test photo</h3>
+  <p>Copy any JPEG into a <code>demo</code> folder. Then write the tags with ExifTool. This is how I made the test photos <span class="b b-tested">Tested</span>.</p>
+<pre class="hl copyable"><code>mkdir -p demo && cp any-photo.jpg demo/IMG_4821.jpg
+exiftool -overwrite_original \
+  -GPSLatitude=13.3525 -GPSLatitudeRef=N -GPSLongitude=74.7928 -GPSLongitudeRef=E \
+  -Model="iPhone 15 Pro" -SerialNumber=F2LDEMO12345 \
+  -Artist="Anish Shobith" -Software="iOS 18.1" demo/IMG_4821.jpg
+
+./exifleak.sh demo                    # scan the folder
+./exifleak.sh -s demo/IMG_4821.jpg    # wipe one file
+./exifleak.sh demo/IMG_4821.jpg       # scan again: clean</code></pre>
+</section>
+
+<!-- ================= 07 LIMITS ================= -->
+<section class="sec" id="limits" data-num="07" data-toc="Limits and risks">
+  <h2><span class="num">07</span> Limits and risks</h2>
+  <p class="intro">Slide 8 shows four limits. This part adds more, with proof. Admit the limits first. It makes the rest of your talk stronger.</p>
+
+  <h3>All known limits</h3>
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>Limit</th><th>Evidence</th><th>Possible fix</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><b>It reads ExifTool's label text.</b> A tag with a different name slips past <code>grep</code>.</td><td><span class="b b-deck">Deck</span> In my file, <code>Make</code>, <code>Lens Model</code>, <code>Host Computer</code>, <code>Copyright</code>, and <code>Date/Time Original</code> were present. The script did not show them <span class="b b-tested">Tested</span>. XMP and IPTC names were also missed <span class="b b-tested">Tested</span>.</td><td>Add more detectors. Or ask for exact names with <code>exiftool -s</code>.</td></tr>
+      <tr><td>2</td><td><b>"clean" can be false.</b> A missing file, a text file, or a name that starts with <code>-</code> all print "clean".</td><td><span class="b b-tested">Tested</span> The script hides ExifTool errors with <code>2&gt; /dev/null</code>. Then <code>meta</code> is empty.</td><td>Check that <code>meta</code> is not empty. Print "unreadable".</td></tr>
+      <tr><td>3</td><td><b>One folder level and a fixed list of extensions.</b></td><td><span class="b b-deck">Deck</span> <span class="b b-tested">Tested</span> <code>.tif</code>, <code>sub/deep.jpg</code>, and <code>.hidden.jpg</code> are skipped.</td><td>Use <code>find</code> with <code>-iname</code>. Add more extensions.</td></tr>
+      <tr><td>4</td><td><b>"scrubbed" is always printed.</b></td><td><span class="b b-tested">Tested</span> It printed for a missing file and for a name that starts with <code>-</code> (no change was made).</td><td>Test <code>$?</code> after the call, or scan again.</td></tr>
+      <tr><td>5</td><td><b>Names that start with <code>-</code></b> become options.</td><td><span class="b b-tested">Tested</span> <code>./-x.jpg</code> worked. <code>-x.jpg</code> did not. ExifTool accepts <code>--</code> to end options <span class="b b-tested">Tested</span>.</td><td>Use <code>exiftool -- "$1"</code>, or add <code>./</code>.</td></tr>
+      <tr><td>6</td><td><b>Scrub is in place with no backup.</b></td><td><span class="b b-tested">Tested</span> No <code>_original</code> file appeared.</td><td>Copy the file first. Or drop <code>-overwrite_original</code>.</td></tr>
+      <tr><td>7</td><td><b>The wipe is not total.</b> PDF edits are incremental, so old data can stay. <code>-all=</code> also drops orientation and the colour profile of a JPEG.</td><td><span class="b b-deck">Deck</span> <a href="https://exiftool.org/exiftool_pod.html" target="_blank" rel="noopener">ExifTool docs</a></td><td>Remove only what you need, for example GPS. Or copy needed tags back.</td></tr>
+      <tr><td>8</td><td><b>Only metadata is removed.</b> The picture, the file name, and the file dates stay.</td><td><span class="b b-tested">Tested</span> After the scrub the listing still showed the name, size, and image size.</td><td>Check the picture and the name by eye before you share.</td></tr>
+      <tr><td>9</td><td><b>The scanner is attack surface.</b> ExifTool had remote code execution through a DjVu file (CVE-2021-22204, before 12.24) and filename injection (CVE-2022-23935, before 12.38).</td><td><span class="b b-deck">Deck</span> <a href="https://nvd.nist.gov/vuln/detail/CVE-2022-23935" target="_blank" rel="noopener">NVD</a> My version is 13.55 <span class="b b-tested">Tested</span>.</td><td>Keep ExifTool updated.</td></tr>
+      <tr><td>10</td><td><b>The exit status does not report leaks.</b></td><td><span class="b b-tested">Tested</span> A scan with leaks ends with 0. An empty folder ends with 1.</td><td>Return a non-zero status when a leak is found.</td></tr>
+      <tr><td>11</td><td><b>Limited detail.</b> Four decimal places (about 11 m). No altitude or direction.</td><td><span class="b b-analysis">Analysis</span></td><td>Print more tags. Use <code>%.6f</code>.</td></tr>
+      <tr><td>12</td><td><b>Bash only.</b></td><td><span class="b b-analysis">Analysis</span> <code>shopt</code> and <code>@( )</code> are Bash features.</td><td>Not needed for the talk.</td></tr>
+      <tr><td>13</td><td><b>Platform behaviour changes.</b></td><td><span class="b b-source">README</span> It varies by app and version.</td><td>Test with your own file.</td></tr>
+      <tr><td>14</td><td><b>Earlier copies stay out there.</b></td><td><span class="b b-analysis">Analysis</span></td><td>Share the scrubbed copy from the start.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Why can a leak be missed?</h3>
+  <figure class="diagram" data-title="Where a leak can slip through" data-minw="560">
+    <script type="text/plain" class="mm">
+flowchart TD
+  A["A photo has a leak"]:::bad --> B{"Does the script<br/>select the file?"}
+  B -->|"no: wrong folder level,<br/>extension not in the list,<br/>dot file"| X1["Not scanned"]:::warn
+  B -->|yes| C{"Does exiftool<br/>read the file?"}
+  C -->|"no: the error is hidden<br/>by 2> /dev/null"| X2["meta is empty<br/>the script prints clean"]:::warn
+  C -->|yes| D{"Is the tag in<br/>a detector?"}
+  D -->|"no: Make, dates, lens,<br/>XMP, IPTC"| X3["The leak stays hidden"]:::warn
+  D -->|yes| E{"Does the label start with<br/>the text in the detector?"}
+  E -->|no| X4["grep misses the line"]:::warn
+  E -->|yes| OK["The leak is reported"]:::ok
+    </script>
+    <figcaption><span class="cap-t">Four doors between a leak and the report.</span>
+      <span class="inwords">In words: the script must select the file. ExifTool must read it. A detector must cover the tag. The label must start with the right text. If any step fails, the leak is not shown.</span></figcaption>
+  </figure>
+
+  <h3>What the wipe removes and what stays</h3>
+  <figure class="diagram" data-title="Effect of -all=" data-minw="480">
+    <script type="text/plain" class="mm">
+flowchart LR
+  A["exiftool<br/>-all= FILE"]:::warn
+  A --> R["Removed"]:::ok
+  A --> K["Stays"]:::bad
+  A --> C["Can change"]:::warn
+  R --> R1["GPS, camera model, serial number"]
+  R --> R2["Artist, owner, software"]
+  R --> R3["Date and time tags"]
+  R --> R4["Embedded thumbnail"]
+  K --> K1["The picture itself"]
+  K --> K2["File name and file size"]
+  K --> K3["Image width and height"]
+  C --> C1["JPEG orientation and colour profile can go"]
+  C --> C2["PDF: old data can stay in the file"]
+    </script>
+    <figcaption><span class="cap-t">The wipe removes tags. It does not make the picture safe.</span>
+      <span class="inwords">In words: tags go. The picture and the file name stay. Some useful tags can go too. The first group was checked on a test JPEG <span class="b b-tested">Tested</span>. The last group comes from the deck <span class="b b-deck">Deck</span>.</span></figcaption>
+  </figure>
+
+  <h3>The tool as an attack surface</h3>
+  <p>The script runs <code>exiftool</code> on every file you give it. If the file comes from an attacker, a bug in ExifTool can become an attack on you.</p>
+  <figure class="diagram" data-title="Risk from a hostile file" data-minw="520">
+    <script type="text/plain" class="mm">
+flowchart TD
+  A["Someone gives you a crafted file"]:::bad --> B["You run exifleak on it"]
+  B --> C["The script calls exiftool with the file"]
+  C --> D{"ExifTool version"}
+  D -->|"before 12.24"| E["Both bugs are open<br/>CVE-2021-22204 and CVE-2022-23935"]:::bad
+  D -->|"12.24 to 12.37"| F["CVE-2022-23935 is open<br/>a file name that ends with a pipe<br/>character can run code"]:::bad
+  D -->|"12.38 or newer"| G["These two bugs are fixed"]:::ok
+    </script>
+    <figcaption><span class="cap-t">Update ExifTool.</span>
+      <span class="inwords">In words: an old ExifTool can run code from a hostile file. A new ExifTool does not have these two bugs. A new version can still have other bugs <span class="b b-analysis">Analysis</span>.</span></figcaption>
+  </figure>
+  <div class="tw"><table>
+    <thead><tr><th>CVE</th><th>Problem</th><th>Fixed in</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td class="k">CVE-2021-22204</td><td>Remote code execution through a DjVu file.</td><td>12.24</td><td><span class="b b-deck">Deck</span> <span class="b b-source">README</span></td></tr>
+      <tr><td class="k">CVE-2022-23935</td><td>A file name that ends with <code>|</code> can run a command.</td><td>12.38</td><td><a href="https://nvd.nist.gov/vuln/detail/CVE-2022-23935" target="_blank" rel="noopener">NVD</a></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ================= 08 ALTERNATIVES ================= -->
+<section class="sec" id="alt" data-num="08" data-toc="Alternatives">
+  <h2><span class="num">08</span> Alternatives and next steps</h2>
+  <p class="intro">Someone will ask "why not use X?". This part gives you honest answers. I did not run the other tools for this guide. Treat the entries as <span class="b b-analysis">Analysis</span>.</p>
+
+  <h3>Other tools that remove metadata</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Tool</th><th>What it does</th><th>Compared with exifleak</th></tr></thead>
+    <tbody>
+      <tr><td class="k"><b>ExifTool alone</b></td><td>Reads and writes metadata. For example <code>exiftool -gps:all= file</code> removes only GPS tags.</td><td>exifleak is a thin wrapper. It adds a short report and one flag.</td></tr>
+      <tr><td class="k"><b>exiv2</b></td><td>A command-line tool and library for EXIF, IPTC, and XMP.</td><td>Similar job. A different program.</td></tr>
+      <tr><td class="k"><b>jhead</b></td><td>A JPEG tool. It can delete the EXIF header.</td><td>JPEG only.</td></tr>
+      <tr><td class="k"><b>ImageMagick</b> <code>-strip</code></td><td>Writes a new image without profiles and comments.</td><td>It saves the image again. For a JPEG this can lower the quality.</td></tr>
+      <tr><td class="k"><b>mat2</b></td><td>A metadata cleaner for many file types. It writes a cleaned copy.</td><td>Safer by default, because it keeps the original.</td></tr>
+      <tr><td class="k"><b>Phone and desktop settings</b></td><td>Turn off location for the camera. Use the share options that remove location. Use "Remove Properties" in the Windows file dialog.</td><td>No script needed. But menus change by version, and old files keep their tags.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Other ways to build the same tool</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Idea</th><th>Benefit</th><th>Cost</th></tr></thead>
+    <tbody>
+      <tr><td>Ask ExifTool for exact tags: <code>exiftool -s -Model -Artist -GPSPosition FILE</code></td><td>No guessing of label text. The names have no spaces (<code>Model</code>, <code>Artist</code>) <span class="b b-tested">Tested</span>. The deck suggests it <span class="b b-deck">Deck</span>.</td><td>Output names change. For example <code>Model</code> instead of <code>Camera Model Name</code>.</td></tr>
+      <tr><td>Use <code>exiftool -json</code> and a JSON tool</td><td>Structured data, no text parsing.</td><td>Needs another program. The talk is about shell tools.</td></tr>
+      <tr><td>Use <code>find</code> to walk folders</td><td>It reads subfolders and works in bash 3.2.</td><td>A longer command.</td></tr>
+      <tr><td>Use an array for <code>DETECTORS</code></td><td>Safer with names that hold spaces. Indexed arrays exist in bash 3.2.</td><td>More syntax. The README says the script uses no arrays.</td></tr>
+      <tr><td>Write it in Python</td><td>Real data types and error handling.</td><td>The talk topic is shell scripting.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>What to build next</h3>
+  <ol class="steps">
+    <li>Read more tags: <code>Make</code>, lens, dates, <code>Host Computer</code>, XMP, and IPTC.</li>
+    <li>Report files that ExifTool cannot read, instead of "clean".</li>
+    <li>Check the result of a scrub, and print an error if it failed.</li>
+    <li>Handle names that start with <code>-</code>, with <code>--</code>.</li>
+    <li>Scan subfolders with <code>find</code>.</li>
+    <li>Add a safe mode that writes a scrubbed copy and keeps the original.</li>
+    <li>Return a non-zero exit status when a leak is found. Then other scripts can use it.</li>
+    <li>Add an option to remove only GPS tags.</li>
+  </ol>
+</section>
+
+<!-- ================= 09 Q AND A ================= -->
+<section class="sec" id="qa" data-num="09" data-toc="Question bank">
+  <h2><span class="num">09</span> Question bank</h2>
+  <p class="intro">Likely questions, grouped by angle. Open a question to see a short answer. Use the search box to find a word.</p>
+
+  <figure class="diagram" data-title="Angles of questions" data-minw="420">
+    <script type="text/plain" class="mm">
+mindmap
+  root((Questions))
+    Concepts
+      What is EXIF
+      Who writes it
+    Privacy and risk
+      Who can read it
+      Can it be faked
+    Code and shell
+      Pipes and quotes
+      awk and globs
+    Design
+      Detector list
+      One exiftool call
+    Limits and security
+      False clean
+      CVEs
+    Demo and talk
+      Output
+      Next steps
+    </script>
+    <figcaption><span class="cap-t">Six angles.</span>
+      <span class="inwords">In words: a question is about the idea, the risk, the code, the design, the limits, or the demo. Find the angle first. Then open the matching group below.</span></figcaption>
+  </figure>
+
+  <div class="qa-tools">
+    <input id="qa-filter" type="search" placeholder="Search questions, for example: quotes, awk, GPS, clean" aria-label="Search questions">
+    <button class="btn" id="qa-open" type="button">Open all</button>
+    <button class="btn" id="qa-close" type="button">Close all</button>
+    <span class="count" id="qa-count" aria-live="polite"></span>
+  </div>
+
+  <!-- A -->
+  <div class="qa-group" data-group>
+    <h3>A. Concepts <small>7 questions</small></h3>
+    <details class="qa"><summary>What is EXIF?</summary><div class="a"><p>EXIF means <i>Exchangeable image file format</i>. It is a standard for tags that a camera or phone stores in an image file. Examples are the time, the camera model, and the GPS position.</p></div></details>
+    <details class="qa"><summary>What is the difference between metadata and EXIF?</summary><div class="a"><p>Metadata is the general word. It means data about data. EXIF is one family of metadata. XMP and IPTC are two other families. See the table in part 01.</p><p>The script reads text from ExifTool, so it can show tags from any family. But its detectors look for only a few names. XMP and IPTC names were not found in my test <span class="b b-tested">Tested</span>.</p></div></details>
+    <details class="qa"><summary>Who writes the EXIF block?</summary><div class="a"><p>The camera or phone writes it when you take the photo. Editing programs can add or change tags later. Anyone can also write tags with a tool such as ExifTool.</p></div></details>
+    <details class="qa"><summary>Does every photo have GPS data?</summary><div class="a"><p>No. The second photo in the demo has only a camera model. The camera app writes GPS tags only if it has the position. Turning off location for the camera app stops new GPS tags <span class="b b-analysis">Analysis</span>.</p></div></details>
+    <details class="qa"><summary>Can I see EXIF without a special tool?</summary><div class="a"><p>Yes. Many file viewers show some tags. On macOS, Preview has an inspector. On Windows, the file properties have a Details tab. Menu names change with the version <span class="b b-analysis">Analysis</span>. These viewers show fewer tags than ExifTool.</p></div></details>
+    <details class="qa"><summary>Why does a camera write all this?</summary><div class="a"><p>The tags help programs sort, show, and edit photos. Examples are the orientation, the time, and the place on a map. The privacy risk is a side effect <span class="b b-analysis">Analysis</span>.</p></div></details>
+    <details class="qa"><summary>What is a geotag?</summary><div class="a"><p>A geotag is a set of GPS coordinates stored in a photo. In the script it is the <code>GPS Position</code> tag.</p></div></details>
+  </div>
+
+  <!-- B -->
+  <div class="qa-group" data-group>
+    <h3>B. Privacy and risk <small>9 questions</small></h3>
+    <details class="qa"><summary>Who can read the metadata of my photo?</summary><div class="a"><p>Anyone who gets the file or a copy of it. They only need a tool such as <code>exiftool</code>. They do not need a password.</p></div></details>
+    <details class="qa"><summary>Does Instagram remove it?</summary><div class="a"><p>The deck says Instagram, Facebook, X, and Signal usually strip the tags on upload <span class="b b-deck">Deck</span>. The word is "usually". Behaviour changes with the app and version. Test with your own file <span class="b b-source">README</span>.</p></div></details>
+    <details class="qa"><summary>If a platform strips EXIF, am I safe?</summary><div class="a"><p>Only for the copy that the platform shows. The deck does not say what the platform keeps. Copies that you sent by email or cloud link still hold the tags.</p></div></details>
+    <details class="qa"><summary>Does turning off location in the camera app solve this?</summary><div class="a"><p>It helps for new photos, because no GPS tag is written. Old photos keep their tags. Other tags remain: the model, the serial number, a name, and the software <span class="b b-analysis">Analysis</span>.</p></div></details>
+    <details class="qa"><summary>Is a serial number dangerous?</summary><div class="a"><p>By itself it is not a name. But it identifies one device. Two photos with the same serial number came from the same device. That can link photos that look unrelated <span class="b b-analysis">Analysis</span>.</p></div></details>
+    <details class="qa"><summary>Can EXIF data be faked?</summary><div class="a"><p>Yes. Anyone can write any tag with one command. I wrote the GPS tags of my test photos this way <span class="b b-tested">Tested</span>. McAfee said he faked the data in his photo <span class="b b-deck">Deck</span>. Treat EXIF as a lead, not as proof.</p></div></details>
+    <details class="qa"><summary>Does the scrub fix photos that I already shared?</summary><div class="a"><p>No. It changes only the file you run it on. Copies that other people hold keep their tags. So scrub before you share.</p></div></details>
+    <details class="qa"><summary>Is it right to run this tool on other people's photos?</summary><div class="a"><p>The tool is for your own files. Reading the tags of a file that someone gave you is a normal thing to do. Using it to find or follow a person is not <span class="b b-analysis">Analysis</span>.</p></div></details>
+    <details class="qa"><summary>Why these four types of leak?</summary><div class="a"><p>They match the harm in the cases: place, device, identity, and software. Slide 2 lists the five lines that the script hunts <span class="b b-deck">Deck</span>. Each type is one function, so you can add more.</p></div></details>
+  </div>
+
+  <!-- C -->
+  <div class="qa-group" data-group>
+    <h3>C. Code and shell <small>26 questions</small></h3>
+    <details class="qa"><summary>Why is <code>exiftool</code> called only one time for each file?</summary><div class="a"><p>One call is faster than one call for each tag. Also, all detectors then read the same text. The text stays in the variable <code>meta</code> <span class="b b-deck">Deck</span>.</p></div></details>
+    <details class="qa"><summary>Why are there quotes in <code>echo "$meta"</code>?</summary><div class="a"><p>The quotes keep the line breaks. Without them, all lines join into one line. Then <code>^Artist</code> cannot match, and every file prints "clean". I got 0 matches without the quotes and 1 with them <span class="b b-tested">Tested</span>.</p></div></details>
+    <details class="qa"><summary>What does <code>grep -i "^$2"</code> do?</summary><div class="a"><p>It keeps lines that start with the text in <code>$2</code>. The <code>^</code> means "start of line". The <code>-i</code> ignores case. So <code>Camera Model</code> matches the line <code>Camera Model Name</code>.</p></div></details>
+    <details class="qa"><summary>Why <code>head -1</code>?</summary><div class="a"><p>More than one line can start with the same text. <code>head -1</code> keeps the first one only. The report then has one line for each look-up.</p></div></details>
+    <details class="qa"><summary>What does <code>tr -s ' '</code> do?</summary><div class="a"><p>It squeezes each run of spaces into one space. ExifTool pads the tag name with many spaces so the colons line up. After <code>tr -s</code>, the line reads <code>Artist : Anish Shobith</code>.</p></div></details>
+    <details class="qa"><summary>What is <code>$( )</code>? How is it different from backticks?</summary><div class="a"><p><code>$( )</code> runs a command and gives its output as text. Backticks do the same job in an older form. <code>$( )</code> is easier to read and can nest. The script uses only <code>$( )</code> <span class="b b-analysis">Analysis</span>.</p></div></details>
+    <details class="qa"><summary>What are <code>$#</code>, <code>$0</code>, <code>$1</code>, <code>$?</code>, and <code>"$@"</code>?</summary><div class="a">
+      <p><code>$#</code>: the number of arguments. <code>$0</code>: the name of the script. <code>$1</code>: the first argument. <code>$?</code>: the exit status of the last command. <code>"$@"</code>: all arguments, each as one word.</p>
+      <p>Inside a function, <code>$1</code> and <code>$2</code> are the arguments of that function, not of the script.</p></div></details>
+    <details class="qa"><summary>What does <code>2&gt; /dev/null</code> do?</summary><div class="a"><p>It sends error messages (stream 2) to <code>/dev/null</code>, which drops them. Normal output stays. On line 42 this keeps the screen clean. But it also hides real errors. This is the cause of the false "clean" <span class="b b-tested">Tested</span>.</p></div></details>
+    <details class="qa"><summary>Why is it <code>&gt; /dev/null 2&gt;&amp;1</code> and not the other way round?</summary><div class="a"><p>The shell reads redirects from left to right. First stream 1 goes to the null device. Then stream 2 follows stream 1 there. In the other order, errors go to the screen. I saw the error message in my test <span class="b b-tested">Tested</span>.</p></div></details>
+    <details class="qa"><summary>What does <code>shift</code> do?</summary><div class="a"><p>It drops the first argument. The second becomes the first, and so on. After <code>shift</code> on line 73, <code>"$@"</code> holds only files and folders, not <code>-s</code>.</p></div></details>
+    <details class="qa"><summary>What do <code>extglob</code> and <code>nocaseglob</code> do?</summary><div class="a"><p><code>extglob</code> allows the pattern <code>@(jpg|jpeg|png|heic|tiff)</code>. It means "one of these". <code>nocaseglob</code> makes patterns ignore case. So <code>UPPER.JPG</code> matches <code>jpg</code> <span class="b b-tested">Tested</span>.</p></div></details>
+    <details class="qa"><summary>Why does the loop test <code>[ -f "$file" ]</code>?</summary><div class="a"><p>When no file matches, bash keeps the pattern as plain text. The test stops the script from running <code>inspect</code> on that text. It also skips folders that have an image extension <span class="b b-analysis">Analysis</span>.</p></div></details>
+    <details class="qa"><summary>How does <code>$action "$file"</code> work?</summary><div class="a"><p>The variable holds a function name, <code>inspect</code> or <code>scrub</code>. The shell replaces <code>$action</code> with that name and then runs the function with the file as <code>$1</code>. It is the same trick as the <code>DETECTORS</code> list.</p></div></details>
+    <details class="qa"><summary>Why is <code>DETECTORS</code> a string and not an array?</summary><div class="a"><p>A string is the simplest form. The shell cuts it at spaces when you leave <code>$DETECTORS</code> without quotes. The README says the script uses no arrays, so it stays simple to read <span class="b b-source">README</span>.</p></div></details>
+    <details class="qa"><summary>Why does the script not use <code>set -e</code>?</summary><div class="a"><p>An earlier draft used it. A detector ended with <code>present X &amp;&amp; emit ...</code>. When the test failed, the status was non-zero, and <code>set -e</code> ended the scan at the first photo without a <code>Software</code> tag <span class="b b-source">README</span>.</p></div></details>
+    <details class="qa"><summary>Why <code>[ ]</code> and not <code>[[ ]]</code>?</summary><div class="a"><p>Both work in bash. <code>[ ]</code> is the older form. The script needs only simple tests, so it uses the simple form <span class="b b-analysis">Analysis</span>.</p></div></details>
+    <details class="qa"><summary>Why <code>echo</code> and not <code>printf</code>?</summary><div class="a"><p>The text is a fixed label and a line from ExifTool. <code>echo</code> is enough. <code>printf</code> is safer for arbitrary text. The script uses <code>printf</code> inside <code>awk</code> because it needs a number format <span class="b b-analysis">Analysis</span>.</p></div></details>
+    <details class="qa"><summary>Why does <code>awk</code> use fields <code>$1</code> to <code>$10</code>?</summary><div class="a"><p>After the clean-up, the line is <code>13 deg 21 9.00 N 74 deg 47 34.08 E</code>. It has ten words. Words 1, 3, and 4 are the latitude numbers. Word 5 is the letter. Words 6, 8, and 9 are the longitude numbers. Word 10 is the letter. Words 2 and 7 are the text <code>deg</code>.</p></div></details>
+    <details class="qa"><summary>What if the position is south or west?</summary><div class="a"><p>The two <code>if</code> lines in <code>awk</code> make the number negative when the letter is <code>S</code> or <code>W</code>. A test with a position in the south and west gave <code>-33.8678,-151.2083</code> <span class="b b-tested">Tested</span>.</p></div></details>
+    <details class="qa"><summary>Why <code>%.4f</code>?</summary><div class="a"><p>It prints four digits after the point. This is about 11 metres of latitude. It is enough to find a house, and the link stays short <span class="b b-analysis">Analysis</span>. For more detail, use <code>%.6f</code>.</p></div></details>
+    <details class="qa"><summary>How does the script handle spaces in file names?</summary><div class="a"><p>Every use of a file name is in double quotes. A test with <code>my folder/my photo.jpg</code> worked for scan and scrub <span class="b b-tested">Tested</span>.</p></div></details>
+    <details class="qa"><summary>Why is the variable called <code>maps</code>, when it holds only numbers?</summary><div class="a"><p>It is used to build the map link on line 23. A better name is <code>coords</code> <span class="b b-analysis">Analysis</span>.</p></div></details>
+    <details class="qa"><summary>How can a pipeline continue on the next line?</summary><div class="a"><p>A <code>|</code> at the end of a line tells bash that the command is not complete. Bash then reads the next line as the next part of the pipeline. Lines 17 to 21 use this.</p></div></details>
+    <details class="qa"><summary>What does <code>cut -d: -f2-</code> do?</summary><div class="a"><p><code>-d:</code> sets the separator to a colon. <code>-f2-</code> keeps field 2 and all fields after it. The first colon is the one after the label. So the label is removed and the value stays.</p></div></details>
+    <details class="qa"><summary>Does it run on Linux?</summary><div class="a"><p>It uses bash, <code>grep</code>, <code>head</code>, <code>tr</code>, <code>cut</code>, <code>awk</code>, and ExifTool. All of these exist on Linux. I tested only on macOS <span class="b b-analysis">Analysis</span>.</p></div></details>
+    <details class="qa"><summary>What is the exit status of the script?</summary><div class="a"><p>It is 1 for no arguments or no ExifTool. Otherwise it is the status of the last command that ran. A scan that finds leaks still ends with 0. An empty folder ends with 1 <span class="b b-tested">Tested</span>.</p></div></details>
+    <details class="qa"><summary>Which shell features does the script use?</summary><div class="a"><p>The README lists them: <code>grep -i</code>, <code>head</code>, <code>cut</code>, <code>tr</code>, <code>awk</code>, <code>[ ]</code> tests, <code>if</code>, <code>for</code>, <code>$1 $# $0 $?</code>, <code>2&gt; /dev/null</code>, extended globs, and ExifTool. Functions, <code>$( )</code>, and <code>shift</code> are the only structure beyond plain sequences <span class="b b-source">README</span>.</p></div></details>
+  </div>
+
+  <!-- D -->
+  <div class="qa-group" data-group>
+    <h3>D. Design <small>9 questions</small></h3>
+    <details class="qa"><summary>Why a list of detector names?</summary><div class="a"><p>The loop does not name any check. To add a check, write a function and add its name. To remove a check, delete the name <span class="b b-deck">Deck</span>.</p></div></details>
+    <details class="qa"><summary>How do I add a new detector?</summary><div class="a"><p>Write <code>detect_time() { show TIME "Date/Time Original"; }</code> on separate lines. Add <code>detect_time</code> to the <code>DETECTORS</code> string. Part 03 has the full code. I ran it and got a <code>[TIME]</code> line <span class="b b-tested">Tested</span>.</p></div></details>
+    <details class="qa"><summary>Why does <code>show</code> print and not return a value?</summary><div class="a"><p>A shell function can return only a number from 0 to 255. Text must go out through standard output. The caller then captures it with <code>$( )</code> <span class="b b-analysis">Analysis</span>.</p></div></details>
+    <details class="qa"><summary>Why save the report in a variable before printing?</summary><div class="a"><p>The script must know if the report is empty. If it is, the script prints "clean". The side effect: nothing appears until all detectors end.</p></div></details>
+    <details class="qa"><summary>Why parse labels? Why not ask ExifTool for exact tags?</summary><div class="a"><p>You can: <code>exiftool -s -Model -Artist FILE</code> gives names such as <code>Model</code>. The deck lists this as a fix for the brittle labels <span class="b b-deck">Deck</span>. The label approach shows how a pipeline works, which is the topic of the talk.</p></div></details>
+    <details class="qa"><summary>Why does the script not go into subfolders?</summary><div class="a"><p>Recursive globbing (<code>**</code>) needs bash 4. macOS ships bash 3.2. The script must run on both <span class="b b-deck">Deck</span>. The <code>find</code> command is another way <span class="b b-analysis">Analysis</span>.</p></div></details>
+    <details class="qa"><summary>Why Bash and not Python?</summary><div class="a"><p>The talk is about shell scripting. A pipeline of small tools is the point. A Python version is more robust, but it does not show the same ideas <span class="b b-analysis">Analysis</span>.</p></div></details>
+    <details class="qa"><summary>Why not write a custom EXIF parser?</summary><div class="a"><p>EXIF has many tag types, byte orders, and vendor extensions. ExifTool already handles them for many file types. The script reuses it <span class="b b-analysis">Analysis</span>.</p></div></details>
+    <details class="qa"><summary>Why a variable and not a temporary file for the ExifTool text?</summary><div class="a"><p>A variable needs no clean-up. A temporary file needs a safe name and a delete step <span class="b b-analysis">Analysis</span>.</p></div></details>
+  </div>
+
+  <!-- E -->
+  <div class="qa-group" data-group>
+    <h3>E. Limits and security <small>9 questions</small></h3>
+    <details class="qa"><summary>What is the biggest weakness?</summary><div class="a"><p>The false "clean". The script hides ExifTool errors. A missing file, a text file, or a name that starts with <code>-</code> all print "clean" <span class="b b-tested">Tested</span>. "Clean" must mean only "no detector printed a line".</p></div></details>
+    <details class="qa"><summary>Is the wipe complete?</summary><div class="a"><p>No. PDF edits are incremental, so old metadata can stay. <code>-all=</code> also drops the orientation and colour profile of a JPEG <span class="b b-deck">Deck</span>. And the picture, the file name, and the file dates stay <span class="b b-tested">Tested</span>.</p></div></details>
+    <details class="qa"><summary>Does the scrub change the picture?</summary><div class="a"><p>ExifTool rewrites the metadata. I expect it does not re-encode the image data <span class="b b-analysis">Analysis</span>. I did not compare the pixels. The file size changed from 1128 to 680 bytes in my test because the tags were removed <span class="b b-tested">Tested</span>.</p></div></details>
+    <details class="qa"><summary>Is it safe to run the script on files from strangers?</summary><div class="a"><p>Only with a current ExifTool. Older versions had remote code execution (CVE-2021-22204, before 12.24) and filename injection (CVE-2022-23935, before 12.38) <span class="b b-deck">Deck</span>. Even a new version can have other bugs. For hostile files, use a separate account or a virtual machine <span class="b b-analysis">Analysis</span>.</p></div></details>
+    <details class="qa"><summary>What does "clean" mean?</summary><div class="a"><p>No detector printed a line. It does not mean the file has no metadata. In my test, a file with <code>Make</code>, lens, date, and copyright tags printed no leak lines from those tags <span class="b b-tested">Tested</span>.</p></div></details>
+    <details class="qa"><summary>Can the scrub delete my only original?</summary><div class="a"><p>Yes. With <code>-s</code> the change is in place and no backup is made <span class="b b-tested">Tested</span>. Copy the file first if you need the tags later.</p></div></details>
+    <details class="qa"><summary>What is a false negative?</summary><div class="a"><p>It is a result that says "no problem" when a problem exists. The false "clean" is a false negative.</p></div></details>
+    <details class="qa"><summary>How accurate is the map link?</summary><div class="a"><p>Four decimal places give about 11 metres <span class="b b-analysis">Analysis</span>. The real accuracy also depends on the GPS fix of the phone. And a person can edit the tags.</p></div></details>
+    <details class="qa"><summary>What does the script not detect?</summary><div class="a"><p>It does not read <code>Make</code>, lens tags, dates, <code>Host Computer</code>, <code>Copyright</code>, XMP, or IPTC <span class="b b-tested">Tested</span>. It does not report altitude or direction. It does not look at the picture or the file name.</p></div></details>
+  </div>
+
+  <!-- F -->
+  <div class="qa-group" data-group>
+    <h3>F. Demo and talk <small>8 questions</small></h3>
+    <details class="qa"><summary>What does the demo show?</summary><div class="a"><p>Three photos in a folder. The first leaks place, device, name, and software. The second leaks only a device. The third is clean. Then <code>-s</code> wipes the first photo, and a new scan shows "clean" <span class="b b-deck">Deck</span>. The README says the output is a real run.</p></div></details>
+    <details class="qa"><summary>Why does the second photo show only a device line?</summary><div class="a"><p>It has only a camera model tag (<code>Pixel 8</code>). No detector finds anything else.</p></div></details>
+    <details class="qa"><summary>Why is the third photo clean?</summary><div class="a"><p>It has no tag that any detector reads. This does not prove that it has no metadata at all.</p></div></details>
+    <details class="qa"><summary>How long is the talk?</summary><div class="a"><p>The speaker notes add up to about 4:15. The cap is five minutes <span class="b b-deck">Deck</span>. The timing table is in part 11.</p></div></details>
+    <details class="qa"><summary>What do you build next?</summary><div class="a"><p>Read more tags. Report unreadable files. Check the result of a scrub. Handle names that start with <code>-</code>. Scan subfolders. Add a safe mode that keeps the original. See part 08 <span class="b b-analysis">Analysis</span>.</p></div></details>
+    <details class="qa"><summary>What did you change from your first draft?</summary><div class="a"><p>The first draft used <code>declare -A</code>, <code>${FIELDS[@]/#/-}</code>, and <code>exiftool -n -T</code>. Testing showed two problems: <code>set -e</code> ended the scan early, and macOS bash 3.2 has no associative arrays. The final version has neither problem <span class="b b-source">README</span>.</p></div></details>
+    <details class="qa"><summary>How did you test it?</summary><div class="a"><p>The README says it runs on the stock macOS bash 3.2 and on bash 5 <span class="b b-source">README</span>. For this guide I ran every example on bash 3.2.57 with ExifTool 13.55. I did not run bash 5 <span class="b b-tested">Tested</span>.</p></div></details>
+    <details class="qa"><summary>Quick facts from slide 3</summary><div class="a">
+      <p>Four Apache helicopters were destroyed (2007, disclosed 2012). Adam Savage tweeted a car photo with "off to work" (2010). Higinio Ochoa was arrested in March 2012 (the FBI says a photo of his girlfriend gave the clue). John McAfee was arrested two days after a photo showed Guatemala (2012). Friedland and Sommer wrote the study (HotSec 2010) <span class="b b-deck">Deck</span>.</p></div></details>
+  </div>
+</section>
+
+<!-- ================= 10 GLOSSARY ================= -->
+<section class="sec" id="glossary" data-num="10" data-toc="Glossary">
+  <h2><span class="num">10</span> Glossary</h2>
+  <p class="intro">One word, one meaning. Use these words in your answers.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Term</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td class="k"><b>action</b></td><td>The name of the function that the loop runs on each file: <code>inspect</code> or <code>scrub</code>.</td></tr>
+      <tr><td class="k"><b>anchor <code>^</code></b></td><td>In a pattern, it means "at the start of the line".</td></tr>
+      <tr><td class="k"><b>argument</b></td><td>A word that you give to a command or script.</td></tr>
+      <tr><td class="k"><b>attack surface</b></td><td>All the places where an attacker can give input to a program.</td></tr>
+      <tr><td class="k"><b>awk</b></td><td>A small language that reads text line by line and splits each line into fields.</td></tr>
+      <tr><td class="k"><b>Bash</b></td><td>The shell that runs the script. Version 3.2 comes with macOS.</td></tr>
+      <tr><td class="k"><b>command substitution</b></td><td>The form <code>$( … )</code>. It runs a command and uses its output as text.</td></tr>
+      <tr><td class="k"><b>composite tag</b></td><td>A tag that ExifTool builds from other tags. <code>GPS Position</code> is one.</td></tr>
+      <tr><td class="k"><b>CVE</b></td><td>A public number for a known security bug.</td></tr>
+      <tr><td class="k"><b>decimal degrees</b></td><td>A position written as one decimal number, for example 13.3525.</td></tr>
+      <tr><td class="k"><b>detector</b></td><td>A function that looks for one type of leak and prints lines about it.</td></tr>
+      <tr><td class="k"><b>DMS</b></td><td>Degrees, minutes, and seconds. The way EXIF stores a position.</td></tr>
+      <tr><td class="k"><b>exit status</b></td><td>A number that a command returns when it ends. 0 means success.</td></tr>
+      <tr><td class="k"><b>EXIF</b></td><td>The standard for camera tags in image files.</td></tr>
+      <tr><td class="k"><b>ExifTool</b></td><td>A program that reads and writes metadata. The script calls it as <code>exiftool</code>.</td></tr>
+      <tr><td class="k"><b>extglob</b></td><td>A shell option that allows patterns such as <code>@(a|b)</code>.</td></tr>
+      <tr><td class="k"><b>false negative</b></td><td>A result that says "no problem" when there is one.</td></tr>
+      <tr><td class="k"><b>field</b></td><td>One word of a line, as <code>awk</code> or <code>cut</code> sees it.</td></tr>
+      <tr><td class="k"><b>function</b></td><td>A group of commands with a name.</td></tr>
+      <tr><td class="k"><b>geotag</b></td><td>GPS coordinates that a photo stores.</td></tr>
+      <tr><td class="k"><b>glob</b></td><td>A pattern such as <code>*.jpg</code> that the shell turns into file names.</td></tr>
+      <tr><td class="k"><b>IFD</b></td><td>Image file directory. A table of tags inside the EXIF block.</td></tr>
+      <tr><td class="k"><b>in place</b></td><td>Change the same file, not a copy.</td></tr>
+      <tr><td class="k"><b>IPTC</b></td><td>A family of metadata for news and photo work, such as a by-line.</td></tr>
+      <tr><td class="k"><b>JPEG</b></td><td>A common image file format. It has segments, and one holds the EXIF block.</td></tr>
+      <tr><td class="k"><b>leak</b></td><td>A tag that tells a reader something private.</td></tr>
+      <tr><td class="k"><b>metadata</b></td><td>Data about data. For a photo: time, place, device, and more.</td></tr>
+      <tr><td class="k"><b>nocaseglob</b></td><td>A shell option that makes patterns ignore case.</td></tr>
+      <tr><td class="k"><b>pipe</b></td><td>The <code>|</code> character. It sends the output of one command to the input of the next.</td></tr>
+      <tr><td class="k"><b>positional parameter</b></td><td><code>$1</code>, <code>$2</code>, and so on. The arguments of a script or function.</td></tr>
+      <tr><td class="k"><b>prefix match</b></td><td>A match at the start of a line only.</td></tr>
+      <tr><td class="k"><b>RCE</b></td><td>Remote code execution. An attacker makes your computer run their code.</td></tr>
+      <tr><td class="k"><b>redirect</b></td><td>Send a stream to a file, for example <code>&gt; file</code>.</td></tr>
+      <tr><td class="k"><b>scan</b></td><td>Run the script without <code>-s</code>. It only reads.</td></tr>
+      <tr><td class="k"><b>scrub</b></td><td>Run the script with <code>-s</code>. It removes all tags.</td></tr>
+      <tr><td class="k"><b>shebang</b></td><td>The first line, <code>#!/bin/bash</code>. It names the program that runs the file.</td></tr>
+      <tr><td class="k"><b>stderr, stdout, stdin</b></td><td>The error stream (2), the normal output stream (1), and the input stream (0).</td></tr>
+      <tr><td class="k"><b>subshell</b></td><td>A copy of the shell that runs a part of the code. It cannot change variables of the main shell.</td></tr>
+      <tr><td class="k"><b>tag</b></td><td>The name of one metadata item, for example <code>Artist</code>.</td></tr>
+      <tr><td class="k"><b>value</b></td><td>The data of a tag.</td></tr>
+      <tr><td class="k"><b>word splitting</b></td><td>The shell cuts an unquoted value into words at spaces.</td></tr>
+      <tr><td class="k"><b>XMP</b></td><td>A family of metadata written as XML. Editing programs often write it.</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ================= 11 TALK MAP ================= -->
+<section class="sec" id="talk" data-num="11" data-toc="Talk map">
+  <h2><span class="num">11</span> The talk, slide by slide</h2>
+  <p class="intro">Use this part to prepare the delivery and to find the right answer when someone interrupts.</p>
+
+  <figure class="diagram" data-title="Talk timing" data-minw="520">
+    <script type="text/plain" class="mm">
+gantt
+  title Time for each slide (minutes and seconds)
+  dateFormat mm:ss
+  axisFormat %M:%S
+  section Talk
+  1 Cover : s1, 00:00, 15s
+  2 Two files in one : s2, after s1, 30s
+  3 Cost to people : s3, after s2, 35s
+  4 Design : s4, after s3, 25s
+  5 The script : s5, after s4, 50s
+  6 One field : s6, after s5, 30s
+  7 Demo : s7, after s6, 35s
+  8 Limits : s8, after s7, 25s
+  9 Close : s9, after s8, 10s
+    </script>
+    <figcaption><span class="cap-t">Total: 4 minutes 15 seconds.</span>
+      <span class="inwords">In words: the script slide is the longest at 50 seconds. The close is the shortest at 10 seconds. The times come from the speaker notes <span class="b b-deck">Deck</span>.</span></figcaption>
+  </figure>
+
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>Slide</th><th>Time</th><th>Key message</th><th>Be ready for</th><th>Guide part</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>"Your photos talk." (cover)</td><td>0:15</td><td>A photo is not only pixels. exifleak reads what it gives away, then wipes it.</td><td>What is exifleak? Why this topic?</td><td>00</td></tr>
+      <tr><td>2</td><td>"A photo is two files in one."</td><td>0:30</td><td>The EXIF block holds place, device, serial number, name, software. Some channels keep it. Some strip it.</td><td>What is EXIF? Which apps strip it?</td><td>01</td></tr>
+      <tr><td>3</td><td>"It has already cost people."</td><td>0:35</td><td>Four cases and one paper show real harm.</td><td>Sources? Are the claims proven?</td><td>02</td></tr>
+      <tr><td>4</td><td>"One job per function."</td><td>0:25</td><td>Four steps. A new check is one function and one name in <code>DETECTORS</code>.</td><td>Why this design? How do I add a check?</td><td>03</td></tr>
+      <tr><td>5</td><td>The script (4 clicks)</td><td>0:50</td><td>Lines 6–13: list and <code>show</code>. Lines 15–25: location and <code>awk</code>. Lines 27–39: small detectors. Lines 41–51: <code>inspect</code>.</td><td>Any line of the code. Lines 53–87 are on screen but not explained.</td><td>04, 05</td></tr>
+      <tr><td>6</td><td>"One field, start to finish."</td><td>0:30</td><td>Every field uses four steps. Location adds <code>awk</code>. The <code>-s</code> flag only changes which function runs.</td><td>What does each command do?</td><td>04, 05</td></tr>
+      <tr><td>7</td><td>Demo (1 click)</td><td>0:35</td><td>Scan a folder. Wipe one file. Scan again: clean.</td><td>What does each line mean? Is the wipe real?</td><td>06</td></tr>
+      <tr><td>8</td><td>"Where it breaks."</td><td>0:25</td><td>Brittle labels. One folder level. The wipe is not total. ExifTool needs updates.</td><td>What else can go wrong?</td><td>07</td></tr>
+      <tr><td>9</td><td>"Detect → Report → Scrub"</td><td>0:10</td><td>Share the scrubbed copy, never the original.</td><td>Questions.</td><td>09</td></tr>
+    </tbody>
+  </table></div>
+  <div class="co co-warn">
+    <span class="t">A gap to prepare for</span>
+    <p>Slide 5 shows the whole script, but the clicks explain only lines 6 to 51 <span class="b b-deck">Deck</span>. Lines 53 to 87 hold the <code>scrub</code> function, the start-up checks, the flag, and the loop. They are visible but not explained, except briefly on slide 6. Expect questions on <code>shift</code>, <code>shopt</code>, <code>"$@"</code>, and the <code>@( )</code> pattern. Part 04, sections F to I, covers them.</p>
+  </div>
+
+  <figure class="diagram" data-title="Story arc" data-minw="400">
+    <script type="text/plain" class="mm">
+flowchart TD
+  A["Hook<br/>Your photos talk"]:::blue --> B["Problem<br/>What hides in a photo"]
+  B --> C["Proof<br/>Cases that cost people"]
+  C --> D["Design<br/>One job per function"]
+  D --> E["Code<br/>The script, 4 clicks"]
+  E --> F["Mechanism<br/>One field, start to finish"]
+  F --> G["Demo<br/>Scan, scrub, scan"]:::ok
+  G --> H["Limits<br/>Where it breaks"]:::warn
+  H --> I["Close<br/>Detect, Report, Scrub"]:::blue
+    </script>
+    <figcaption><span class="cap-t">Each slide answers the question of the one before.</span>
+      <span class="inwords">In words: the notes end each slide with a line such as "Has this actually hurt anyone?". That line leads to the next slide.</span></figcaption>
+  </figure>
+
+  <h3>Tips for the live talk</h3>
+  <ul>
+    <li>Name the four labels in the same order as the report: LOCATION, DEVICE, IDENTITY, SOFTWARE.</li>
+    <li>Say "usually" for platform behaviour. Say "the FBI says" for Ochoa. Say "he later claimed" for McAfee.</li>
+    <li>If asked about a limit, agree and then say the fix. Every limit in part 07 has one.</li>
+    <li>Present the false "clean" yourself before someone finds it. It shows that you tested the script.</li>
+    <li>Run the demo in a folder that you tested before the talk.</li>
+  </ul>
+</section>
+
+<!-- ================= 12 SOURCES ================= -->
+<section class="sec" id="sources" data-num="12" data-toc="Sources">
+  <h2><span class="num">12</span> Sources</h2>
+  <p class="intro">These come from the deck README and the slides. I did not open every page again for this guide.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Topic</th><th>Source</th></tr></thead>
+    <tbody>
+      <tr><td>US Army, 2007 Apaches</td><td><a href="https://www.itnews.com.au/news/apaches-destroyed-using-geotagged-photo-data-293745" target="_blank" rel="noopener">iTnews, 2012</a> · <a href="https://www.military.com/defensetech/2012/03/15/insurgents-used-cell-phone-geotags-to-destroy-ah-64s-in-iraq" target="_blank" rel="noopener">Military.com, 2012</a></td></tr>
+      <tr><td>Adam Savage</td><td><a href="https://www.benton.org/headlines/web-photos-reveal-secrets-where-you-live" target="_blank" rel="noopener">NYT "Web Photos That Reveal Secrets, Like Where You Live", Aug 2010, via Benton</a></td></tr>
+      <tr><td>Higinio Ochoa</td><td><a href="https://www.computerworld.com/article/1432091/embedded-data-not-breasts-brought-down-hacker-2.html" target="_blank" rel="noopener">Computerworld, Apr 2012</a> (allegations as reported)</td></tr>
+      <tr><td>John McAfee</td><td><a href="https://thenextweb.com/insider/2012/12/03/it-gets-stranger-now-mcafee-claims-that-he-falsely-edited-the-metadata-on-the-photo-that-placed-him-in-guatemala/" target="_blank" rel="noopener">The Next Web, 3 Dec 2012</a></td></tr>
+      <tr><td>Geotag research</td><td><a href="https://www.usenix.org/conference/hotsec10/cybercasing-joint-privacy-implications-geo-tagging" target="_blank" rel="noopener">Friedland and Sommer, "Cybercasing the Joint", HotSec 2010</a></td></tr>
+      <tr><td>ExifTool options and the PDF caveat</td><td><a href="https://exiftool.org/exiftool_pod.html" target="_blank" rel="noopener">ExifTool documentation</a> · <a href="https://exiftool.org/faq.html" target="_blank" rel="noopener">ExifTool FAQ 32 (remove metadata)</a></td></tr>
+      <tr><td>CVE-2022-23935</td><td><a href="https://nvd.nist.gov/vuln/detail/CVE-2022-23935" target="_blank" rel="noopener">NVD</a> (file name ending in a pipe character, before 12.38)</td></tr>
+      <tr><td>CVE-2021-22204</td><td>DjVu, before 12.24 (named in the deck README)</td></tr>
+      <tr><td>Exif 3.0</td><td><a href="https://iptc.org/news/exif-3-0-released-featuring-utf-8-support/" target="_blank" rel="noopener">IPTC news</a> (CIPA DC-008-2023, UTF-8 text)</td></tr>
+      <tr><td>Platform behaviour</td><td>Varies by app and version. Test with your own file (deck README).</td></tr>
+      <tr><td>This guide's tests</td><td>Run on macOS with <code>/bin/bash</code> 3.2.57 and ExifTool 13.55 on 16 October 2026, with test photos that I made.</td></tr>
+    </tbody>
+  </table></div>
+  <p class="foot">The code listing in part 04 is an embedded copy of <code>decks/exifleak/exifleak.sh</code> (87 lines) as it was on 16 October 2026. If you change the script, update this guide too.</p>
+</section>
+
+</main>
+</div>
+
+<dialog class="zoom" id="zoom" aria-label="Diagram viewer">
+  <header>
+    <b id="zoom-title">Diagram</b>
+    <button class="btn" id="z-out" type="button" aria-label="Zoom out">−</button>
+    <button class="btn" id="z-in" type="button" aria-label="Zoom in">+</button>
+    <button class="btn" id="z-fit" type="button">Fit</button>
+    <button class="btn" id="z-close" type="button">Close</button>
+  </header>
+  <div class="zbody" id="zoom-body"></div>
+</dialog>
+
+<!-- Embedded copy of decks/exifleak/exifleak.sh. The code listing and the line tables are built from this text. -->
+<script type="text/plain" id="src-sh">#!/bin/bash
+# exifleak.sh - show what a photo gives away, or wipe it.
+#   ./exifleak.sh photo.jpg folder ...      report
+#   ./exifleak.sh -s photo.jpg folder ...   wipe all metadata
+
+DETECTORS="detect_location detect_device detect_identity detect_software"
+
+show() {   # show LABEL "Tag name"
+    line=$(echo "$meta" | grep -i "^$2" | head -1 | tr -s ' ')
+    if [ -n "$line" ]; then
+        echo "  [$1] $line"
+    fi
+}
+
+detect_location() {
+    show LOCATION "GPS Position"
+    maps=$(echo "$meta" | grep "^GPS Position" | cut -d: -f2- | tr -d "\"'," |
+           awk '{ lat = $1 + $3/60 + $4/3600; lon = $6 + $8/60 + $9/3600
+                  if ($5 == "S") lat = -lat
+                  if ($10 == "W") lon = -lon
+                  printf "%.4f,%.4f\n", lat, lon }')
+    if [ -n "$maps" ]; then
+        echo "  [LOCATION] https://maps.google.com/?q=$maps"
+    fi
+}
+
+detect_device() {
+    show DEVICE "Camera Model"
+    show DEVICE "Serial Number"
+}
+
+detect_identity() {
+    show IDENTITY "Artist"
+    show IDENTITY "Owner Name"
+}
+
+detect_software() {
+    show SOFTWARE "Software"
+}
+
+inspect() {
+    meta=$(exiftool "$1" 2> /dev/null)
+    echo
+    echo "$1"
+    report=$(for d in $DETECTORS; do $d; done)
+    if [ -z "$report" ]; then
+        echo "  clean"
+    else
+        echo "$report"
+    fi
+}
+
+scrub() {
+    exiftool -overwrite_original -all= "$1" > /dev/null 2>&1
+    echo "scrubbed $1"
+}
+
+# ---- main
+if [ $# -eq 0 ]; then
+    echo "Usage: $0 [-s] file|folder ..."
+    exit 1
+fi
+
+exiftool -ver > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+    echo "install exiftool first"
+    exit 1
+fi
+
+action=inspect
+if [ "$1" = "-s" ]; then
+    action=scrub
+    shift
+fi
+
+shopt -s extglob nocaseglob
+for target in "$@"
+do
+    if [ -d "$target" ]; then
+        for file in "$target"/*.@(jpg|jpeg|png|heic|tiff)
+        do
+            [ -f "$file" ] && $action "$file"
+        done
+    else
+        $action "$target"
+    fi
+done
+</script>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- helpers ---------- */
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var esc = function (s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
+  var store = {
+    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+  var root = document.documentElement;
+
+  /* ---------- theme ---------- */
+  var MODES = ['auto', 'light', 'dark'];
+  var mode = store.get('exifleak-guide-theme');
+  if (MODES.indexOf(mode) < 0) mode = 'auto';
+  function currentTheme() {
+    var t = root.getAttribute('data-theme');
+    if (t === 'light' || t === 'dark') return t;
+    return window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  function applyMode() {
+    if (mode === 'auto') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    $('#theme').textContent = 'Theme: ' + mode;
+  }
+  applyMode();
+  $('#theme').addEventListener('click', function () {
+    mode = MODES[(MODES.indexOf(mode) + 1) % MODES.length];
+    store.set('exifleak-guide-theme', mode);
+    applyMode();
+    renderDiagrams();
+  });
+  if (window.matchMedia) {
+    var mq = matchMedia('(prefers-color-scheme: dark)');
+    var onMq = function () { if (mode === 'auto') renderDiagrams(); };
+    if (mq.addEventListener) mq.addEventListener('change', onMq); else if (mq.addListener) mq.addListener(onMq);
+  }
+
+  /* ---------- contents ---------- */
+  var secs = $$('section.sec');
+  secs.forEach(function (s) {
+    var a = document.createElement('a');
+    a.href = '#' + s.id;
+    a.innerHTML = '<b>' + s.dataset.num + '</b><span>' + esc(s.dataset.toc) + '</span>';
+    $('#toc').appendChild(a);
+    $('#toc-m').appendChild(a.cloneNode(true));
+  });
+  $('#toc-m').addEventListener('click', function (e) {
+    if (e.target.closest('a')) $('.toc-m').removeAttribute('open');
+  });
+  if ('IntersectionObserver' in window) {
+    var links = $$('#toc a');
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (l) { l.classList.toggle('on', l.getAttribute('href') === '#' + en.target.id); });
+      });
+    }, { rootMargin: '-25% 0px -65% 0px' });
+    secs.forEach(function (s) { io.observe(s); });
+  }
+
+  /* ---------- bash highlighter ---------- */
+  var KW = { 'if': 1, 'then': 1, 'else': 1, 'elif': 1, 'fi': 1, 'for': 1, 'in': 1, 'do': 1, 'done': 1, 'while': 1, 'until': 1, 'case': 1, 'esac': 1 };
+  var CMD = { echo: 1, exit: 1, shift: 1, shopt: 1, local: 1, 'return': 1, read: 1, printf: 1, cd: 1, mkdir: 1, cp: 1, exiftool: 1, grep: 1, head: 1, tr: 1, cut: 1, awk: 1 };
+  function tokenize(src) {
+    var out = [], n = src.length, i = 0, plain = '';
+    function flush() { if (plain) { out.push(['', plain]); plain = ''; } }
+    function push(c, t) { flush(); out.push([c, t]); }
+    var reVar = /\$(?:\{[^}]*\}|\(|[A-Za-z_][A-Za-z0-9_]*|[0-9#?@*$!])/g;
+    while (i < n) {
+      var c = src[i], m;
+      if (c === '#' && (i === 0 || /[\s;|&(]/.test(src[i - 1]))) {
+        var e = src.indexOf('\n', i); if (e < 0) e = n;
+        push('c', src.slice(i, e)); i = e; continue;
+      }
+      if (c === '"') {
+        var j = i + 1;
+        while (j < n && src[j] !== '"') { if (src[j] === '\\') j++; j++; }
+        j = Math.min(j + 1, n);
+        var s = src.slice(i, j), last = 0;
+        reVar.lastIndex = 0;
+        while ((m = reVar.exec(s))) {
+          if (m.index > last) push('s', s.slice(last, m.index));
+          push('v', m[0]); last = m.index + m[0].length;
+        }
+        if (last < s.length) push('s', s.slice(last));
+        i = j; continue;
+      }
+      if (c === "'") {
+        var k = src.indexOf("'", i + 1); k = k < 0 ? n : k + 1;
+        push('s', src.slice(i, k)); i = k; continue;
+      }
+      if (c === '$') {
+        m = /^\$(?:\(|\{[^}]*\}|[A-Za-z_][A-Za-z0-9_]*|[0-9#?@*$!])/.exec(src.slice(i, i + 60));
+        if (m) { push('v', m[0]); i += m[0].length; continue; }
+      }
+      if (/[A-Za-z_]/.test(c)) {
+        m = /^[A-Za-z_][A-Za-z0-9_]*/.exec(src.slice(i, i + 80));
+        var w = m[0];
+        if (/^\s*\(\)/.test(src.slice(i + w.length, i + w.length + 4))) push('f', w);
+        else if (KW[w]) push('kw', w);
+        else if (CMD[w]) push('b', w);
+        else plain += w;
+        i += w.length; continue;
+      }
+      if (c === '-' && (i === 0 || /\s/.test(src[i - 1])) && /[A-Za-z-]/.test(src[i + 1] || '')) {
+        m = /^--?[A-Za-z0-9_][A-Za-z0-9_=]*/.exec(src.slice(i, i + 40));
+        if (m) { push('o', m[0]); i += m[0].length; continue; }
+      }
+      if (/[|&;<>(){}\[\]]/.test(c)) { push('p', c); i++; continue; }
+      plain += c; i++;
+    }
+    flush();
+    return out;
+  }
+  function toLines(tokens) {
+    var lines = [''];
+    tokens.forEach(function (t) {
+      var cls = t[0], parts = t[1].split('\n');
+      parts.forEach(function (p, idx) {
+        if (idx > 0) lines.push('');
+        if (p) lines[lines.length - 1] += cls ? '<span class="t-' + cls + '">' + esc(p) + '</span>' : esc(p);
+      });
+    });
+    return lines;
+  }
+
+  /* ---------- code listing and line tables ---------- */
+  var srcEl = $('#src-sh');
+  var source = srcEl ? srcEl.textContent : '';
+  var lineHtml = toLines(tokenize(source)); // index 0 = line 1
+  var total = source.replace(/\n$/, '').split('\n').length;
+  var rowLines = {};
+  $$('.walk tr[data-l]').forEach(function (tr) {
+    var n = parseInt(tr.getAttribute('data-l'), 10);
+    rowLines[n] = true;
+    tr.id = 'L' + n;
+    var ln = tr.insertCell(0); ln.className = 'ln'; ln.textContent = n;
+    var cd = tr.insertCell(1); cd.className = 'cd'; cd.innerHTML = lineHtml[n - 1] || '';
+  });
+  var zones = { 6: 1, 8: 1, 15: 1, 27: 1, 41: 1, 53: 1, 58: 1, 70: 1, 76: 1 };
+  var listing = $('#listing');
+  if (listing && source) {
+    var buf = [];
+    for (var n = 1; n <= total; n++) {
+      var num = rowLines[n] ? '<a href="#L' + n + '" title="Go to the explanation of line ' + n + '">' + n + '</a>' : String(n);
+      buf.push('<div class="cl' + (zones[n] ? ' zone' : '') + '"><span class="n">' + num + '</span><span class="tx">' + (lineHtml[n - 1] || ' ') + '</span></div>');
+    }
+    listing.innerHTML = buf.join('');
+  }
+  $$('pre.hl code').forEach(function (c) {
+    c.innerHTML = toLines(tokenize(c.textContent)).join('\n');
+  });
+  $$('pre.copyable').forEach(function (pre) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'copy'; b.textContent = 'Copy';
+    b.addEventListener('click', function () {
+      var text = pre.querySelector('code').textContent;
+      var done = function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy'; }, 1500); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function () {});
+      else {
+        var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) {}
+        ta.remove();
+      }
+    });
+    pre.appendChild(b);
+  });
+
+  /* ---------- diagrams ---------- */
+  var CDN = 'https://cdn.jsdelivr.net/npm/mermaid@12.0.0/dist/mermaid.min.js';
+  var LOCAL = '../../node_modules/mermaid/dist/mermaid.min.js';
+  var PAL = {
+    light: { fg: '#09090b', bg: '#ffffff', node: '#ffffff', nodeBd: '#a1a1aa', line: '#52525b',
+      okBg: '#eaf6ee', okBd: '#0e9254', warnBg: '#fff3dc', warnBd: '#d97706', badBg: '#fdecec', badBd: '#dc2626',
+      blueBg: '#e8f0fe', blueBd: '#2563eb', muteBg: '#f4f4f5', muteBd: '#a1a1aa', cluster: '#f7f8f8', clusterBd: '#d4d4d8', bar: '#0e9254' },
+    dark: { fg: '#fafafa', bg: '#121214', node: '#1c1c20', nodeBd: '#52525b', line: '#a1a1aa',
+      okBg: '#0f2a1b', okBd: '#43c07a', warnBg: '#3a2a08', warnBd: '#f59e0b', badBg: '#3a1214', badBd: '#ff6467',
+      blueBg: '#12233f', blueBd: '#60a5fa', muteBg: '#27272a', muteBd: '#71717a', cluster: '#17171a', clusterBd: '#3f3f46', bar: '#15803d' }
+  };
+  var PIE = ['#0e9254', '#2563eb', '#d97706', '#dc2626', '#7c3aed', '#0d9488'];
+  var FONT = 'Manrope, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif';
+  var seq = 0, runId = 0;
+
+  function themeVars(p) {
+    var v = {
+      fontFamily: FONT, fontSize: '15px', background: p.bg,
+      primaryColor: p.node, primaryTextColor: p.fg, primaryBorderColor: p.nodeBd, lineColor: p.line,
+      secondaryColor: p.muteBg, tertiaryColor: p.cluster, textColor: p.fg, mainBkg: p.node, nodeBorder: p.nodeBd,
+      nodeTextColor: p.fg, clusterBkg: p.cluster, clusterBorder: p.clusterBd, titleColor: p.fg, edgeLabelBackground: p.bg,
+      noteBkgColor: p.warnBg, noteTextColor: p.fg, noteBorderColor: p.warnBd,
+      actorBkg: p.blueBg, actorBorder: p.blueBd, actorTextColor: p.fg, actorLineColor: p.line,
+      signalColor: p.line, signalTextColor: p.fg, labelBoxBkgColor: p.muteBg, labelBoxBorderColor: p.nodeBd,
+      labelTextColor: p.fg, loopTextColor: p.fg, activationBkgColor: p.okBg, activationBorderColor: p.okBd,
+      sequenceNumberColor: '#ffffff',
+      pieTitleTextColor: p.fg, pieSectionTextColor: '#ffffff', pieLegendTextColor: p.fg,
+      pieStrokeColor: p.bg, pieOuterStrokeColor: p.nodeBd, pieStrokeWidth: '2px', pieOpacity: '1',
+      taskBkgColor: p.bar, taskBorderColor: p.bar, taskTextColor: '#ffffff', taskTextLightColor: '#ffffff',
+      taskTextDarkColor: p.fg, taskTextOutsideColor: p.fg, taskTextClickableColor: p.fg,
+      activeTaskBkgColor: p.bar, activeTaskBorderColor: p.bar, doneTaskBkgColor: p.bar, doneTaskBorderColor: p.bar,
+      sectionBkgColor: p.cluster, altSectionBkgColor: p.bg, sectionBkgColor2: p.cluster, gridColor: p.clusterBd,
+      todayLineColor: p.warnBd
+    };
+    var fills = [p.okBg, p.blueBg, p.warnBg, p.badBg, p.muteBg, p.okBg, p.blueBg, p.warnBg, p.badBg, p.muteBg, p.okBg, p.blueBg];
+    fills.forEach(function (f, i) { v['cScale' + i] = f; v['cScaleLabel' + i] = p.fg; v['cScaleInv' + i] = p.nodeBd; });
+    PIE.forEach(function (c, i) { v['pie' + (i + 1)] = c; });
+    return v;
+  }
+  function classDefs(p) {
+    function d(n, bg, bd) { return 'classDef ' + n + ' fill:' + bg + ',stroke:' + bd + ',color:' + p.fg + ',stroke-width:1.5px'; }
+    return [d('ok', p.okBg, p.okBd), d('warn', p.warnBg, p.warnBd), d('bad', p.badBg, p.badBd), d('blue', p.blueBg, p.blueBd), d('mute', p.muteBg, p.muteBd)].join('\n');
+  }
+  function loadScript(src) {
+    return new Promise(function (res, rej) {
+      var s = document.createElement('script');
+      s.src = src; s.onload = res; s.onerror = function () { s.remove(); rej(new Error('Could not load ' + src)); };
+      document.head.appendChild(s);
+    });
+  }
+  var mermaidP;
+  function loadMermaid() {
+    if (window.mermaid) return Promise.resolve(window.mermaid);
+    if (!mermaidP) {
+      mermaidP = loadScript(CDN).catch(function () { return loadScript(LOCAL); }).then(function () { return window.mermaid; });
+    }
+    return mermaidP;
+  }
+
+  var figs = $$('figure.diagram');
+  $('#dg-count').textContent = figs.length;
+  figs.forEach(function (fig, idx) {
+    var title = fig.dataset.title || '';
+    var top = document.createElement('div');
+    top.className = 'dg-top';
+    top.innerHTML = '<b>Diagram ' + (idx + 1) + ' · ' + esc(title) + '</b><span class="dg-hint">Swipe sideways to see more</span><button class="btn expand" type="button" aria-label="Expand diagram ' + (idx + 1) + '">Expand</button>';
+    var body = document.createElement('div');
+    body.className = 'dg-body';
+    body.setAttribute('role', 'img');
+    body.setAttribute('aria-label', title + '. A text version is below the diagram.');
+    body.innerHTML = '<div class="pending">Drawing the diagram…</div>';
+    fig.insertBefore(body, fig.firstChild);
+    fig.insertBefore(top, fig.firstChild);
+  });
+
+  function sizeSvg(fig, body) {
+    var svg = body.querySelector('svg');
+    if (!svg) return;
+    var nat = parseFloat(String(svg.style.maxWidth || '').replace('px', ''));
+    if (!nat || isNaN(nat)) {
+      var vb = svg.viewBox && svg.viewBox.baseVal;
+      nat = vb && vb.width ? vb.width : svg.getBoundingClientRect().width;
+    }
+    fig.dataset.nat = String(nat);
+    var minw = Math.min(nat, Math.max(0.78 * nat, 300));
+    svg.style.minWidth = minw + 'px';
+    fig.classList.toggle('pannable', body.scrollWidth > body.clientWidth + 2);
+  }
+
+  function showSource(fig, msg) {
+    var src = fig.querySelector('script.mm').textContent.trim();
+    fig.querySelector('.dg-body').innerHTML = '<pre class="mm-error">' + esc(msg) + '\n\nDiagram source:\n' + esc(src) + '</pre>';
+  }
+
+  async function renderDiagrams() {
+    var my = ++runId;
+    var m;
+    try { m = await loadMermaid(); }
+    catch (e) { figs.forEach(function (f) { showSource(f, 'The diagram library did not load. Connect to the internet, or run pnpm install in the repo.'); }); return; }
+    var p = PAL[currentTheme()];
+    m.initialize({
+      startOnLoad: false, theme: 'base', securityLevel: 'strict', fontFamily: FONT,
+      suppressErrorRendering: true, themeVariables: themeVars(p),
+      flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis', nodeSpacing: 26, rankSpacing: 34, padding: 10, wrappingWidth: 200 },
+      sequence: { useMaxWidth: true, mirrorActors: false, wrap: true, width: 150, diagramMarginX: 20, noteMargin: 10 },
+      timeline: { useMaxWidth: true }, mindmap: { useMaxWidth: true, padding: 14 },
+      gantt: { useMaxWidth: true, barHeight: 24, fontSize: 13, leftPadding: 130, sectionFontSize: 13 },
+      pie: { useMaxWidth: true }, state: { useMaxWidth: true }
+    });
+    try { await document.fonts.ready; } catch (e) {}
+    for (var i = 0; i < figs.length; i++) {
+      if (my !== runId) return;
+      var fig = figs[i], body = fig.querySelector('.dg-body');
+      var src = fig.querySelector('script.mm').textContent.trim();
+      if (/^(flowchart|graph)\b/.test(src)) src += '\n' + classDefs(p);
+      var id = 'mmd' + (++seq);
+      try {
+        var out = await m.render(id, src);
+        if (my !== runId) return;
+        body.innerHTML = out.svg;
+        sizeSvg(fig, body);
+      } catch (err) {
+        var junk = document.getElementById('d' + id); if (junk) junk.remove();
+        showSource(fig, 'Diagram error: ' + (err && err.message ? err.message : err));
+      }
+    }
+  }
+
+  var rz;
+  window.addEventListener('resize', function () {
+    clearTimeout(rz);
+    rz = setTimeout(function () {
+      figs.forEach(function (f) { var b = f.querySelector('.dg-body'); if (b.querySelector('svg')) f.classList.toggle('pannable', b.scrollWidth > b.clientWidth + 2); });
+    }, 200);
+  });
+
+  /* ---------- diagram viewer ---------- */
+  var dlg = $('#zoom'), zbody = $('#zoom-body'), zsvg = null, znat = 600, zw = 600;
+  function setZ(w) {
+    zw = Math.max(240, Math.min(w, 4000));
+    if (zsvg) { zsvg.style.width = zw + 'px'; }
+  }
+  function openZoom(fig) {
+    var svg = fig.querySelector('.dg-body svg');
+    if (!svg || !dlg.showModal) return;
+    $('#zoom-title').textContent = fig.dataset.title || 'Diagram';
+    zbody.textContent = '';
+    zsvg = svg.cloneNode(true);
+    zsvg.style.maxWidth = 'none'; zsvg.style.minWidth = '0'; zsvg.removeAttribute('height');
+    zbody.appendChild(zsvg);
+    znat = parseFloat(fig.dataset.nat) || 600;
+    dlg.showModal();
+    var avail = zbody.clientWidth - 32;
+    setZ(znat > avail ? znat : Math.min(avail, znat * 1.6));
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('.expand');
+    if (b) openZoom(b.closest('figure.diagram'));
+  });
+  $('#z-in').addEventListener('click', function () { setZ(zw * 1.25); });
+  $('#z-out').addEventListener('click', function () { setZ(zw / 1.25); });
+  $('#z-fit').addEventListener('click', function () { setZ(zbody.clientWidth - 32); });
+  $('#z-close').addEventListener('click', function () { dlg.close(); });
+  dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+
+  /* ---------- question bank ---------- */
+  var items = $$('details.qa'), groups = $$('.qa-group'), filter = $('#qa-filter'), count = $('#qa-count');
+  groups.forEach(function (g) {
+    var s = $('h3 small', g);
+    if (s) s.textContent = $$('details.qa', g).length + ' questions';
+  });
+  function applyFilter() {
+    var q = filter.value.trim().toLowerCase(), shown = 0;
+    items.forEach(function (d) {
+      var hit = !q || d.textContent.toLowerCase().indexOf(q) >= 0;
+      d.hidden = !hit;
+      if (hit) shown++;
+      if (q && hit) d.open = true;
+    });
+    groups.forEach(function (g) { g.hidden = $$('details.qa:not([hidden])', g).length === 0; });
+    count.textContent = q ? shown + ' of ' + items.length + ' shown' : items.length + ' questions';
+  }
+  filter.addEventListener('input', applyFilter);
+  $('#qa-open').addEventListener('click', function () { items.forEach(function (d) { if (!d.hidden) d.open = true; }); });
+  $('#qa-close').addEventListener('click', function () { items.forEach(function (d) { d.open = false; }); });
+  applyFilter();
+
+  /* ---------- go ---------- */
+  renderDiagrams();
+})();
+</script>
+</body>
+</html>

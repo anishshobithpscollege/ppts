@@ -165,7 +165,7 @@ const pinAt = computed(() => (props.pin ? built.value[props.pin.slab] : null))
   color: var(--foreground);
 }
 .iso-guide {
-  stroke: var(--fg-29);
+  stroke: color-mix(in oklab, var(--muted-foreground) 50%, var(--background));
   stroke-width: 1;
   stroke-dasharray: 3 4;
   vector-effect: non-scaling-stroke;
@@ -173,46 +173,46 @@ const pinAt = computed(() => (props.pin ? built.value[props.pin.slab] : null))
 
 /* four-tone shading from the site's .iso-art tokens */
 .slab polygon {
-  stroke: var(--fg-47);
+  stroke: var(--muted-foreground);
   stroke-width: 1;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
 }
 .f-top {
-  fill: var(--fg-6);
+  fill: color-mix(in oklab, var(--foreground) 6%, var(--background));
 }
 .f-left {
-  fill: var(--fg-11);
+  fill: color-mix(in oklab, var(--foreground) 11%, var(--background));
 }
 .f-right {
-  fill: var(--fg-3);
+  fill: var(--muted);
 }
 .slab--lit polygon {
-  stroke: var(--brand);
+  stroke: var(--ring);
 }
 .slab--lit .f-top {
-  fill: var(--brand-16);
+  fill: color-mix(in oklab, var(--ring) 16%, var(--background));
 }
 .slab--lit .f-left {
-  fill: color-mix(in srgb, var(--brand) 26%, var(--background));
+  fill: color-mix(in srgb, var(--ring) 26%, var(--background));
 }
 .slab--lit .f-right {
-  fill: var(--brand-9);
+  fill: color-mix(in oklab, var(--ring) 9%, var(--background));
 }
 .slab--ghost polygon {
-  stroke: var(--fg-47);
+  stroke: var(--muted-foreground);
   stroke-dasharray: 3 3;
   fill: transparent;
 }
 
 .slab-text {
-  fill: var(--fg-80);
+  fill: color-mix(in oklab, var(--foreground) 80%, var(--background));
   font-family: var(--font-mono);
   font-weight: 600;
   letter-spacing: 0.04em;
 }
 .slab--lit .slab-text {
-  fill: var(--brand-text);
+  fill: var(--primary);
 }
 .slab-text .slab-sub {
   fill: var(--muted-foreground);
@@ -224,25 +224,25 @@ const pinAt = computed(() => (props.pin ? built.value[props.pin.slab] : null))
 }
 
 .pin-leader {
-  stroke: var(--brand);
+  stroke: var(--ring);
   stroke-width: 1.4;
   stroke-dasharray: 4 4;
   vector-effect: non-scaling-stroke;
   animation: site-march 0.9s linear infinite;
 }
 .pin-dot {
-  fill: var(--brand);
+  fill: var(--ring);
 }
 .pin-ripple {
   fill: none;
-  stroke: var(--brand);
+  stroke: var(--ring);
   stroke-width: 1.4;
   transform-box: fill-box;
   transform-origin: center;
   animation: site-ripple 1.8s ease-out infinite;
 }
 .pin-text {
-  fill: var(--brand-text);
+  fill: var(--primary);
   font-family: var(--font-mono);
   font-weight: 600;
 }

@@ -2,7 +2,7 @@
   "name": "slidev-template-msis-seminar",
   "version": "1.0.0",
   "private": true,
-  "description": "MSIS (MAHE) Seminar Template 2026-27 for Slidev: 16:9, Calibri, CC6600 rule, institute footer.",
+  "description": "MSIS (MAHE) Seminar Template 2026-27 for Slidev: 16:9, Calibri, CC6600 rule, institute footer; shadcn-vue primitives on the template's colours.",
   "engines": {
     "slidev": ">=52.0.0"
   },
@@ -23,7 +23,10 @@
         "sans": "Calibri",
         "mono": "Courier New",
         "provider": "none"
-      }
+      },
+      "addons": [
+        "shadcn"
+      ]
     }
   }
 }

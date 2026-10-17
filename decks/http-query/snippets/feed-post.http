@@ -1,0 +1,5 @@
+POST /feed HTTP/1.1
+Host: example.org
+Content-Type: application/x-www-form-urlencoded
+
+q=foo&limit=10&sort=-published

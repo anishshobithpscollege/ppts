@@ -28,6 +28,17 @@
       ],
       "port": 3032,
       "autoPort": true
+    },
+    {
+      "name": "shadcn-test",
+      "runtimeExecutable": "node_modules/.bin/slidev",
+      "runtimeArgs": [
+        "decks/_shadcn-test/slides.md",
+        "--port",
+        "3039"
+      ],
+      "port": 3039,
+      "autoPort": true
     }
   ]
 }

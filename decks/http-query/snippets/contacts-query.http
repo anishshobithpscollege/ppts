@@ -1,0 +1,6 @@
+QUERY /contacts HTTP/1.1
+Host: example.org
+Content-Type: application/x-www-form-urlencoded
+Accept: application/json
+
+select=surname,givenname,email&limit=10&match=%22email=*@example.*%22

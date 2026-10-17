@@ -1,0 +1,10 @@
+GET /products?category=laptop HTTP/1.1
+Host: shop.example
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJFUzI1NiJ9…
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+Cache-Control: max-age=60
+
+{ "results": [ { "id": 7, "name": "ThinkPad X1" } ] }

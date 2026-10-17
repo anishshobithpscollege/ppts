@@ -5,3 +5,5 @@ shamefullyHoist: true
 # build scripts by default (`strictDepBuilds: true`), so allowlist it up-front.
 allowBuilds:
   playwright-chromium: true
+  # vue-demi's postinstall only re-points it at Vue 2; this repo is Vue 3, the default it ships with.
+  vue-demi: false

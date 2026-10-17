@@ -5,8 +5,8 @@ author: Anish Shobith
 info: |
   HTTP QUERY Method: A Security-Focused Literature Survey and Analysis.
   M.E. CyberSecurity technical seminar, Manipal School of Information Sciences, MAHE, Manipal.
-  Built on the MSIS Seminar Template 2026-27 (order, fonts and colours kept), widened to 16:9.
-duration: 18min
+  Built on the MSIS Seminar Template 2026-27 with shadcn-vue primitives (addons/shadcn).
+duration: 21min # 18:30 of talk (notes are timed) + 2 to 3 min of questions
 exportFilename: HTTP_QUERY_CyberSecurity_Seminar
 download: true
 layout: title
@@ -22,394 +22,262 @@ panel:
 ---
 
 <!--
-⏱ 0:20 (ends 0:20) · Source: RFC 10008
+⏱ 0:25 (ends 0:25) · Source: RFC 10008
 
-SAY: Good morning. My seminar is on the HTTP QUERY method, published as RFC 10008 in June 2026, so it is only a few months old. I'll build up from HTTP basics to what QUERY is. Most of my time goes on the security and deployment questions it raises, and I'll finish with the literature.
+SAY: Good morning. My seminar is about the HTTP QUERY method. The IETF published it as RFC 10008 in June 2026. First, I show how HTTP methods work. Then I show what QUERY changes. Most of the time is about security and deployment.
 
-NEXT → Here is the outline.
+NEXT → The outline.
 -->
 
 ---
 layout: outline
 items:
-  - 'Introduction: HTTP methods, URIs and the GET / POST semantic gap'
+  - 'Introduction: HTTP methods, URIs and the gap between GET and POST'
   - Objectives
-  - 'Literature Review: standards and peer-reviewed studies'
-  - 'Description: the QUERY method (RFC 10008) and its security analysis'
+  - 'Literature Review: standards and studies'
+  - 'Description: the QUERY method, code and security'
   - Conclusion
 ---
 
 <!--
-⏱ 0:20 (ends 0:40)
+⏱ 0:20 (ends 0:45)
 
-SAY: The talk follows the seminar format. The Introduction covers the HTTP fundamentals and ends with the problem: the gap between GET and POST. Then my objectives, and a literature review of the standards and the peer-reviewed work. The Description is the core: what QUERY is, how it compares with GET and POST, and its security implications across caches, browsers, signatures and deployment. Then the conclusion.
+SAY: This is the seminar format. The description is the main part. It shows what QUERY is and how clients and servers use it. It also shows what QUERY changes for caches, browsers, signatures and deployment.
 
-NEXT → Let's start with the most basic question: why does HTTP have methods at all?
+NEXT → What an HTTP request contains.
 -->
 
 ---
 section: 1. Introduction
 tsize: 36
 frame: intro
-clicks: 3
 ---
 
-# Why do HTTP request methods exist?
+<script setup>
+import exchange from './snippets/get-exchange.http?raw'
+</script>
 
-<p class="txt">The method is the primary source of request semantics: it tells <b>every hop</b> what the client intends. <Cite r="9110" s="9.1" /></p>
-<div class="s3">
-  <div class="s3-sets">
-    <div class="s3-idem" :class="{ lit: $clicks >= 2 }">
-      <div class="s3-lab">Idempotent</div>
-      <div class="s3-row"><M t="PUT" /><M t="DELETE" /></div>
-      <div class="s3-safe" :class="{ lit: $clicks >= 1 }">
-        <div class="s3-lab">Safe</div>
-        <div class="s3-row"><M t="GET" /><M t="HEAD" /><M t="OPTIONS" /></div>
-      </div>
-    </div>
-    <div class="s3-none" :class="{ lit: $clicks >= 3 }">
-      <div class="s3-lab">Neither</div>
-      <div class="s3-row"><M t="POST" /><M t="PATCH" /></div>
-    </div>
+# An HTTP request and its response
+
+<div class="grid grid-cols-[minmax(0,1fr)_380px] gap-6">
+  <Snippet :code="exchange" lang="http" title="a GET exchange" dense :callouts="{ 1: '1', 4: '2', 6: '3', 10: '4' }" />
+  <div class="flex flex-col gap-5">
+    <ul class="legend-v">
+      <li><Badge>1</Badge><span><b>Method and target URI.</b> The query is in the URI.</span></li>
+      <li><Badge>2</Badge><span><b>Headers.</b> Here: the format and the credentials.</span></li>
+      <li><Badge>3</Badge><span><b>Status line.</b> The result of the request.</span></li>
+      <li><Badge>4</Badge><span><b>Content.</b> A GET request has none <Cite r="9110" s="9.3.1" /></span></li>
+    </ul>
+    <Alert class="border-2 border-primary py-2">
+      <AlertDescription class="text-lg text-foreground">The <b>method</b> tells each hop what the client wants to do <Cite r="9110" s="9.1" /></AlertDescription>
+    </Alert>
   </div>
-  <ul class="bul s3-why">
-    <li v-click="1"><b>Safe</b>: no state change is requested, so caches, prefetchers and crawlers can send it freely <Cite r="9110" s="9.2.1" /></li>
-    <li v-click="2"><b>Idempotent</b>: repeating it has the same intended effect, so a client may retry after a lost connection <Cite r="9110" s="9.2.2" /></li>
-    <li v-click="3"><b>Neither</b>: no blind retries; a proxy <b>MUST NOT</b> retry these automatically <Cite r="9110" s="9.2.2" /></li>
+</div>
+
+<!--
+⏱ 0:50 (ends 1:35) · Sources: RFC 9110 §9.1, §9.3.1
+
+SAY: This is a full GET exchange. Item one is the method and the target URI. The query, category=laptop, is part of the URI. Item two is the headers: here, the format and a bearer token. Item three is the status line with the result. Item four is the response content.
+
+The request itself has no content. RFC 9110 says that content in a GET request has no defined meaning. Thus "add a body to GET" is not a good solution.
+
+The box at the bottom is the main idea. RFC 9110 calls the method the primary source of request semantics. Each hop reads it to know what the client wants.
+
+NEXT → The two properties of a method.
+-->
+
+---
+section: 1. Introduction
+tsize: 36
+frame: intro
+---
+
+# Safe and idempotent methods
+
+<div class="grid grid-cols-[430px_minmax(0,1fr)] items-start gap-8">
+  <Table class="text-xl">
+    <TableHeader>
+      <TableRow class="border-b-2"><TableHead>Methods</TableHead><TableHead class="text-center">Safe</TableHead><TableHead class="text-center">Idem&shy;potent</TableHead></TableRow>
+    </TableHeader>
+    <TableBody class="[&_td]:py-3">
+      <TableRow><TableCell class="space-x-1"><M t="GET" /><M t="HEAD" /><M t="OPTIONS" /></TableCell><TableCell class="text-center font-bold text-chart-3">yes</TableCell><TableCell class="text-center font-bold text-chart-3">yes</TableCell></TableRow>
+      <TableRow><TableCell class="space-x-1"><M t="PUT" /><M t="DELETE" /></TableCell><TableCell class="text-center font-bold text-destructive">no</TableCell><TableCell class="text-center font-bold text-chart-3">yes</TableCell></TableRow>
+      <TableRow><TableCell class="space-x-1"><M t="POST" /><M t="PATCH" /></TableCell><TableCell class="text-center font-bold text-destructive">no</TableCell><TableCell class="text-center font-bold text-destructive">no</TableCell></TableRow>
+    </TableBody>
+  </Table>
+  <ul class="bul big">
+    <li><b>Safe</b>: the client does not ask for a change. Caches, prefetchers and crawlers can send it <Cite r="9110" s="9.2.1" /></li>
+    <li><b>Idempotent</b>: a repeated request has the same intended effect. A client can send it again <Cite r="9110" s="9.2.2" /></li>
+    <li><b>Neither</b>: a proxy <b>must not</b> send it again automatically <Cite r="9110" s="9.2.2" /></li>
+    <li>All safe methods are also idempotent</li>
   </ul>
 </div>
 
-<style>
-.s3 { display: grid; grid-template-columns: 400px 1fr; gap: 28px; margin-top: 16px; }
-.s3-sets { display: flex; flex-direction: column; gap: 12px; }
-.s3-idem, .s3-safe, .s3-none { border: 1.5px solid var(--indigo); padding: 8px 12px 12px; background: #fff; transition: background .4s ease; }
-.s3-safe { margin-top: 10px; }
-.s3-idem.lit { background: var(--teal-t); }
-.s3-safe.lit { background: var(--lav); }
-.s3-none { border-style: dashed; }
-.s3-none.lit { border: 2px solid var(--brown); }
-.s3-lab { font-size: 18px; font-weight: 700; color: var(--brown); margin-bottom: 6px; }
-.s3-row { display: flex; gap: 8px; flex-wrap: wrap; }
-.s3-row .mpill { font-size: 20px; padding: 1px 9px; }
-.s3-why > li { font-size: 21px; margin-top: 10px; }
-</style>
-
 <!--
-⏱ 0:50 (ends 1:30) · Sources: RFC 9110 §9.1, §9.2.1, §9.2.2
+⏱ 0:40 (ends 2:15) · Sources: RFC 9110 §9.2.1, §9.2.2
 
-SAY: HTTP could have used one generic "send this" operation. It doesn't, because the method tells every party on the path what the client intends: the browser, the cache, the proxy and the server. RFC 9110 calls the method "the primary source of request semantics". What matters is not the list of methods but two properties behind it.
+SAY: Two properties of a method are important for this talk. The table shows them. A safe method does not ask for a change of state. Thus a cache, a prefetcher or a crawler can send it with no risk. An idempotent method has the same intended effect when you send it again. Thus a client can send it again after a connection fails. POST and PATCH are neither safe nor idempotent. A proxy must not send them again automatically.
 
-[click] First, safe. GET, HEAD and OPTIONS are safe: the client is not asking for any state change, so a cache, a prefetcher or a crawler can send them without asking anyone.
+CLARIFY: Method names are case-sensitive (RFC 9110 §9.1). This is important later in the talk.
 
-[click] Second, idempotent. PUT, DELETE, and every safe method are idempotent. Sending the request twice has the same intended effect as once, so a client can retry after a dropped connection.
-
-[click] POST and PATCH are neither. RFC 9110 says a proxy MUST NOT retry non-idempotent requests automatically.
-
-CLARIFY: Safe methods are a subset of idempotent methods, which is why the Safe box sits inside the Idempotent box. TRACE is also safe but rarely enabled.
-
-NOTICE: Where a method sits in this picture decides what intermediaries may do with it. QUERY will end up inside the Safe box.
-
-NEXT → What one of these requests looks like on the wire.
+NEXT → Where the query goes in a GET request.
 -->
 
 ---
 section: 1. Introduction
 tsize: 36
 frame: intro
-clicks: 7
 ---
 
-# Anatomy of an HTTP exchange
+# The parts of a URI
 
-<div class="s4">
-  <div>
-    <div class="panel-title">Request</div>
-    <div class="msg">
-      <div class="ln"><span class="part" :class="{ now: $clicks === 1, on: $clicks > 1 }">GET</span><span class="num">1</span> <span class="part" :class="{ now: $clicks === 2, on: $clicks > 2 }">/products?category=laptop</span><span class="num">2</span> <span class="h">HTTP/1.1</span></div>
-      <div class="part" :class="{ now: $clicks === 3, on: $clicks > 3 }"><div class="ln h">Host: example.com<span class="num">3</span></div><div class="ln h">Accept: application/json</div><div class="ln h">Authorization: Bearer eyJhbGci…</div></div>
-      <div class="ln"> </div>
-      <div class="ln"><span class="part h" :class="{ now: $clicks === 4, on: $clicks > 4 }"><i>(no content)</i></span><span class="num">4</span></div>
-    </div>
-  </div>
-  <div>
-    <div class="panel-title">Response</div>
-    <div class="msg">
-      <div class="ln"><span class="part" :class="{ now: $clicks === 5, on: $clicks > 5 }">HTTP/1.1 200 OK</span><span class="num">5</span></div>
-      <div class="ln h"><span class="part" :class="{ now: $clicks === 6, on: $clicks > 6 }">Content-Type: application/json</span></div>
-      <div class="ln"> </div>
-      <div class="part" :class="{ now: $clicks === 6, on: $clicks > 6 }"><div class="ln">{<span class="num">6</span></div><div class="ln">  "results": [ … ]</div><div class="ln">}</div></div>
-    </div>
-  </div>
-</div>
-<div class="legend s4-leg">
-  <div v-click="1"><span class="num">1</span><b>Method</b>: what the client intends</div>
-  <div v-click="4"><span class="num">4</span><b>Content (body)</b>: none; GET content has no defined semantics <Cite r="9110" s="9.3.1" /></div>
-  <div v-click="2"><span class="num">2</span><b>Target</b>: URI of the resource, including its query</div>
-  <div v-click="5"><span class="num">5</span><b>Status line</b>: the outcome, as a code</div>
-  <div v-click="3"><span class="num">3</span><b>Headers</b>: metadata, credentials, formats</div>
-  <div v-click="6"><span class="num">6</span><b>Response headers + content</b>: the result</div>
+<div class="uri uri-lg">
+  <span class="seg u1">https<span class="lab">scheme</span></span><span class="dl">://</span><span class="seg u2">shop.example<span class="lab">authority</span></span><span class="seg u3">/search<span class="lab">path</span></span><span class="seg u4">?q=laptop&amp;page=2<span class="lab">query</span></span><span class="seg u5">#results<span class="lab">fragment</span></span>
 </div>
 
-<style>
-.s4 { display: grid; grid-template-columns: 500px 1fr; gap: 24px; }
-.s4 .msg { font-size: 17px; }
-.s4-leg { grid-template-columns: 1fr 1fr; margin-top: 18px; font-size: 19px; }
-</style>
-
-<!--
-⏱ 0:50 (ends 2:20) · Sources: RFC 9110 §3, §9.3.1
-
-SAY: This is a complete HTTP/1.1 exchange. I'll go through it piece by piece, because QUERY changes exactly one of these pieces.
-
-[click] One: the method, GET, which carries the intent.
-
-[click] Two: the target, /products?category=laptop. The query parameter is part of the target, and therefore part of the URI.
-
-[click] Three: headers. Host, the formats the client accepts, and credentials; here a bearer token.
-
-[click] Four: the content, or body. A GET normally has none. RFC 9110 says content in a GET has no generally defined semantics, and some implementations reject it because of request-smuggling risk. So "just put a body on GET" is not a real option.
-
-[click] Five: the response status line, 200 OK.
-
-[click] Six: the response headers and content, the actual result.
-
-[click] The complete exchange.
-
-NOTICE: In GET, all the query input lives in the target URI; the body slot is empty. That is the problem this talk is about.
-
-NEXT → Let's zoom in on the URI.
--->
-
----
-section: 1. Introduction
-tsize: 36
-frame: intro
-clicks: 4
----
-
-# Anatomy of a URI
-
-<div class="uri">
-  <span class="seg sg1" :class="{ on: $clicks >= 1 }">https<span class="lab">scheme</span></span><span class="dl">://</span><span class="seg sg2" :class="{ on: $clicks >= 1 }">example.com:443<span class="lab">authority</span></span><span class="seg sg3" :class="{ on: $clicks >= 1 }">/search<span class="lab">path</span></span><span class="seg sg4" :class="{ on: $clicks >= 2 }">?q=security&amp;page=2<span class="lab">query</span></span><span class="seg sg5" :class="{ on: $clicks >= 3 }">#results<span class="lab">fragment</span></span>
-</div>
-<ul class="bul s5-defs">
-  <li v-click="2"><b>query</b>: non-hierarchical data that, with the path, <b>identifies</b> a resource <Cite r="3986" s="3.4" /></li>
-  <li v-click="3"><b>fragment</b>: handled by the user agent, <b>never sent</b> in the HTTP request <Cite r="3986" s="3.5" /></li>
-</ul>
-<div v-click="4" class="s5-neq">
-  <div class="card cd-lav"><div class="s5-h">URI query component</div><div class="s5-code">?q=security&amp;page=2</div><div class="s5-t">Part of the resource <b>identifier</b> <Cite r="3986" s="3.4" /></div></div>
-  <div class="s5-x">≠</div>
-  <div class="card cd-orange"><div class="s5-h">HTTP QUERY method</div><div class="s5-code"><M t="QUERY" /> /search + content</div><div class="s5-t">A request <b>method</b>; the query input travels as request content <Cite r="10008" s="1.1" /></div></div>
-</div>
-
-<style>
-.uri { font-family: var(--courier); font-size: 26px; font-weight: 700; text-align: center; margin: 12px 0 46px; white-space: nowrap; }
-.seg { position: relative; padding: 1px 0 3px; border-bottom: 4px solid transparent; transition: all .4s ease; }
-.lab { position: absolute; left: 50%; top: calc(100% + 6px); transform: translateX(-50%); font-family: var(--calibri); font-size: 19px; font-weight: 700; white-space: nowrap; opacity: 0; transition: opacity .4s ease; }
-.seg.on .lab { opacity: 1; }
-.sg1.on { border-color: var(--indigo); } .sg1 .lab { color: var(--indigo); }
-.sg2.on { border-color: var(--teal); } .sg2 .lab { color: var(--teal); }
-.sg3.on { border-color: #000; }
-.sg4.on { border-color: var(--orange); background: var(--aqua); } .sg4 .lab { color: var(--orange); }
-.sg5.on { border-color: var(--brown); } .sg5 .lab { color: var(--brown); }
-.s5-defs > li { font-size: 21px; }
-.s5-neq { display: grid; grid-template-columns: 1fr 60px 1fr; gap: 8px; margin-top: 18px; }
-.s5-x { font-size: 54px; font-weight: 700; display: flex; align-items: center; justify-content: center; color: var(--brown); }
-.s5-h { font-size: 22px; font-weight: 700; color: var(--brown); }
-.s5-code { font-family: var(--courier); font-size: 19px; font-weight: 700; margin: 6px 0; }
-.s5-t { font-size: 19px; line-height: 1.25; }
-</style>
-
-<!--
-⏱ 0:45 (ends 3:05) · Sources: RFC 3986 §3, §3.4, §3.5; RFC 10008 §1.1
-
-SAY: A URI has five parts, defined in RFC 3986.
-
-[click] The scheme, the authority (host and port), and the path.
-
-[click] Then the query component, everything after the question mark. RFC 3986 is precise: the query is data that, together with the path, identifies a resource. It is part of the name of the thing.
-
-[click] The fragment, after the hash, is handled by the browser and never sent to the server.
-
-[click] The most important distinction in this talk: the URI query component and the HTTP QUERY method are different things that happen to share a word. The query component is part of an identifier. QUERY is a request method whose query input travels in the request content. RFC 10008 names them differently: "URI query parameters" versus "query content".
-
-NOTICE: From now on, "QUERY" in capitals means the method.
-
-NEXT → Why move the query out of the URI? Because URIs do not scale gracefully.
--->
-
----
-section: 1. Introduction
-tsize: 36
-frame: intro
-clicks: 5
----
-
-# When the URI becomes the problem
-
-<div class="s6-top">Query parameters suit small inputs: <b>filter · search · sort · paginate · select</b></div>
-<div class="url" :class="{ bad: $clicks >= 4 }"><M t="GET" /> /search?q=laptop<span v-click="1">&amp;category=electronics&amp;brand=lenovo,dell,hp</span><span v-click="2">&amp;price_min=40000&amp;price_max=100000&amp;ram=16,32</span><span v-click="3">&amp;location=12.97,77.59&amp;radius=10km&amp;sort=price&amp;page=2</span><span v-click="4" class="hlq">&amp;filters=%7B%22gpu%22%3A%5B%22rtx-4060%22%2C%22rx-7600%22%5D%7D</span></div>
-<div class="s6-bottom">
-  <ul class="bul s6-facts">
-    <li v-click="2"><b>No universal limit</b>: HTTP only recommends supporting ≥ 8000 octets <Cite r="9110" s="4.1" /></li>
-    <li v-click="3"><b>Unknown real limits</b> across uncoordinated hops; servers may answer <span class="kbd">414 URI Too Long</span> <Cite r="10008" s="1" /> <Cite r="9110" s="15.5.15" /></li>
-    <li v-click="4"><b>Encoding overhead</b>: structured or binary data must be percent-encoded <Cite r="9205" s="4.5.1" /></li>
-    <li v-click="5"><b>More visible</b>: URIs are more likely than content to be logged or bookmarked <Cite r="10008" s="1" /></li>
+<div class="grid grid-cols-2 items-start gap-8">
+  <ul class="bul big">
+    <li>The <b>query</b> and the path together identify the resource <Cite r="3986" s="3.4" /></li>
+    <li>The browser does not send the <b>fragment</b> to the server <Cite r="3986" s="3.5" /></li>
   </ul>
-  <div v-click="5">
-    <div class="panel-title">→ as structured request content</div>
-    <div class="msg s6-msg"><div class="ln">{ "q": "laptop",</div><div class="ln">  "brand": ["lenovo","dell","hp"],</div><div class="ln">  "price": {"min":40000,"max":100000},</div><div class="ln">  "gpu": ["rtx-4060","rx-7600"] }</div></div>
-  </div>
+  <Alert class="border-2 border-primary">
+    <AlertTitle class="text-xl font-bold text-destructive">Two different things, one word</AlertTitle>
+    <AlertDescription class="text-lg text-foreground">The URI <b>query component</b> is part of an identifier. The <M t="QUERY" /> <b>method</b> sends its input as content: the “query content” <Cite r="10008" s="1.1" />.</AlertDescription>
+  </Alert>
 </div>
 
-<style>
-.s6-top { font-size: 20px; }
-.url { margin-top: 8px; min-height: 104px; font-family: var(--courier); font-size: 17px; font-weight: 700; line-height: 1.45; border: 1.5px solid var(--indigo); padding: 6px 10px; word-break: break-all; transition: border-color .4s; }
-.url.bad { border: 2.5px solid var(--brown); }
-.s6-bottom { display: grid; grid-template-columns: 1fr 410px; gap: 20px; margin-top: 10px; }
-.s6-facts > li { font-size: 19px; margin-top: 4px; }
-.s6-msg { font-size: 16px; }
-</style>
-
 <!--
-⏱ 0:50 (ends 3:55) · Sources: RFC 9110 §4.1, §15.5.15; RFC 10008 §1; RFC 9205 §4.5.1
+⏱ 0:35 (ends 2:50) · Sources: RFC 3986 §3, §3.4, §3.5; RFC 10008 §1.1
 
-SAY: Query parameters are a good design for small inputs: filtering, search, sorting, pagination. The problem starts when the query grows.
+SAY: A URI has five parts. The query comes after the question mark. Together with the path, it identifies a resource. The fragment stays in the browser. The browser does not send it.
 
-[click] Add a category and a few brands. Still fine.
+The box on the right is important for the rest of the talk. The query component of a URI and the QUERY method only share a word. The RFC calls the input of a QUERY request the "query content".
 
-[click] Add price ranges and RAM. First fact people get wrong: HTTP does not define one maximum URL length. RFC 9110 only recommends supporting at least 8000 octets.
-
-[click] Add location, radius, sort and page. RFC 10008 explains the real problem: the actual limits are unknown ahead of time, because the request crosses many uncoordinated systems. A server that won't accept it answers 414 URI Too Long.
-
-[click] Now a structured JSON filter. It must be percent-encoded: a 30-character JSON object becomes 54 characters of this. RFC 9205 calls this out as a reason GET becomes unwieldy.
-
-[click] And RFC 10008 notes URIs are more likely to be logged than content, and end up in bookmarks. The natural fix is structured request content, on the right.
-
-CLARIFY: URLs don't "break" at a magic length; the honest statement is that the limits aren't known ahead of time.
-
-NEXT → Logging is a security question, so let's follow this URI through a deployment.
+NEXT → What happens when the query in the URI grows.
 -->
 
 ---
 section: 1. Introduction
 tsize: 36
 frame: intro
-clicks: 5
 ---
 
-# Where can URI query data be recorded?
+<script setup>
+import longGet from './snippets/long-get.http?raw'
+</script>
 
-<div class="s7-req"><M t="GET" /> /users/search<span class="hlq">?email=alice@example.com&amp;role=admin</span> HTTP/1.1</div>
-<div class="s7-flow">
-  <div class="node"><carbon-application-web />Browser</div><div class="arrow">→</div>
-  <div class="node"><carbon-content-delivery-network />CDN / proxy</div><div class="arrow">→</div>
-  <div class="node"><carbon-firewall />WAF</div><div class="arrow">→</div>
-  <div class="node"><carbon-server-proxy />Reverse proxy / server</div><div class="arrow">→</div>
-  <div class="node"><carbon-application />Application</div><div class="arrow">→</div>
-  <div class="node"><carbon-cloud-logging />Logs / SIEM</div>
-</div>
-<div class="s7-rec">
-  <div v-click="1" class="rec">history · bookmarks</div><div></div>
-  <div v-click="2" class="rec">edge access logs</div><div></div>
-  <div v-click="2" class="rec">request logs, alerts</div><div></div>
-  <div v-click="3" class="rec">access log (request line)</div><div></div>
-  <div v-click="3" class="rec">app logs · APM · analytics</div><div></div>
-  <div v-click="4" class="rec">indexed and retained</div>
-</div>
-<div v-click="5" class="s7-cmp">
-  <div class="card cd-lav"><b>URI exposure surface</b><div>request line in access logs · history and bookmarks · <span class="kbd">Referer</span> (same-origin, or a relaxed Referrer-Policy) <Cite r="9110" s="17.9" /> <Cite t="W3C Referrer Policy" href="https://www.w3.org/TR/referrer-policy/" /></div></div>
-  <div class="card"><b>Request-content exposure surface</b><div>body logging and debug capture · WAF / APM inspection · any TLS-terminating intermediary. Less likely to be logged, <i>not never</i> <Cite r="10008" s="4" /></div></div>
-</div>
+# Problems when the query grows
 
-<style>
-.s7-req { font-family: var(--courier); font-size: 18px; font-weight: 700; }
-.s7-flow { display: grid; grid-template-columns: repeat(5, 1fr 22px) 1fr; margin-top: 12px; height: 76px; }
-.s7-rec { display: grid; grid-template-columns: repeat(5, 1fr 22px) 1fr; margin-top: 6px; }
-.rec { font-size: 16px; font-weight: 700; text-align: center; line-height: 1.15; color: var(--brown); border: 1.5px solid var(--brown); padding: 3px; }
-.s7-cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
-.s7-cmp .card { font-size: 18px; line-height: 1.25; }
-.s7-cmp b { font-size: 20px; display: block; margin-bottom: 3px; color: var(--brown); }
-</style>
+<div class="grid grid-cols-[minmax(0,1fr)_400px] gap-6">
+  <Snippet :code="longGet" lang="http" title="the same search, with more filters" dense wrap lines="1" />
+  <ul class="bul big">
+    <li><b>No fixed limit.</b> HTTP recommends at least 8000 octets <Cite r="9110" s="4.1" /></li>
+    <li><b>Unknown limits.</b> Each hop can have a different limit <Cite r="10008" s="1" /></li>
+    <li><b>414 URI Too Long</b>: the reply when the URI is too long for the server <Cite r="9110" s="15.5.15" /></li>
+    <li><b>Encoding cost.</b> Here, 30 characters of JSON become 54 <Cite r="10008" s="1" /></li>
+  </ul>
+</div>
 
 <!--
-⏱ 1:00 (ends 4:55) · Sources: RFC 9110 §17.9; RFC 10008 §1, §4; W3C Referrer Policy
+⏱ 0:45 (ends 3:35) · Sources: RFC 9110 §4.1, §15.5.15; RFC 10008 §1
 
-SAY: A realistic request: an admin searching users by email. The email address is in the query component. Let's follow it through a normal production path.
+SAY: Query parameters are good for small inputs. On the left is the same search with more filters: brands, prices, memory, sort, page, and a JSON filter. The JSON filter has percent-encoding. The server replies 414 URI Too Long.
 
-[click] It starts in the browser: history, possibly bookmarks.
+The list on the right gives the facts. HTTP has no single maximum length. RFC 9110 only recommends at least 8000 octets. RFC 10008 gives the real problem: a request goes through many hops, and the client cannot know their limits. Encoding also adds length. In this example, 30 characters of JSON become 54.
 
-[click] It passes a CDN or proxy and a WAF; both commonly log the request line.
-
-[click] The reverse proxy and web server write it to their access log. Default access-log formats record the request line, which contains the URI. The application and APM or analytics tools may record it again.
-
-[click] Finally it lands in a SIEM, indexed and retained. One email address, six places.
-
-[click] The nuance: this does NOT mean "GET is insecure". RFC 9110 §17.9 says URIs are meant to be shared, not secured. Putting sensitive data in a URI multiplies where it can be recorded. The Referer header is weaker than it was: the W3C default policy now sends only the origin cross-origin, but same-origin requests, or relaxed policies, still send the full URL.
-
-The right-hand box matters as much. Moving data into content reduces exposure but does not remove it: bodies can be logged, inspected, and seen by anything that terminates TLS. RFC 10008 says URIs are more likely to be logged. More likely, not always.
-
-NEXT → So developers move the query out of the URI, and that opens a semantic gap.
+NEXT → A long URI is also a security problem, because many systems record it.
 -->
 
 ---
 section: 1. Introduction
 tsize: 36
 frame: intro
-clicks: 2
 ---
 
-# Open issue: the semantic gap between GET and POST
+<script setup>
+import accessLog from './snippets/access.log?raw'
+</script>
 
-<div class="s9">
-  <div class="s9-grid">
-    <div></div>
-    <div class="s9-ch">Query input in the <b>URI</b></div>
-    <div class="s9-ch">Query input in the <b>content</b></div>
-    <div class="s9-rh">Safe + idempotent</div>
-    <div class="s9-c card cd-lav"><M t="GET" /><div>Retrieval; the query is part of the identifier</div></div>
-    <div class="s9-c card s9-gap" :class="{ filled: $clicks >= 1 }">
-      <div v-if="$clicks < 1" class="s9-q">?<div>no standard method</div></div>
-      <template v-else><M t="QUERY" /><div>Safe, idempotent query carried as content <Cite r="10008" s="2" /></div></template>
-    </div>
-    <div class="s9-rh">Unsafe / general processing</div>
-    <div class="s9-c card"><span class="kbd">GET /page?do=delete</span><div>Anti-pattern: owner MUST disallow unsafe actions via safe methods <Cite r="9110" s="9.2.1" /></div></div>
-    <div class="s9-c card cd-brown"><M t="POST" /><div>Resource-specific processing of the content <Cite r="9110" s="9.3.3" /></div></div>
-  </div>
-  <div class="s9-side">
-    <div class="card s9-quote">Using POST for a query “hinders caching and uses an unsafe method for what would otherwise be a safe request.” <Cite r="9110" s="17.9" /></div>
-    <div v-click="2" class="card cd-orange s9-msg">QUERY is <b>not a replacement</b> for GET or POST. It fills the gap between them.</div>
+# Where the URI is recorded
+
+<div class="hops">
+  <div v-for="h in [['Browser', 'history, bookmarks'], ['CDN / proxy', 'edge access logs'], ['WAF', 'request logs, alerts'], ['Reverse proxy', 'access log'], ['Application', 'app logs, APM'], ['SIEM', 'indexed, kept']]" :key="h[0]" class="hop">
+    <b>{{ h[0] }}</b><span>{{ h[1] }}</span>
   </div>
 </div>
 
-<style>
-.s9 { display: grid; grid-template-columns: 1fr 260px; gap: 20px; }
-.s9-grid { display: grid; grid-template-columns: 110px 1fr 1fr; grid-template-rows: auto 1fr 1fr; gap: 10px; }
-.s9-ch { font-size: 19px; text-align: center; align-self: end; }
-.s9-rh { font-size: 19px; font-weight: 700; color: var(--brown); align-self: center; line-height: 1.2; }
-.s9-c { font-size: 19px; line-height: 1.25; min-height: 138px; display: flex; flex-direction: column; gap: 8px; justify-content: center; }
-.s9-c .mpill { align-self: flex-start; font-size: 20px; }
-.s9-gap { border: 2px dashed var(--orange); }
-.s9-gap.filled { border-style: solid; background: #fff; }
-.s9-q { font-size: 46px; font-weight: 700; color: var(--orange); text-align: center; line-height: 1; }
-.s9-q div { font-size: 18px; margin-top: 6px; }
-.s9-side { display: flex; flex-direction: column; gap: 14px; }
-.s9-quote { font-size: 19px; font-style: italic; line-height: 1.3; }
-.s9-msg { font-size: 21px; line-height: 1.3; }
-</style>
+<Snippet :code="accessLog" title="access.log (nginx “combined” format)" size="sm" dense wrap removed="1" added="2" />
+
+<div class="mt-4 grid grid-cols-2 gap-4">
+  <Card class="gap-1 py-3">
+    <CardHeader class="px-4"><CardTitle class="text-xl text-destructive">URI exposure</CardTitle></CardHeader>
+    <CardContent class="px-4 text-lg">Access logs, history and bookmarks keep the URI. The <code>Referer</code> header sends it on the next same-origin request <Cite r="9110" s="17.9" /></CardContent>
+  </Card>
+  <Card class="gap-1 py-3">
+    <CardHeader class="px-4"><CardTitle class="text-xl text-destructive">Content exposure</CardTitle></CardHeader>
+    <CardContent class="px-4 text-lg">Body logs, WAF and APM tools and each TLS-terminating hop can see the content. Logs keep it less often, <i>but not never</i> <Cite r="10008" s="4" /></CardContent>
+  </Card>
+</div>
 
 <!--
-⏱ 0:45 (ends 5:40) · Sources: RFC 9110 §9.2.1, §9.3.3, §17.9; RFC 10008 §2
+⏱ 1:05 (ends 4:40) · Sources: RFC 9110 §17.9; RFC 10008 §4; W3C Referrer Policy
 
-SAY: This is the open issue the Introduction leads to. The columns ask where the query input lives: URI or content. The rows ask what the method promises: safe and idempotent, or general processing.
+SAY: An administrator searches for users by email. The email is in the query component. A normal production path records it at each hop. The browser keeps it in history. The CDN, the WAF, the reverse proxy and the application write it to their logs. At the end, a SIEM indexes and keeps it.
 
-GET is top-left and POST bottom-right. Bottom-left is an anti-pattern: an action like "delete" behind a safe method, which RFC 9110 says the owner MUST disallow. Top-right was empty: there was no standard way to say "this is a safe, idempotent query, with the input in the body". RFC 9110 itself admits this in §17.9, quoted on the right.
+The red line is a real access-log line in the default "combined" format of nginx. It includes the email. The green line is the same search, sent as QUERY. The request line has only the path.
 
-[click] QUERY fills exactly that cell.
+RFC 9110 says it clearly: URIs are for sharing, not for secrets. The Referer header also sends the full URI on the next same-origin request.
 
-[click] So QUERY is not a replacement for GET or POST. If your query fits in a URL, use GET. If you're changing state, use POST.
+But the right card is equally important. A body has less exposure, not zero exposure. Systems can log and examine bodies too. "More likely to be logged" does not mean "always".
 
-NEXT → That gives me the objectives of this study.
+CLARIFY: Cross-origin, browsers now send only the origin in Referer by default (strict-origin-when-cross-origin). Same-origin requests still get the full URL.
+
+NEXT → So developers move the query out of the URI, and they find a gap.
+-->
+
+---
+section: 1. Introduction
+tsize: 36
+frame: intro
+clicks: 1
+---
+
+# The gap between GET and POST
+
+<div class="grid grid-cols-[minmax(0,1fr)_270px] gap-5">
+  <div class="gapgrid">
+    <div />
+    <div class="gg-ch">query input in the <b>URI</b></div>
+    <div class="gg-ch">query input in the <b>content</b></div>
+    <div class="gg-rh">Safe and idempotent</div>
+    <Card class="gg-cell"><M t="GET" /><div>gets a resource; the query is part of the URI</div></Card>
+    <Card class="gg-cell" :class="$clicks ? 'border-2 border-primary' : 'border-2 border-dashed border-primary'">
+      <template v-if="!$clicks"><div class="gg-q">?</div><div class="text-center">no standard method</div></template>
+      <template v-else><M t="QUERY" /><div>safe and idempotent; the query is in the content <Cite r="10008" s="2" /></div></template>
+    </Card>
+    <div class="gg-rh">Not safe, general processing</div>
+    <Card class="gg-cell"><code>GET /item?do=delete</code><div>bad practice: the owner must disallow it <Cite r="9110" s="9.2.1" /></div></Card>
+    <Card class="gg-cell"><M t="POST" /><div>the resource decides what to do with the content <Cite r="9110" s="9.3.3" /></div></Card>
+  </div>
+  <div class="flex flex-col gap-3">
+    <Card class="gap-0 py-3"><CardContent class="px-3 text-base italic">POST for a query “hinders caching and uses an unsafe method for what would otherwise be a safe request.” <Cite r="9110" s="17.9" /></CardContent></Card>
+    <Alert v-click="1" class="border-2 border-primary">
+      <AlertTitle class="text-lg font-bold text-destructive">Not a replacement</AlertTitle>
+      <AlertDescription class="text-base text-foreground">QUERY fills the gap. If the query fits in a URI, use GET. If the request changes data, use POST.</AlertDescription>
+    </Alert>
+  </div>
+</div>
+
+<!--
+⏱ 0:55 (ends 5:35) · Sources: RFC 9110 §9.2.1, §9.3.3, §17.9; RFC 10008 §2
+
+SAY: This grid shows the open issue. The columns show where the query input is: in the URI or in the content. The rows show what the method promises. GET is at the top left. POST is at the bottom right. The bottom left is bad practice: an action behind a safe method. RFC 9110 says that the owner must disallow it.
+
+The top right was empty. HTTP had no standard method for "a safe, idempotent query with the input in the body". RFC 9110 itself admits this in section 17.9. The quote is on the right.
+
+[click] QUERY fills exactly this cell. It does not replace the other methods. If the query fits in a URI, use GET. If the request changes data, use POST.
+
+NEXT → This gap gives the objectives.
 -->
 
 ---
@@ -418,26 +286,20 @@ frame: obj
 ---
 
 <ul class="bul obj">
-  <li>Explain why HTTP distinguishes safe, idempotent and general-purpose methods</li>
-  <li>Examine how query input in the URI creates size and exposure problems</li>
-  <li>Analyse the HTTP QUERY method as standardised in RFC 10008</li>
-  <li>Compare GET, POST and QUERY: semantics, caching, discovery and deployment</li>
-  <li>Identify security implications for browsers, caches, WAFs, gateways and applications</li>
-  <li>Survey the standards and peer-reviewed literature on the underlying mechanisms</li>
+  <li>Explain how HTTP methods tell each hop what a request does</li>
+  <li>Show the size and exposure problems of a query in the URI</li>
+  <li>Analyse the QUERY method of RFC 10008 with client and server code</li>
+  <li>Identify the security effects on browsers, caches, WAFs, gateways and applications</li>
+  <li>Review the standards and studies that QUERY depends on</li>
   <li>Recommend when to use GET, QUERY or POST</li>
 </ul>
 
-<style>
-.obj { margin-top: 18px; }
-.obj > li { font-size: 24px; margin-top: 16px; }
-</style>
-
 <!--
-⏱ 0:30 (ends 6:10)
+⏱ 0:25 (ends 6:00)
 
-SAY: My objectives follow from that gap. First, the fundamentals: why methods and their properties matter, and why URI-based queries break down. Then the core: what RFC 10008 actually specifies, and how QUERY compares with GET and POST. The security objective is the main one: what changes for browsers, caches, WAFs, gateways and applications. Finally, I survey the literature and end with a recommendation on when to use each method.
+SAY: My objectives come from that gap. First, the basics of HTTP methods and URIs. Then the main part: what RFC 10008 specifies, with client and server code that I ran. The security objective is the most important one. Then the literature, and a recommendation.
 
-NEXT → The literature review, starting with the standards.
+NEXT → The literature review. First, the standards.
 -->
 
 ---
@@ -445,23 +307,20 @@ section: 3. Literature Review
 frame: lit
 ---
 
-<table class="tbl lit">
-  <colgroup><col style="width: 23.2%"><col style="width: 21.9%"><col style="width: 26.9%"><col style="width: 28%"></colgroup>
-  <thead><tr><th>Authors and Title</th><th>Dataset</th><th>Purpose of Study</th><th>Key Findings</th></tr></thead>
-  <tbody>
-    <tr><td>J. Reschke, J. M. Snell, M. Bishop, “<a href="https://www.rfc-editor.org/rfc/rfc10008.html">The HTTP QUERY Method</a>,” RFC 10008, 2026</td><td>IETF Standards Track specification</td><td>Define a safe, idempotent method whose query is carried in the request content</td><td>Content-Type required; cacheable with content in the cache key; Accept-Query; Location / Content-Location; CORS preflight required</td></tr>
-    <tr><td>R. Fielding, M. Nottingham, J. Reschke (Eds.), “<a href="https://www.rfc-editor.org/rfc/rfc9110.html">HTTP Semantics</a>,” RFC 9110, 2022</td><td>IETF Internet Standard (STD 97)</td><td>Define HTTP method semantics, safety and idempotency</td><td>Safe and idempotent describe client intent; URIs are not secured; POST for safe queries “uses an unsafe method” (§17.9)</td></tr>
-    <tr><td>M. Nottingham, “<a href="https://www.rfc-editor.org/rfc/rfc9205.html">Building Protocols with HTTP</a>,” RFC 9205 (BCP 56), 2022</td><td>IETF Best Current Practice</td><td>Guide the design of HTTP-based APIs</td><td>GET queries can be unwieldy (URI syntax, encoding); POST queries lose caching and linking</td></tr>
-    <tr><td>A. Backman, J. Richer, M. Sporny (Eds.), “<a href="https://www.rfc-editor.org/rfc/rfc9421.html">HTTP Message Signatures</a>,” RFC 9421, 2024</td><td>IETF Standards Track specification</td><td>Sign HTTP message components for integrity and authenticity</td><td>@query covers only the URI query; content needs Content-Digest (RFC 9530); query / form parameter shadowing</td></tr>
-  </tbody>
-</table>
+<LitTable :size="18" :rows="[
+  { authors: 'J. Reschke, J. M. Snell, M. Bishop', title: 'The HTTP QUERY Method', href: 'https://www.rfc-editor.org/rfc/rfc10008.html', venue: 'RFC 10008, 2026', dataset: 'IETF Standards Track specification', purpose: 'Define a safe, idempotent method that sends the query as request content', findings: 'Content-Type is mandatory. Responses are cacheable, and the cache key must include the content. New Accept-Query header. Browsers send a CORS preflight' },
+  { authors: 'R. Fielding, M. Nottingham, J. Reschke (Eds.)', title: 'HTTP Semantics', href: 'https://www.rfc-editor.org/rfc/rfc9110.html', venue: 'RFC 9110, 2022', dataset: 'IETF Internet Standard (STD 97)', purpose: 'Define the meaning of HTTP methods, and the safe and idempotent properties', findings: 'Safe and idempotent describe what the client intends. URIs are not secure. POST for a safe query “uses an unsafe method” (§17.9)' },
+  { authors: 'M. Nottingham', title: 'Building Protocols with HTTP', href: 'https://www.rfc-editor.org/rfc/rfc9205.html', venue: 'RFC 9205 (BCP 56), 2022', dataset: 'IETF Best Current Practice', purpose: 'Give rules for the design of HTTP-based APIs', findings: 'Queries in a GET URI can become too long and hard to encode. Queries in POST lose caching and links' },
+]" />
 
 <!--
-⏱ 0:45 (ends 6:55) · Sources: RFC 10008; RFC 9110; RFC 9205; RFC 9421
+⏱ 0:45 (ends 6:45) · Sources: RFC 10008; RFC 9110; RFC 9205
 
-SAY: The primary sources are standards. RFC 10008 defines QUERY: Content-Type is mandatory, responses are cacheable but the cache key must include the content, there is a new Accept-Query header, the server can mint URIs for later GETs, and browsers need a CORS preflight. RFC 9110 defines the semantics I've been using: safe and idempotent describe client intent, URIs are not secured, and POST for queries is an admitted compromise. RFC 9205 is the IETF's best-practice guide; it says GET queries can become unwieldy, and POST queries lose caching and linking. RFC 9421 matters for security: signing the URI query protects nothing when the query is in the body.
+SAY: The primary sources are three standards. RFC 10008 defines QUERY. A request must have a Content-Type. Caches can keep the responses, but the cache key must include the content. There is a new header, Accept-Query. And browsers must send a CORS preflight.
 
-CLARIFY: The "Dataset" column is the template's; for a standard it describes what kind of document it is.
+RFC 9110 defines the meaning of the methods that I used in the introduction. It also admits that POST for a query is a compromise. RFC 9205 is the best-practice guide of the IETF for HTTP APIs. It says that GET queries can become too long, and that POST queries lose caching and links.
+
+CLARIFY: "Dataset" is a column of the template. For a standard, it gives the type of document. RFC 9421 (signatures) and the other standards are in the references.
 
 NEXT → The peer-reviewed studies.
 -->
@@ -471,208 +330,212 @@ section: 3. Literature Review
 frame: lit
 ---
 
-<table class="tbl lit">
-  <colgroup><col style="width: 23.2%"><col style="width: 21.9%"><col style="width: 26.9%"><col style="width: 28%"></colgroup>
-  <thead><tr><th>Authors and Title</th><th>Dataset</th><th>Purpose of Study</th><th>Key Findings</th></tr></thead>
-  <tbody>
-    <tr><td>O. Starov, P. Gill, N. Nikiforakis, “<a href="https://doi.org/10.1515/popets-2015-0028">Are You Sure You Want to Contact Us? Quantifying the Leakage of PII via Website Contact Forms</a>,” PoPETs, 2016</td><td>Contact pages of the 100,000 most popular websites</td><td>Measure leakage of personally identifiable information submitted via contact forms</td><td>PII leaked to third parties via third-party submissions, third-party scripts and the Referer header</td></tr>
-    <tr><td>H. V. Nguyen, L. Lo Iacono, H. Federrath, “<a href="https://doi.org/10.1145/3319535.3354215">Your Cache Has Fallen: Cache-Poisoned Denial-of-Service Attack</a>,” ACM CCS, 2019</td><td>15 web caching solutions (proxy caches and CDNs)</td><td>Study attacks where an origin error is cached and served to other users</td><td>Introduced CPDoS; 1 proxy cache and 5 CDN services vulnerable; one request can disable a site for a region</td></tr>
-    <tr><td>S. A. Mirheidari et al., “<a href="https://www.usenix.org/conference/usenixsecurity20/presentation/mirheidari">Cached and Confused: Web Cache Deception in the Wild</a>,” USENIX Security, 2020</td><td>340 high-profile sites from the Alexa Top 5K</td><td>Quantify web cache deception and path-confusion variants</td><td>Private data and auth tokens leaked via caches; many sites still vulnerable two years after disclosure</td></tr>
-  </tbody>
-</table>
-<div class="lit-note">No peer-reviewed study of RFC 10008 itself was found (Crossref and web search, Sept 2026); these studies cover the mechanisms QUERY relies on.</div>
+<LitTable :size="16" :rows="[
+  { authors: 'H. V. Nguyen et al.', title: 'Your Cache Has Fallen: Cache-Poisoned Denial-of-Service Attack', href: 'https://doi.org/10.1145/3319535.3354215', venue: 'ACM CCS, 2019', dataset: '15 web caching systems (proxy caches and CDNs)', purpose: 'Study attacks that make a cache send an error page to all users', findings: 'New attack class, CPDoS. 1 proxy cache and 5 CDN services were vulnerable' },
+  { authors: 'S. A. Mirheidari et al.', title: 'Cached and Confused: Web Cache Deception in the Wild', href: 'https://www.usenix.org/conference/usenixsecurity20/presentation/mirheidari', venue: 'USENIX Security, 2020', dataset: '340 high-profile sites (Alexa Top 5K)', purpose: 'Measure web cache deception and its variants', findings: 'Caches leaked private data and tokens, two years after the attack became public' },
+  { authors: 'B. Jabiyev et al.', title: 'T-Reqs: HTTP Request Smuggling with Differential Fuzzing', href: 'https://doi.org/10.1145/3460120.3485384', venue: 'ACM CCS, 2021', dataset: '10 popular servers, proxies and CDNs, tested in pairs', purpose: 'Find HTTP processing differences that allow request smuggling', findings: 'Differential fuzzing found new smuggling methods and vulnerable server pairs' },
+  { authors: 'J. Chen et al.', title: 'We Still Don’t Have Secure Cross-Domain Requests: an Empirical Study of CORS', href: 'https://www.usenix.org/conference/usenixsecurity18/presentation/chen-jianjun', venue: 'USENIX Security, 2018', dataset: 'Real-world CORS design, implementation and deployment', purpose: 'Measure the security of CORS in practice', findings: 'CORS adds risky trust relations and is often configured incorrectly' },
+]" />
 
-<style>
-.slidev-layout .tbl.lit { font-size: 16px; line-height: 1.22; }
-.slidev-layout .tbl.lit td { padding: 6px 7px; }
-.lit-note { margin: 8px 7px 0; font-size: 15px; font-style: italic; color: var(--brown); }
-</style>
+<p class="lit-note">No peer-reviewed study of RFC 10008 itself was found (Oct 2026). These studies examine the mechanisms that QUERY uses.</p>
 
 <!--
-⏱ 0:45 (ends 7:40) · Sources: Starov et al. 2016; Nguyen et al. 2019; Mirheidari et al. 2020
+⏱ 0:55 (ends 7:40) · Sources: Nguyen et al. 2019; Mirheidari et al. 2020; Jabiyev et al. 2021; Chen et al. 2018
 
-SAY: I searched Crossref and the web for peer-reviewed work on RFC 10008 itself and found none, which is expected for a standard published in June 2026. So these are studies of the mechanisms QUERY depends on.
+SAY: I found no peer-reviewed work on RFC 10008 itself. This is normal for a standard from June 2026. Thus these four studies examine the mechanisms that QUERY uses. All four are from top security venues.
 
-Starov and colleagues, PoPETs 2016, measured the top 100,000 sites and found contact-form PII leaking to third parties, including through the Referer header. That's the URI-exposure problem measured in the wild; note it predates today's stricter default referrer policy.
+Nguyen and colleagues found cache-poisoned denial of service: one proxy and five CDNs kept an error page and sent it to all users. Mirheidari and colleagues found web cache deception on high-profile sites. Caches leaked private data and tokens. The lesson of both papers: when the cache and the origin disagree, the attacker wins.
 
-Nguyen and colleagues, CCS 2019, introduced cache-poisoned denial of service. Of 15 caching systems, one proxy cache and five CDNs could be made to cache an error page. When cache and origin disagree, attackers exploit it.
+T-Reqs found request smuggling between pairs of servers. A new method with a body is new input for these bugs. And Chen and colleagues found that CORS is often configured incorrectly. Every cross-origin QUERY uses CORS.
 
-Mirheidari and colleagues, USENIX Security 2020, found web cache deception on high-profile sites, leaking private data and tokens. That's the same class of risk as QUERY's cache-key normalisation problem.
+CLARIFY: Starov et al. (PII leaks through Referer), Cha et al. and Hartig & Pérez (GraphQL query cost) are in the references.
 
-NEXT → Three more studies.
--->
-
----
-section: 3. Literature Review
-frame: lit
----
-
-<table class="tbl lit">
-  <colgroup><col style="width: 23.2%"><col style="width: 21.9%"><col style="width: 26.9%"><col style="width: 28%"></colgroup>
-  <thead><tr><th>Authors and Title</th><th>Dataset</th><th>Purpose of Study</th><th>Key Findings</th></tr></thead>
-  <tbody>
-    <tr><td>B. Jabiyev, S. Sprecher, K. Onarlioglu, E. Kirda, “<a href="https://doi.org/10.1145/3460120.3485384">T-Reqs: HTTP Request Smuggling with Differential Fuzzing</a>,” ACM CCS, 2021</td><td>10 popular server, proxy and CDN technologies, tested in pairs</td><td>Systematically find HTTP processing discrepancies that enable request smuggling</td><td>Grammar-based differential fuzzing found new request manipulations and server pairs prone to smuggling</td></tr>
-    <tr><td>J. Chen et al., “<a href="https://www.usenix.org/conference/usenixsecurity18/presentation/chen-jianjun">We Still Don’t Have Secure Cross-Domain Requests: an Empirical Study of CORS</a>,” USENIX Security, 2018</td><td>Real-world uses of CORS: design, implementation, deployment</td><td>Assess the security of CORS in practice</td><td>CORS relaxes cross-origin “write” in subtle ways, adds risky trust dependencies and is often misconfigured</td></tr>
-    <tr><td>A. Cha et al., “<a href="https://doi.org/10.1145/3368089.3409670">A Principled Approach to GraphQL Query Cost Analysis</a>,” ESEC/FSE, 2020</td><td>Query-response corpus for two commercial GraphQL APIs</td><td>Estimate query cost before execution</td><td>Linear-time static analysis gives tight upper bounds; existing analyses over- or under-estimate</td></tr>
-    <tr><td>O. Hartig, J. Pérez, “<a href="https://doi.org/10.1145/3178876.3186014">Semantics and Complexity of GraphQL</a>,” WWW, 2018</td><td>Formal model; experiments on practical implementations</td><td>Formalise GraphQL and analyse its complexity</td><td>Evaluation is NL-complete, yet responses can be prohibitively large; size is computable in polynomial time</td></tr>
-  </tbody>
-</table>
-
-<!--
-⏱ 0:45 (ends 8:25) · Sources: Jabiyev et al. 2021; Chen et al. 2018; Cha et al. 2020; Hartig & Pérez 2018
-
-SAY: Jabiyev and colleagues, CCS 2021, used differential fuzzing on ten popular servers, proxies and CDNs and found request-smuggling discrepancies. A new method with a body is a new input for exactly these bugs.
-
-Chen and colleagues, USENIX Security 2018, studied CORS in practice and found widespread misconfiguration. QUERY always needs a cross-origin preflight, so CORS configuration is on the critical path.
-
-The last two are about cost. Cha and colleagues, FSE 2020, bound the cost of a GraphQL query before running it, and Hartig and Pérez, WWW 2018, proved GraphQL responses can be very large. Both matter when the request content is itself a query language, which is exactly what QUERY carries.
-
-NEXT → With that background, the Description: what QUERY is.
+NEXT → The description. First, what QUERY is.
 -->
 
 ---
 section: 4. Description
 frame: desc
-clicks: 5
 ---
 
-# Moving the query out of the URI: GET → POST → QUERY
+<script setup>
+import feedGet from './snippets/feed-get.http?raw'
+import feedPost from './snippets/feed-post.http?raw'
+import feedQuery from './snippets/feed-query.http?raw'
+</script>
 
-<QueryMorph :step="$clicks" />
+# The same query in three ways (RFC 10008 §1)
 
-<!--
-⏱ 0:55 (ends 9:20) · Sources: RFC 9110 §9.2, §9.3.3, §17.9; RFC 10008 §1, §2
-
-SAY: The same query in three forms. Start with GET: the query data, highlighted, sits in the URI. The strip below shows GET is safe and idempotent, but not body-oriented.
-
-[click] The usual workaround is POST. Watch the query data move out of the URI into the request content as JSON. No URI size problem, natural structure, nothing in the request line. But POST is not safe and not idempotent by definition, so nothing tells a cache, proxy or retrying client this is a harmless read. RFC 9110 §17.9 says this workaround "uses an unsafe method for what would otherwise be a safe request."
-
-[click] QUERY keeps exactly the same content and changes only the method.
-
-[click] Because RFC 10008 defines it as safe,
-
-[click] and idempotent,
-
-[click] while the query stays in the content.
-
-CLARIFY: The data didn't change between POST and QUERY, only what the method promises. Semantics are a contract with every intermediary.
-
-NEXT → What RFC 10008 actually specifies.
--->
-
----
-section: 4. Description
-frame: desc
-clicks: 7
----
-
-# Anatomy of a QUERY exchange (RFC 10008)
-
-<div class="s10">
-  <div>
-    <div class="panel-title">Request</div>
-    <div class="msg">
-      <div class="ln"><span class="part" :class="{ now: $clicks === 1, on: $clicks > 1 }">QUERY</span><span class="num">1</span> <span class="part" :class="{ now: $clicks === 2, on: $clicks > 2 }">/feed</span><span class="num">2</span> <span class="h">HTTP/1.1</span></div>
-      <div class="ln h">Host: example.org</div>
-      <div class="ln"><span class="part" :class="{ now: $clicks === 3, on: $clicks > 3 }">Content-Type: application/json</span><span class="num">3</span></div>
-      <div class="ln h">Accept: application/json</div>
-      <div class="ln"> </div>
-      <div class="part" :class="{ now: $clicks === 4, on: $clicks > 4 }"><div class="ln">{ "q": "cybersecurity",<span class="num">4</span></div><div class="ln">  "limit": 20, "sort": "relevance",</div><div class="ln">  "filters": { "year": 2026 } }</div></div>
-    </div>
+<div class="grid grid-cols-[minmax(0,1fr)_340px] gap-6">
+  <div class="flex flex-col gap-2">
+    <Snippet :code="feedGet" lang="http" title="GET" size="sm" dense lines="1" />
+    <Snippet :code="feedPost" lang="http" title="POST" size="sm" dense lines="5" />
+    <Snippet :code="feedQuery" lang="http" title="QUERY" size="sm" dense lines="1,5" />
   </div>
-  <div>
-    <div class="panel-title">Response</div>
-    <div class="msg">
+  <ul class="bul big">
+    <li><M t="GET" /> the input is in the URI</li>
+    <li><M t="POST" /> the input is in the content, but the method does not promise “safe”</li>
+    <li><M t="QUERY" /> the same content as POST, with a safe and idempotent method</li>
+  </ul>
+</div>
+
+<!--
+⏱ 0:30 (ends 8:10) · Sources: RFC 10008 §1
+
+SAY: These three requests come from the introduction of the RFC. GET puts q, limit and sort in the URI. The usual workaround is POST: the same parameters as form-encoded content. But POST does not tell a cache, a proxy or a client that this request is a harmless read. QUERY keeps exactly the POST content. It changes only the method.
+
+NEXT → The RFC's own comparison table.
+-->
+
+---
+section: 4. Description
+frame: desc
+---
+
+# GET, QUERY and POST compared (RFC 10008 Table 1)
+
+<Table class="cmp text-xl">
+  <TableHeader>
+    <TableRow class="border-b-2"><TableHead class="w-[260px]" /><TableHead><M t="GET" /></TableHead><TableHead><M t="QUERY" /></TableHead><TableHead><M t="POST" /></TableHead></TableRow>
+  </TableHeader>
+  <TableBody class="[&_td]:whitespace-normal [&_td]:py-2.5">
+    <TableRow><TableCell class="font-bold">Safe</TableCell><TableCell>yes</TableCell><TableCell class="font-bold text-primary">yes</TableCell><TableCell>potentially no</TableCell></TableRow>
+    <TableRow><TableCell class="font-bold">Idempotent</TableCell><TableCell>yes</TableCell><TableCell class="font-bold text-primary">yes</TableCell><TableCell>potentially no</TableCell></TableRow>
+    <TableRow><TableCell class="font-bold">URI for the query</TableCell><TableCell>yes, by definition</TableCell><TableCell>optional (Location)</TableCell><TableCell>no</TableCell></TableRow>
+    <TableRow><TableCell class="font-bold">URI for the result</TableCell><TableCell colspan="3">optional for all three (Content-Location)</TableCell></TableRow>
+    <TableRow><TableCell class="font-bold">Cacheable</TableCell><TableCell>yes</TableCell><TableCell class="font-bold text-primary">yes</TableCell><TableCell>only for a later GET or HEAD</TableCell></TableRow>
+    <TableRow><TableCell class="font-bold">Request content</TableCell><TableCell>no defined meaning</TableCell><TableCell>expected</TableCell><TableCell>expected</TableCell></TableRow>
+  </TableBody>
+</Table>
+
+<p class="caption mt-3">IANA registers QUERY as safe and idempotent <Cite r="10008" s="5.1" /></p>
+
+<!--
+⏱ 0:35 (ends 8:45) · Sources: RFC 10008 §1 (Table 1), §5.1
+
+SAY: This is Table 1 of RFC 10008. QUERY is safe and idempotent, the same as GET. Thus caches and automatic retries can work. A QUERY has a URI for the query only if the server gives one in Location. Caches can keep its responses for later QUERY requests. POST responses are different: a cache can use them only for a later GET. And QUERY expects content, the same as POST.
+
+CLARIFY: "Potentially no" is the wording of the RFC. One POST endpoint can be harmless, but the method promises nothing.
+
+NEXT → A full QUERY request.
+-->
+
+---
+section: 4. Description
+frame: desc
+---
+
+<script setup>
+import req from './snippets/contacts-query.http?raw'
+</script>
+
+# A QUERY request (RFC 10008 Appendix A.1)
+
+<div class="grid grid-cols-[minmax(0,1fr)_420px] gap-6">
+  <Snippet :code="req" lang="http" title="request" dense wrap :callouts="{ 1: '1', 3: '2', 6: '3' }" />
+  <ul class="legend-v">
+    <li><Badge>1</Badge><span><b>QUERY and the target.</b> The target resource sets the scope of the query <Cite r="10008" s="2" /></span></li>
+    <li><Badge>2</Badge><span><b>Content-Type is mandatory.</b> If it is missing or wrong, the server must reject the request. It must not guess the type <Cite r="10008" s="2.1" /></span></li>
+    <li><Badge>3</Badge><span><b>The query content.</b> Here it is form-encoded. The RFC also shows JSON, SQL, JSONPath and XSLT.</span></li>
+  </ul>
+</div>
+
+<!--
+⏱ 0:40 (ends 9:25) · Sources: RFC 10008 §2, §2.1, Appendix A.1, A.6
+
+SAY: This is the example from the RFC. Item one is QUERY and the target, /contacts. The target resource sets the scope of the query.
+
+Item two is Content-Type. If it is missing, or if it does not agree with the content, the server must reject the request. The server must not guess the type from the content.
+
+Item three is the query content. Here it is form-encoded: select these fields, limit ten, and find emails at example. Other examples in the RFC use JSON, SQL, JSONPath and XSLT.
+
+NEXT → The response, and the two URIs that it can give.
+-->
+
+---
+section: 4. Description
+frame: desc
+---
+
+<script setup>
+import res from './snippets/contacts-response.http?raw'
+</script>
+
+# A QUERY response (RFC 10008 Appendix A.4)
+
+<div class="grid grid-cols-[minmax(0,1fr)_400px] gap-6">
+  <div class="flex flex-col gap-3">
+    <Snippet :code="res" lang="http" title="response" dense wrap :callouts="{ 3: '1', 4: '2' }" />
+    <Alert class="border-2 border-destructive py-2">
+      <AlertDescription class="text-base text-foreground">If the query is sensitive, these URIs <b>should not</b> contain it <Cite r="10008" s="4" /></AlertDescription>
+    </Alert>
+  </div>
+  <ul class="legend-v">
+    <li><Badge>1</Badge><span><b>Content-Location.</b> A GET to this URI gets <i>this result</i> again <Cite r="10008" s="2.3" /></span></li>
+    <li><Badge>2</Badge><span><b>Location.</b> A GET to this URI <i>runs the query</i> again, with no content <Cite r="10008" s="2.4" /></span></li>
+    <li><Badge variant="outline">→</Badge><span><b>Redirects.</b> 301, 302, 307 and 308 keep QUERY. 303 changes it to GET <Cite r="10008" s="2.5" /></span></li>
+    <li><Badge variant="outline">✓</Badge><span><b>Conditional requests</b> work as for GET, so 304 is possible <Cite r="10008" s="2.6" /></span></li>
+  </ul>
+</div>
+
+<!--
+⏱ 0:55 (ends 10:20) · Sources: RFC 10008 §2.3–2.6, §4, Appendix A.4
+
+SAY: Now the response. Item one, Content-Location, points to a stored copy of this result. Item two, Location, points to a stored version of the query itself. A later plain GET to that URI runs the query again, with no body. Thus QUERY gets back the main advantage of GET: an important resource gets a URI.
+
+Redirects 301, 302, 307 and 308 keep the QUERY method. The old browser rule that changes POST to GET does not apply. 303 tells the client to change to GET. Conditional requests work as for GET, so 304 is possible.
+
+The red box is from the security section. If the query is sensitive, these new URIs should not contain it. If they do, the data goes back into the logs.
+
+NEXT → How to send a QUERY request.
+-->
+
+---
+section: 4. Description
+frame: desc
+---
+
+<script setup>
+import curl from './snippets/client.sh?raw'
+import fetchJs from './snippets/client.mjs?raw'
+</script>
+
+# Send a QUERY request: curl and fetch()
+
+<div class="grid grid-cols-[400px_minmax(0,1fr)] gap-5">
+  <div class="flex flex-col gap-2">
+    <Snippet :code="curl" lang="bash" title="client.sh" size="sm" dense />
+    <Terminal title="output" size="sm" class="leading-snug">
       <div class="ln">HTTP/1.1 200 OK</div>
-      <div class="ln h">Content-Type: application/json</div>
-      <div class="ln"><span class="part" :class="{ now: $clicks === 5, on: $clicks > 5 }">Accept-Query: application/json</span><span class="num">5</span></div>
-      <div class="ln"><span class="part" :class="{ now: $clicks === 6, on: $clicks > 6 }">Location: /queries/42</span><span class="num">6</span></div>
-      <div class="ln"><span class="part" :class="{ now: $clicks === 6, on: $clicks > 6 }">Content-Location: /results/17</span><span class="num">7</span></div>
+      <div class="ln">Location: /contacts/stored-queries/1</div>
+      <div class="ln">Content-Type: application/json</div>
       <div class="ln"> </div>
-      <div class="ln h">[ …results… ]</div>
-    </div>
+      <div class="ln">[{"surname":"Smith","givenname":"John",</div>
+      <div class="ln">  "email":"smith@example.org"}]</div>
+    </Terminal>
+  </div>
+  <div class="flex flex-col gap-2">
+    <Snippet :code="fetchJs" lang="js" title="client.mjs (browser, or Node 24)" size="sm" dense lines="3" />
+    <Terminal title="node client.mjs" size="sm">
+      <div class="ln">200 /contacts/stored-queries/2</div>
+    </Terminal>
+    <Alert class="border-2 border-destructive py-2">
+      <AlertTitle class="text-lg font-bold text-destructive">Method names are case-sensitive</AlertTitle>
+      <AlertDescription class="text-base text-foreground">fetch() changes only DELETE, GET, HEAD, OPTIONS, POST and PUT to upper case <Cite t="Fetch" href="https://fetch.spec.whatwg.org/#concept-method-normalize" />. With <code>method: 'query'</code> it sends <code>query</code>, and the Node 24 server replied <b>400</b>.</AlertDescription>
+    </Alert>
   </div>
 </div>
-<div class="legend s10-leg">
-  <div v-click="1"><span class="num">1</span><b>QUERY</b>: safe + idempotent <Cite t="IANA registry" href="https://www.iana.org/assignments/http-methods/" /></div>
-  <div v-click="5"><span class="num">5</span><b>Accept-Query</b>: query formats accepted <Cite r="10008" s="3" /></div>
-  <div v-click="2"><span class="num">2</span><b>Target</b>: the resource that scopes the query</div>
-  <div v-click="6"><span class="num">6</span><b>Location</b>: GET here repeats the query <Cite r="10008" s="2.4" /></div>
-  <div v-click="3"><span class="num">3</span><b>Content-Type</b>: REQUIRED, never sniffed <Cite r="10008" s="2.1" /></div>
-  <div v-click="6"><span class="num">7</span><b>Content-Location</b>: GET here fetches this result <Cite r="10008" s="2.3" /></div>
-  <div v-click="4"><span class="num">4</span><b>Content</b>: the query itself (“query content”)</div>
-</div>
-
-<style>
-.s10 { display: grid; grid-template-columns: 450px 1fr; gap: 22px; }
-.s10 .msg { font-size: 16px; line-height: 1.42; }
-.s10-leg { grid-template-columns: 1fr 1fr; margin-top: 12px; font-size: 18px; }
-</style>
 
 <!--
-⏱ 1:00 (ends 10:20) · Sources: RFC 10008 §2, §2.1–2.5, §3, §5.1; IANA HTTP Method Registry
+⏱ 0:50 (ends 11:10) · Sources: RFC 10008 §3, Appendix A.2, A.3; RFC 9110 §9.1; WHATWG Fetch (method normalize); tested on macOS, Node 24.18, curl 8.7.1, 17 Oct 2026
 
-SAY: A QUERY exchange in the style of the RFC's own examples.
+SAY: A client does not have to use new software. curl sends any method with -X. On the left is the command and its real output from the server on the next slide. The output is 200, a Location for the stored query, and the matching contact.
 
-[click] One: the method, registered with IANA as safe and idempotent, on the same list as GET.
+fetch() works in the browser and in Node. The real output from the same server is below it. The red box is a trap. Method names are case-sensitive, and fetch changes only the six classic names to upper case. If you write 'query' in lower case, fetch sends lower-case "query". When I did this, the Node server replied 400.
 
-[click] Two: the target, /feed. The target resource determines the scope of the query.
+CLARIFY: Python also works: urllib.request.Request(url, method="QUERY", data=..., headers=...). The study guide has it.
 
-[click] Three: Content-Type. The server MUST fail the request if Content-Type is missing or inconsistent with the content, and may not sniff the type. The RFC suggests 400 for missing or inconsistent, 415 for an unsupported format, and 422 for a well-formed query that can't be processed.
-
-[click] Four: the content is the query itself, "query content". Here JSON; it could be SQL, JSONPath or form encoding.
-
-[click] On the response, five: the new Accept-Query header, a Structured Field list of the query formats this resource accepts.
-
-[click] Six and seven: the server can mint URIs for later GETs. Location repeats this query; Content-Location returns this particular result. If the query contains sensitive data, those URIs SHOULD NOT include it (§4); otherwise the data goes straight back into a URI.
-
-[click] The full exchange. Also: 301, 302, 307 and 308 redirects keep the QUERY method, unlike the old POST-to-GET exception, while 303 tells the client to switch to GET.
-
-NEXT → GET, POST and QUERY side by side.
--->
-
----
-section: 4. Description
-frame: desc
-clicks: 1
----
-
-# GET vs POST vs QUERY
-
-<table class="tbl s11">
-  <thead><tr><th>Property</th><th><M t="GET" /></th><th><M t="POST" /></th><th v-click="1"><M t="QUERY" /></th></tr></thead>
-  <tbody>
-    <tr><td>Query input carried in</td><td>URI query component</td><td>Request content</td><td v-click="1">Request content</td></tr>
-    <tr><td>Safe</td><td><span class="ok">✓</span> Yes</td><td><span class="bad">✗</span> Not by definition</td><td v-click="1"><span class="ok">✓</span> Yes</td></tr>
-    <tr><td>Idempotent</td><td><span class="ok">✓</span> Yes</td><td><span class="bad">✗</span> Not by definition</td><td v-click="1"><span class="ok">✓</span> Yes</td></tr>
-    <tr><td>Large, structured input</td><td>Awkward: URI limits, encoding</td><td><span class="ok">✓</span> Yes</td><td v-click="1"><span class="ok">✓</span> Yes</td></tr>
-    <tr><td>Caching</td><td>Mature; key = method + URI</td><td>Rarely implemented</td><td v-click="1">Allowed; key MUST include content</td></tr>
-    <tr><td>URI for the query</td><td>Yes, by definition</td><td>No</td><td v-click="1">Optional (Location)</td></tr>
-    <tr><td>Ecosystem support</td><td>Mature</td><td>Mature</td><td v-click="1">Emerging (2026)</td></tr>
-    <tr><td>Primary purpose</td><td>Retrieval</td><td>General processing</td><td v-click="1">Safe query with content</td></tr>
-  </tbody>
-</table>
-<div class="s11-src">Sources: <Cite r="10008" s="1" /> Table 1 · <Cite r="9110" s="9.2" /> · <Cite r="9110" s="9.2.3" /> · <Cite r="9111" s="2" /></div>
-
-<style>
-.s11 { font-size: 18px; }
-.s11 th:nth-child(1) { width: 25%; }
-.s11 th .mpill { font-size: 19px; }
-.s11 td:first-child { font-weight: 700; }
-.s11 td { padding: 5px 8px; }
-.s11-src { margin-top: 6px; font-size: 15px; }
-</style>
-
-<!--
-⏱ 0:45 (ends 11:05) · Sources: RFC 10008 §1 (Table 1); RFC 9110 §9.2, §9.2.3; RFC 9111 §2
-
-SAY: This follows Table 1 of RFC 10008 plus deployment rows. GET puts the input in the URI, is safe and idempotent, and has mature caching keyed on method plus URI. POST carries the input in content but makes no safety promise; HTTP does define POST caching, but RFC 9110 notes most caches only support GET and HEAD.
-
-[click] QUERY: body-based like POST, safe and idempotent like GET. Responses are cacheable, but the cache key MUST include the content, so a cache must read the whole body first. A URI for the query is optional, via Location. Ecosystem support is emerging.
-
-CLARIFY: "Not by definition" rather than "never" for POST: a particular POST endpoint may behave safely, but the method guarantees nothing, which is the problem.
-
-NEXT → What "safe" means for security.
+NEXT → The server side.
 -->
 
 ---
@@ -680,110 +543,143 @@ section: 4. Description
 frame: desc
 ---
 
-# Safe ≠ secure · Idempotent ≠ harmless
+<script setup>
+import server from './snippets/server.mjs?raw'
+</script>
 
-<div class="s12">
-  <div class="s12-l">
-    <div class="card cd-lav"><b>Safe</b><div>“the client does not request, and does not expect, any state change” <Cite r="9110" s="9.2.1" /></div></div>
-    <div class="card cd-lav"><b>Idempotent</b><div>several identical requests have the same <i>intended</i> effect as one <Cite r="9110" s="9.2.2" /></div></div>
-    <div class="card cd-orange"><b>Both describe the client’s intent</b><div>RFC 9110: safety “does not prevent an implementation from including behavior that is potentially harmful”.</div></div>
-  </div>
-  <div>
-    <div class="s12-h">A safe, idempotent QUERY can still enable:</div>
-    <ul class="bul s12-l2">
-      <v-clicks>
-      <li><b>Resource exhaustion</b>: huge, nested, high-cardinality queries <Cite t="Cha et al., 2020" href="https://doi.org/10.1145/3368089.3409670" /></li>
-      <li><b>Information disclosure</b>: results the caller should never see</li>
-      <li><b>Broken authorization</b>: read-only is not the same as allowed</li>
-      <li><b>Injection</b>: query content is untrusted input (SQL, NoSQL, LDAP, search DSLs)</li>
-      <li><b>Automated repetition</b>: retries are expected, and so is scraping</li>
-      </v-clicks>
+# A server that follows RFC 10008
+
+<div class="grid grid-cols-[minmax(0,1fr)_280px] gap-4">
+  <Snippet :code="server" lang="js" title="server.mjs (the handler)" range="14-34" numbers size="sm" dense :font="12" lines="22-25,27-30" />
+  <ul class="bul big">
+    <li><b>Lines 15–20</b>: OPTIONS, a GET to a stored query, and 405 for other methods</li>
+    <li><b>Lines 22–30</b>: the checks of <Cite r="10008" s="2.1" /> (highlighted)</li>
+    <li><b>Lines 31–33</b>: keep the query, and send its URI in Location</li>
+  </ul>
+</div>
+
+<!--
+⏱ 0:50 (ends 12:00) · Sources: RFC 10008 §2, §2.1, §2.2, §2.4, Appendix A.2
+
+SAY: This is the server that I used to test the clients. It is plain Node, with no framework. Lines 15 to 20 route the request. OPTIONS replies with Allow and Accept-Query. A GET to a stored-query URI runs that query again. Any other method gets 405 with Allow.
+
+The highlighted lines are section 2.1 of the RFC, in code. There are four checks: Content-Type missing, Content-Type not supported, content that is not valid JSON, and a valid query that the server cannot run. The next slide gives the status codes.
+
+Then the server keeps the query and returns its URI in Location. This is the "equivalent resource" of section 2.2.
+
+CLARIFY: readBody limits the body to 16 KiB. search limits the results to 100. A safe method must also have limits. A body that is too large gets 400 here; 413 is a better status, and the study guide shows the change.
+
+NEXT → The status codes.
+-->
+
+---
+section: 4. Description
+frame: desc
+---
+
+# Status codes for a QUERY request
+
+<Table class="text-lg">
+  <TableHeader><TableRow class="border-b-2"><TableHead class="h-9">Condition</TableHead><TableHead class="w-[330px]">Status</TableHead><TableHead class="w-[210px]">Source</TableHead></TableRow></TableHeader>
+  <TableBody class="[&_td]:whitespace-normal [&_td]:py-1.5">
+    <TableRow><TableCell>OPTIONS request (discovery)</TableCell><TableCell><b>204</b> with Allow, Accept-Query</TableCell><TableCell><Cite t="RFC 10008 App. A.2" href="https://www.rfc-editor.org/rfc/rfc10008.html#appendix-A.2" /></TableCell></TableRow>
+    <TableRow><TableCell>Content-Type is missing</TableCell><TableCell><b>400</b></TableCell><TableCell><Cite r="10008" s="2.1" /></TableCell></TableRow>
+    <TableRow><TableCell>Media type is not supported</TableCell><TableCell><b>415</b> with Accept-Query</TableCell><TableCell><Cite r="10008" s="2.1" /></TableCell></TableRow>
+    <TableRow><TableCell>Content does not agree with the type</TableCell><TableCell><b>400</b>; do not guess the type</TableCell><TableCell><Cite r="10008" s="2.1" /></TableCell></TableRow>
+    <TableRow><TableCell>Valid query that the server cannot run</TableCell><TableCell><b>422</b></TableCell><TableCell><Cite r="10008" s="2.1" /></TableCell></TableRow>
+    <TableRow><TableCell>Method not allowed on this resource</TableCell><TableCell><b>405</b> with Allow</TableCell><TableCell><Cite r="9110" s="15.5.6" /></TableCell></TableRow>
+    <TableRow class="text-muted-foreground"><TableCell>Accept value is not supported</TableCell><TableCell><b>406</b></TableCell><TableCell><Cite r="10008" s="2.1" /></TableCell></TableRow>
+    <TableRow class="text-muted-foreground"><TableCell>Method is not known to the server</TableCell><TableCell><b>501</b></TableCell><TableCell><Cite r="9110" s="9.1" /></TableCell></TableRow>
+  </TableBody>
+</Table>
+
+<p class="caption mt-2">The first six rows were tested with curl against <code>server.mjs</code>. The last two rows are from the RFCs only.</p>
+
+<!--
+⏱ 0:45 (ends 12:45) · Sources: RFC 10008 §2.1, Appendix A.2; RFC 9110 §9.1, §15.5.6; tested with curl 8.7.1, 17 Oct 2026
+
+SAY: This table is the summary of the status codes. I tested the first six rows with curl against the server. A missing Content-Type gives 400. An unsupported type gives 415, with Accept-Query to tell the client the supported types. Content that does not agree with its type gives 400. The server must not guess the type. A valid query that the server cannot run gives 422.
+
+The last two rows are from the RFCs only. My server does not check Accept. And for a method name that it does not know, Node replies 400, not 501.
+
+NEXT → Safe does not mean secure.
+-->
+
+---
+section: 4. Description
+frame: desc
+---
+
+<script setup>
+import handler from './snippets/search-handler.js?raw'
+</script>
+
+# Safe is not the same as secure
+
+<Alert class="mb-3 py-2">
+  <AlertDescription class="text-lg text-foreground"><b>Safe</b> and <b>idempotent</b> describe what the client intends. Safety “does not prevent an implementation from including behavior that is potentially harmful” <Cite r="9110" s="9.2.1" />.</AlertDescription>
+</Alert>
+
+<div class="grid grid-cols-[minmax(0,1fr)_300px] gap-4">
+  <Snippet :code="handler" lang="js" title="search-handler.js (excerpt)" size="sm" dense :font="12.5" removed="6" added="7-8" lines="3,5" class="self-start" />
+  <ul class="bul risks">
+    <li><b>Injection</b>: the query content is untrusted input (SQL, NoSQL, LDAP, search languages)</li>
+    <li><b>Broken authorization</b>: read-only does not mean allowed</li>
+    <li><b>Resource exhaustion</b>: deep or large queries <Cite t="Cha et al., 2020" href="https://doi.org/10.1145/3368089.3409670" /></li>
+    <li><b>Information disclosure</b>: results that the caller must not see</li>
+    <li><b>Automated repetition</b>: clients repeat safe requests, and so do scrapers</li>
+  </ul>
+</div>
+
+<!--
+⏱ 1:00 (ends 13:45) · Sources: RFC 9110 §9.2.1, §9.2.2; Cha et al. 2020; Hartig & Pérez 2018
+
+SAY: This is the most important security point of the talk. Safe and idempotent describe what the client intends. They do not protect the server. The quote at the top is from RFC 9110.
+
+The code is a user search for administrators. The red line puts the query content directly into the SQL text. This is classic injection, and the move from the URI to the body changes nothing. The green lines send the value as a parameter, with a timeout.
+
+The highlighted lines are two more defences. Line 3 checks authorization, because a search of users by email is sensitive. Line 5 limits the results, because a safe query can still be expensive.
+
+The list on the right is the summary. Note the last item: clients repeat idempotent requests by design, so rate limits are still necessary.
+
+NEXT → Caches bring their own risk.
+-->
+
+---
+section: 4. Description
+frame: desc
+---
+
+<script setup>
+import cacheKey from './snippets/cache-key.mjs?raw'
+import cacheOut from './snippets/cache-key.out?raw'
+</script>
+
+# QUERY in a cache: the key must include the content
+
+<div class="grid grid-cols-[minmax(0,1fr)_320px] gap-3">
+  <Snippet :code="cacheKey" lang="js" title="cache-key.mjs" size="sm" dense :font="12" lines="7-10" />
+  <div class="flex flex-col gap-3">
+    <Terminal title="node cache-key.mjs" size="sm" :font="12.5" :text="cacheOut" />
+    <ul class="bul rules">
+      <li>The key <b>must</b> include the content and its metadata <Cite r="10008" s="2.7" /></li>
+      <li>Caches <b>can</b> normalise the content. A wrong normalisation gives the wrong response <Cite r="10008" s="4" /></li>
+      <li>Many caches use only the method and the URI as the key <Cite r="9111" s="2" /></li>
+      <li>When the cache and the origin disagree, attackers win <Cite t="Nguyen 2019" href="https://doi.org/10.1145/3319535.3354215" /> <Cite t="Mirheidari 2020" href="https://www.usenix.org/conference/usenixsecurity20/presentation/mirheidari" /></li>
     </ul>
   </div>
 </div>
 
-<style>
-.s12 { display: grid; grid-template-columns: 390px 1fr; gap: 26px; }
-.s12-l { display: flex; flex-direction: column; gap: 12px; }
-.s12-l .card { font-size: 19px; line-height: 1.25; }
-.s12-l b { font-size: 21px; display: block; color: var(--brown); }
-.s12-h { font-size: 22px; font-weight: 700; color: var(--brown); }
-.s12-l2 > li { font-size: 21px; margin-top: 12px; }
-</style>
-
 <!--
-⏱ 0:45 (ends 11:50) · Sources: RFC 9110 §9.2.1, §9.2.2; Cha et al. 2020
+⏱ 1:10 (ends 14:55) · Sources: RFC 10008 §2.7, §4, Appendix A.5; RFC 9111 §2; Nguyen et al. 2019; Mirheidari et al. 2020
 
-SAY: The most important security distinction in the talk: safe does not mean secure, and idempotent does not mean harmless. Both describe what the client intends, not how the server is protected. RFC 9110 says so directly.
+SAY: Caches can keep QUERY responses. This is an advantage, and also the largest new attack surface. RFC 10008 says that the cache key must include the request content and its metadata, for example Content-Type. Thus a cache must read the full body before it can find the key.
 
-[click] Resource exhaustion: query content can be deeply nested or high-cardinality; the GraphQL literature shows a short query can be very expensive.
+The code shows the problem, and it runs. It has two normalisers. "canonical" sorts the keys. This is allowed, because the meaning does not change. "lossy" keeps only the fields that the cache knows, so "role" is lost. The output is at the top right. canonical gives two keys. lossy gives one key for an admin query and a user query. Thus a normal user can get the admin results. This is a data leak.
 
-[click] Information disclosure: a safe request can return data the caller should never see.
+The rules on the right: normalisation is allowed, but a wrong one gives wrong responses. And the cache papers show that attackers use any disagreement between the cache and the origin.
 
-[click] Broken authorisation: an admin-role user search is read-only, and still sensitive.
-
-[click] Injection: query content is untrusted input wherever it ends up. Moving it from URI to body changes nothing.
-
-[click] Automated repetition: idempotent requests are designed to be retried, so rate limits still matter.
-
-NEXT → Cacheability brings its own risk.
--->
-
----
-section: 4. Description
-frame: desc
-clicks: 3
----
-
-# Caching QUERY: the key must include the content
-
-<div class="s13-rules">
-  <div class="card cd-orange"><b>RFC 10008:</b> the cache key MUST incorporate the request content and related metadata <Cite r="10008" s="2.7" /></div>
-  <div class="card cd-lav"><b>Reality:</b> many caches only cache GET, so they key on the URI alone <Cite r="9111" s="2" /></div>
-</div>
-<div class="s13-row" v-click="1">
-  <div class="s13-req"><M t="QUERY" /> /users/search<div class="kbd">{"role":"admin"}</div></div><div class="arrow">→</div>
-  <div class="s13-key">method + URI + content → <b>K₁</b></div><div class="arrow">→</div>
-  <div class="s13-res card cd-lav">Response A (admins)</div>
-</div>
-<div class="s13-row" v-click="1">
-  <div class="s13-req"><M t="QUERY" /> /users/search<div class="kbd">{"role":"user"}</div></div><div class="arrow">→</div>
-  <div class="s13-key">method + URI + content → <b>K₂</b></div><div class="arrow">→</div>
-  <div class="s13-res card cd-teal">Response B (users)</div>
-</div>
-<div class="s13-row s13-badrow" v-click="2">
-  <div class="s13-req"><M t="QUERY" /> /users/search<div class="kbd">{"role":"user"}</div></div><div class="arrow">→</div>
-  <div class="s13-key s13-badkey">content ignored, or <b>role</b> normalized away → <b>K₁</b></div><div class="arrow">→</div>
-  <div class="s13-res card cd-brown">✗ Response A served</div>
-</div>
-<div v-click="3" class="s13-foot">Normalization MAY drop insignificant differences (e.g. content encoding); a false positive returns the wrong response <Cite r="10008" s="4" />. Cache ↔ origin disagreement drives cache poisoning and deception <Cite t="Nguyen et al., 2019" href="https://doi.org/10.1145/3319535.3354215" /> <Cite t="Mirheidari et al., 2020" href="https://www.usenix.org/conference/usenixsecurity20/presentation/mirheidari" /></div>
-
-<style>
-.s13-rules { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-.s13-rules .card { font-size: 19px; line-height: 1.25; }
-.s13-rules b { color: var(--brown); }
-.s13-row { display: grid; grid-template-columns: 250px 34px 1fr 34px 240px; align-items: center; margin-top: 10px; }
-.s13-req { font-family: var(--courier); font-size: 17px; font-weight: 700; line-height: 1.35; }
-.s13-req .kbd { display: inline-block; font-size: 16px; margin-top: 3px; }
-.s13-key { font-family: var(--courier); font-size: 16px; font-weight: 700; border: 1.5px solid #000; padding: 7px 8px; text-align: center; line-height: 1.25; }
-.s13-badkey { border: 2px solid var(--brown); color: var(--brown); }
-.s13-res { font-size: 19px; font-weight: 700; text-align: center; padding: 8px; }
-.s13-badrow { padding-top: 10px; border-top: 2px dashed var(--brown); }
-.s13-foot { margin-top: 10px; font-size: 18px; line-height: 1.25; }
-</style>
-
-<!--
-⏱ 0:50 (ends 12:40) · Sources: RFC 10008 §2.7, §4; RFC 9111 §2; Nguyen et al. 2019; Mirheidari et al. 2020
-
-SAY: QUERY responses are cacheable, which is a selling point and also the biggest new attack surface. RFC 10008 says the cache key MUST include the request content and related metadata such as Content-Type. But RFC 9111 notes many caches only cache GET, and so key on the URI alone.
-
-[click] Done correctly, two QUERY requests to the same URI with different content get different keys, K1 and K2, and different responses.
-
-[click] The failure case: the cache ignores the content, or normalises too aggressively and drops "role". The second request maps to K1 and the admin response is served to the wrong query: a data leak or cache poisoning, depending on who warmed the cache.
-
-[click] The RFC allows normalisation, like removing content encoding, to improve hit rates, and warns that normalisation which disagrees with the origin returns incorrect responses. The cache-poisoning and cache-deception papers show this disagreement is exploitable.
-
-CLARIFY: I'm not claiming a specific CDN behaves this way; QUERY caching is harder than GET caching, and new code paths are where bugs live.
+CLARIFY: I do not say that a specific CDN does this. QUERY caching is new code, and new code has these bugs. A server can also send Location. Then clients use a plain GET, and caches handle GET well.
 
 NEXT → Browsers, and CORS.
 -->
@@ -791,307 +687,137 @@ NEXT → Browsers, and CORS.
 ---
 section: 4. Description
 frame: desc
-clicks: 3
 ---
 
-# QUERY from the browser: CORS preflight
+<script setup>
+import preflight from './snippets/preflight.http?raw'
+</script>
 
-<div class="s14">
-  <div class="seq">
-    <div class="seq-head"><span>Browser</span><span>Server</span></div>
-    <div class="seq-lines"><i></i><i></i></div>
-    <div class="seq-m r"><div class="seq-t">① OPTIONS /search</div><div class="seq-l">Access-Control-Request-Method: QUERY</div><div class="seq-s">+ Origin, Access-Control-Request-Headers</div><div class="seq-a"></div></div>
-    <div class="seq-m l" v-click="1"><div class="seq-t">② 204 No Content</div><div class="seq-l">Access-Control-Allow-Methods: QUERY</div><div class="seq-s">+ Allow-Origin, Allow-Headers, Max-Age</div><div class="seq-a"></div></div>
-    <div class="seq-m r q" v-click="2"><div class="seq-t">③ QUERY /search</div><div class="seq-l">{ "q": "security" }</div><div class="seq-a"></div></div>
-    <div class="seq-m l" v-click="2"><div class="seq-t">④ 200 OK</div><div class="seq-l">results, shown only if origin allowed</div><div class="seq-a"></div></div>
-  </div>
-  <div class="s14-side">
-    <div class="s14-h">Is a preflight needed?</div>
-    <ul class="bul s14-l">
-      <li><b class="ok">Yes</b>: cross-origin <span class="kbd">fetch()</span>; only GET, HEAD, POST are CORS-safelisted <Cite t="Fetch" href="https://fetch.spec.whatwg.org/#methods" /> <Cite r="10008" s="4" /></li>
-      <li><b class="bad">No</b>: same-origin requests</li>
-      <li><b class="bad">No</b>: non-browser clients (curl, service-to-service)</li>
-    </ul>
-    <div v-click="3" class="card cd-brown s14-w">Forms send only GET / POST and <span class="kbd">no-cors</span> rejects QUERY, so a cross-site page cannot send it <b>without server opt-in</b>. A permissive CORS policy can still leak results. <Cite t="HTML" href="https://html.spec.whatwg.org/multipage/form-control-infrastructure.html#attr-fs-method" /> <Cite t="Chen et al., 2018" href="https://www.usenix.org/conference/usenixsecurity18/presentation/chen-jianjun" /></div>
-  </div>
-</div>
+# QUERY from a browser: the CORS preflight
 
-<style>
-.s14 { display: grid; grid-template-columns: 540px 1fr; gap: 22px; }
-.seq { position: relative; }
-.seq-head { display: flex; justify-content: space-between; }
-.seq-head span { width: 108px; text-align: center; font-size: 19px; font-weight: 700; border: 1.5px solid var(--indigo); background: var(--lav); padding: 3px 0; }
-.seq-lines { position: absolute; top: 34px; bottom: 0; left: 0; right: 0; }
-.seq-lines i { position: absolute; top: 0; bottom: 0; width: 2px; background: #000; }
-.seq-lines i:first-child { left: 53px; } .seq-lines i:last-child { right: 53px; }
-.seq-m { position: relative; margin: 10px 54px 0 54px; padding-bottom: 7px; }
-.seq-t { font-family: var(--courier); font-size: 17px; font-weight: 700; padding: 0 10px; line-height: 1.3; }
-.seq-l { font-family: var(--courier); font-size: 15px; font-weight: 700; padding: 0 10px; line-height: 1.3; }
-.seq-s { font-family: var(--courier); font-size: 14px; padding: 0 10px; }
-.seq-a { position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: #000; }
-.seq-m.r .seq-a::after, .seq-m.l .seq-a::after { content: ''; position: absolute; top: -6px; border: 7px solid transparent; }
-.seq-m.r .seq-a::after { right: -2px; border-left: 11px solid #000; border-right: 0; }
-.seq-m.l .seq-a::after { left: -2px; border-right: 11px solid #000; border-left: 0; }
-.seq-m.l .seq-t, .seq-m.l .seq-l, .seq-m.l .seq-s { text-align: right; }
-.seq-m.q .seq-a { background: var(--orange); height: 3px; }
-.s14-h { font-size: 22px; font-weight: 700; color: var(--brown); }
-.s14-l > li { font-size: 19px; margin-top: 6px; }
-.s14-w { font-size: 17px; line-height: 1.25; margin-top: 10px; }
-</style>
-
-<!--
-⏱ 0:45 (ends 13:25) · Sources: WHATWG Fetch §2.2.1, CORS protocol; RFC 10008 §4; WHATWG HTML (form method); Chen et al. 2018
-
-SAY: Browsers add a layer. When JavaScript on one origin sends QUERY to another, the browser first sends a preflight: an OPTIONS request asking whether the server accepts QUERY from this origin. It's needed because Fetch lists only GET, HEAD and POST as CORS-safelisted methods, and RFC 10008's security considerations say the same.
-
-[click] The server must answer Access-Control-Allow-Methods: QUERY; the browser can cache this for Max-Age.
-
-[click] Only then is the real QUERY sent, and the response exposed only if the origin is allowed.
-
-Be precise: same-origin requests don't involve CORS, and curl or service-to-service calls aren't browsers.
-
-[click] Security consequence: forms only submit GET or POST, and fetch's no-cors mode rejects non-safelisted methods, so a malicious page cannot fire QUERY at your API without your server agreeing in a preflight. That's stronger than POST. But Chen et al. showed CORS is often misconfigured; a permissive, credentialed policy could still leak QUERY results.
-
-NEXT → For service-to-service integrity: HTTP Message Signatures.
--->
-
----
-section: 4. Description
-frame: desc
----
-
-# QUERY and HTTP Message Signatures (RFC 9421)
-
-<div class="s15">
-  <table class="tbl s15-t">
-    <thead><tr><th>Signed component</th><th>What it covers</th><th>In a QUERY request</th></tr></thead>
-    <tbody>
-      <tr><td class="mono">@method</td><td>request method</td><td><span class="ok">✓</span> QUERY</td></tr>
-      <tr><td class="mono">@target-uri</td><td>full target URI</td><td><span class="ok">✓</span> …/search</td></tr>
-      <tr><td class="mono">@query</td><td>URI query component</td><td><span class="bad">✗</span> usually just <span class="kbd">?</span></td></tr>
-      <tr><td class="mono">@query-param</td><td>one URI query parameter</td><td><span class="bad">✗</span> nothing in the content</td></tr>
-      <tr><td class="mono">content-digest</td><td>hash of the content <Cite r="9530" /></td><td><span class="ok">✓</span> the query itself</td></tr>
-    </tbody>
-  </table>
-  <ul class="bul s15-l">
-    <v-clicks>
-    <li><b>Sign the content</b>: cover <span class="kbd">content-digest</span>; the verifier must recompute it <Cite r="9421" s="7.2.8" /></li>
-    <li><b>Parameter shadowing</b>: frameworks that merge URI and form parameters let an unsigned body value override a signed one <Cite r="9421" s="7.5.8" /></li>
-    <li><b>Re-encoding</b> intermediaries change the digest and must re-sign <Cite r="9421" s="7.2.8" /></li>
-    <li><b>Integrity and origin only</b>: not authorization, validation or confidentiality <Cite r="9421" s="1" /></li>
-    </v-clicks>
+<div class="grid grid-cols-[minmax(0,1fr)_380px] gap-5">
+  <Snippet :code="preflight" lang="http" title="preflight (browser → server, server → browser)" size="sm" dense lines="4,9,11" />
+  <ul class="bul cors">
+    <li>A cross-origin QUERY <b>always</b> has a preflight. Only GET, HEAD and POST are CORS-safelisted <Cite t="Fetch" href="https://fetch.spec.whatwg.org/#methods" /> <Cite r="10008" s="4" /></li>
+    <li>Same-origin requests, curl and service calls have no preflight</li>
+    <li>HTML forms send only GET or POST, and <code>no-cors</code> rejects QUERY. Another site cannot send it <b>without server permission</b></li>
+    <li>JavaScript can read <code>Location</code> only if the server exposes it (line 11)</li>
+    <li>A permissive policy with credentials can still leak results <Cite t="Chen et al., 2018" href="https://www.usenix.org/conference/usenixsecurity18/presentation/chen-jianjun" /></li>
   </ul>
 </div>
 
-<style>
-.s15 { display: grid; grid-template-columns: 500px 1fr; gap: 22px; }
-.s15-t td { font-size: 17px; padding: 8px 7px; }
-.s15-t td.mono { font-weight: 700; white-space: nowrap; }
-.s15-t th { font-size: 17px; }
-.s15-l > li { font-size: 19px; margin-top: 10px; }
-.s15-l > li:first-child { margin-top: 0; }
-</style>
-
 <!--
-⏱ 0:45 (ends 14:10) · Sources: RFC 9421 §1, §2.2.7, §2.2.8, §7.2.8, §7.5.8; RFC 9530
+⏱ 0:55 (ends 15:50) · Sources: WHATWG Fetch (methods, CORS protocol); WHATWG HTML (form method); RFC 10008 §4; Chen et al. 2018
 
-SAY: RFC 9421 lets a sender sign selected parts of a request so another service can detect tampering. It defines derived components such as @method, @target-uri, @query and @query-param.
+SAY: JavaScript on app.example wants to send QUERY to api.example. First, the browser sends this OPTIONS request. Line 4 asks: is QUERY allowed from this origin? The browser must ask, because only GET, HEAD and POST are CORS-safelisted methods. The server allows QUERY on line 9, and the browser keeps that answer for Max-Age seconds.
 
-Look at the @query rows. For GET, signing @query protects the search terms. For QUERY, the terms are no longer in the URI, so @query is usually a bare question mark and @query-param covers nothing. Port a GET signing policy to QUERY unchanged, and the signature protects everything except the query.
+Line 11 is easy to miss. JavaScript cannot read Location unless the server exposes it.
 
-[click] RFC 9421 does not sign content directly: add a Content-Digest header from RFC 9530 and sign that, and the verifier must recompute the digest over the content it received.
+The security result: forms send only GET or POST, and the no-cors mode rejects other methods. Thus a malicious page cannot send QUERY to your API without your permission. This is stronger than POST. But Chen and colleagues found that CORS is often configured incorrectly. A permissive policy with credentials can still leak QUERY results.
 
-[click] Section 7.5.8 describes parameter shadowing: frameworks merge URI and form-encoded body parameters, and QUERY content can be form-encoded.
-
-[click] Intermediaries that change content encoding change the digest, so they must re-sign.
-
-[click] And signatures give integrity and origin authentication only; not authorisation, validation or confidentiality.
-
-NEXT → All the layers in one threat model.
+NEXT → Integrity between services.
 -->
 
 ---
 section: 4. Description
 frame: desc
-clicks: 6
 ---
 
-# Threat model along the request path
+<script setup>
+import signed from './snippets/signed-query.http?raw'
+</script>
 
-<div class="s16">
-  <div class="s16-r"><div class="node s16-n"><carbon-application-web />Browser / client</div><div class="s16-c" v-click="1">CORS preflight and allowed origins · credentials mode · exact method casing</div></div>
-  <div class="s16-r"><div class="node s16-n"><carbon-content-delivery-network />CDN / cache</div><div class="s16-c" v-click="2">cache key includes content + type · safe normalization · poisoning, deception</div></div>
-  <div class="s16-r"><div class="node s16-n"><carbon-firewall />WAF</div><div class="s16-c" v-click="3">method allowlist · inspect QUERY bodies like POST bodies · size limits</div></div>
-  <div class="s16-r"><div class="node s16-n"><carbon-gateway-api />Gateway / proxy</div><div class="s16-c" v-click="4">consistent message framing (no smuggling) · rate limits · 405 / 501 handling</div></div>
-  <div class="s16-r"><div class="node s16-n"><carbon-application />Application</div><div class="s16-c" v-click="5">authN + per-query authZ · strict Content-Type · validation · cost limits · body logging</div></div>
-  <div class="s16-r"><div class="node s16-n"><carbon-data-base />Database / search</div><div class="s16-c" v-click="6">parameterised queries (no injection) · timeouts · result-size caps</div></div>
+# Sign a QUERY request (RFC 9421)
+
+<Snippet :code="signed" lang="http" title="signed request (Content-Digest of the content shown)" size="sm" dense wrap lines="4,5" />
+
+<div class="mt-3 grid grid-cols-[440px_1fr] gap-5">
+  <Table class="text-base">
+    <TableHeader><TableRow class="border-b-2"><TableHead>Component</TableHead><TableHead>Value in a QUERY</TableHead></TableRow></TableHeader>
+    <TableBody class="[&_td]:py-1">
+      <TableRow><TableCell class="font-mono font-bold">@method</TableCell><TableCell>QUERY</TableCell></TableRow>
+      <TableRow><TableCell class="font-mono font-bold">@target-uri</TableCell><TableCell>https://api.example/contacts</TableCell></TableRow>
+      <TableRow><TableCell class="font-mono font-bold">@query</TableCell><TableCell class="text-destructive">only <code>?</code> <Cite r="9421" s="2.2.7" /></TableCell></TableRow>
+      <TableRow><TableCell class="font-mono font-bold">content-digest</TableCell><TableCell>the query itself <Cite r="9530" /></TableCell></TableRow>
+    </TableBody>
+  </Table>
+  <ul class="bul sig">
+    <li>The signature does <b>not</b> cover the content. Sign <code>content-digest</code>, and calculate it again <Cite r="9421" s="7.2.8" /></li>
+    <li>Some frameworks merge URI and form parameters. An unsigned one can replace a signed one <Cite r="9421" s="7.5.8" /></li>
+    <li>A signature gives integrity and origin. It does not give authorization or confidentiality</li>
+  </ul>
 </div>
-<div class="s16-src">Sources: <Cite r="10008" s="2.7" /> <Cite t="Fetch" href="https://fetch.spec.whatwg.org/#cors-protocol" /> <Cite r="9112" s="6" /> <Cite t="Jabiyev et al., 2021" href="https://doi.org/10.1145/3460120.3485384" /> <Cite t="Chen et al., 2016" href="https://doi.org/10.1145/2976749.2978394" /> <Cite t="OWASP WSTG-CONF-06" href="https://owasp.org/www-project-web-security-testing-guide/stable/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/06-Test_HTTP_Methods" /></div>
-
-<style>
-.s16 { display: flex; flex-direction: column; gap: 8px; }
-.s16-r { display: grid; grid-template-columns: 205px 1fr; gap: 14px; align-items: center; }
-.s16-n { flex-direction: row; justify-content: flex-start; gap: 8px; padding: 6px 10px; font-size: 18px; }
-.s16-n svg { font-size: 22px; margin: 0; }
-.s16-c { font-size: 19px; line-height: 1.22; border-left: 3px solid var(--brown); padding-left: 10px; }
-.s16-src { margin-top: 10px; font-size: 14px; }
-</style>
 
 <!--
-⏱ 0:55 (ends 15:05) · Sources: RFC 10008 §2.1, §2.7, §4; Fetch; RFC 9112 §6; Jabiyev et al. 2021; Chen et al. 2016; OWASP WSTG-CONF-06
+⏱ 1:00 (ends 16:50) · Sources: RFC 9421 §1, §2.2.7, §7.2.8, §7.5.8; RFC 9530
 
-SAY: The threat model, layer by layer.
+SAY: RFC 9421 lets one service sign parts of a request, so that another service can find any change. Line 5 lists the signed parts: the method, the target URI, the content type and the content digest. Line 4 is a real Content-Digest: the SHA-256 of the body below it.
 
-[click] Browser: the CORS preflight and allowed origins, the credentials mode, and one trap: fetch() only uppercases the six classic method names, so lowercase "query" is sent as a different, case-sensitive method.
+The table shows the trap. For a GET, a signature on @query protects the search terms. A QUERY has no URI query, so @query is only a question mark. A GET signing policy, copied with no change, covers everything except the query. Thus sign Content-Digest, and the receiver must calculate it again over the bytes that it got. Section 7.5.8 also warns about frameworks that merge URI and form parameters. And a signature gives integrity, not authorization.
 
-[click] CDN and cache: the key must include content and type, normalisation must be safe; poisoning and deception are the attacks.
-
-[click] WAF: QUERY must be on the allowlist, and rules written for "GET parameters" and "POST bodies" must also inspect QUERY bodies, or QUERY becomes a way around them. OWASP's HTTP-method test case covers bypassing access controls with another or unknown method.
-
-[click] Gateway and reverse proxy: RFC 9112 says framing is independent of the method, so a conforming proxy can forward a QUERY body. But T-Reqs showed parsing discrepancies between hops are common and lead to request smuggling; "Host of Troubles" showed the same class of ambiguity for Host headers. Unsupported methods need consistent 405 or 501 answers.
-
-[click] Application: authentication and per-query authorisation, strict Content-Type checks as RFC 10008 requires, validation, cost limits, care with body logging.
-
-[click] Database: parameterised queries, timeouts, result-size caps.
-
-NOTICE: Little of this is new; what's new is that every layer must recognise QUERY and treat its body correctly.
-
-NEXT → One concrete API.
+NEXT → All the layers together.
 -->
 
 ---
 section: 4. Description
 frame: desc
-clicks: 2
 ---
 
-# Worked example: a user-search API
+# Deploy QUERY: all hops must support it
 
-<table class="tbl s17">
-  <thead><tr><th>Concern</th><th><M t="GET" /> <span class="s17-f">?email=alice@…</span></th><th><M t="POST" /> <span class="s17-f">{"email": …}</span></th><th><M t="QUERY" /> <span class="s17-f">{"email": …}</span></th></tr></thead>
-  <tbody>
-    <tr><td>Email in the URI (logs, history)</td><td><span class="bad">✗</span> Exposed</td><td><span class="ok">✓</span> Avoided</td><td><span class="ok">✓</span> Avoided</td></tr>
-    <tr><td>Safe intent visible to caches</td><td><span class="ok">✓</span> Yes</td><td><span class="bad">✗</span> Opaque</td><td><span class="ok">✓</span> Yes</td></tr>
-    <tr><td>Body may be logged or inspected</td><td>n/a</td><td><span class="bad">!</span> Yes</td><td><span class="bad">!</span> Yes</td></tr>
-    <tr v-click="1"><td>Authorization for admin lookups</td><td><b>Required</b></td><td><b>Required</b></td><td><b>Required</b></td></tr>
-    <tr v-click="1"><td>Validation, injection defences</td><td><b>Required</b></td><td><b>Required</b></td><td><b>Required</b></td></tr>
-    <tr v-click="1"><td>Rate and cost limits (DoS)</td><td><b>Required</b></td><td><b>Required</b></td><td><b>Required</b></td></tr>
-  </tbody>
-</table>
-<div v-click="2" class="card cd-orange s17-msg">QUERY changes the <b>semantics</b> and <b>where the data travels</b>. It does not remove the need for authorization, validation, logging hygiene or limits.</div>
-
-<style>
-.s17 { font-size: 19px; }
-.s17 td, .s17 th { padding: 5px 9px; }
-.s17 td:first-child { font-weight: 700; width: 36%; }
-.s17-f { font-family: var(--courier); font-size: 14px; font-weight: 700; display: block; margin-top: 2px; }
-.s17-msg { margin-top: 12px; font-size: 21px; line-height: 1.25; }
-</style>
+<Table class="deploy text-base">
+  <TableHeader><TableRow class="border-b-2"><TableHead class="w-[170px]">Hop</TableHead><TableHead>Must do for QUERY</TableHead><TableHead class="w-[300px]">If it does not</TableHead></TableRow></TableHeader>
+  <TableBody class="[&_td]:whitespace-normal [&_td]:py-2">
+    <TableRow><TableCell class="font-bold">Browser, client</TableCell><TableCell>preflight; upper-case <code>QUERY</code>; exposed headers</TableCell><TableCell>request blocked, or sent as <code>query</code></TableCell></TableRow>
+    <TableRow><TableCell class="font-bold">CDN, cache</TableCell><TableCell>key on method, URI, content and type; correct normalisation</TableCell><TableCell>wrong or poisoned responses</TableCell></TableRow>
+    <TableRow><TableCell class="font-bold">WAF</TableCell><TableCell>allow it; examine its body as a POST body; size limits</TableCell><TableCell>a change of method avoids the rules <Cite t="OWASP WSTG-CONF-06" href="https://owasp.org/www-project-web-security-testing-guide/stable/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/06-Test_HTTP_Methods" /></TableCell></TableRow>
+    <TableRow><TableCell class="font-bold">Load balancer, proxy</TableCell><TableCell>forward it; frame the body the same way as the next hop</TableCell><TableCell>405 or 501, or request smuggling <Cite t="Jabiyev 2021" href="https://doi.org/10.1145/3460120.3485384" /></TableCell></TableRow>
+    <TableRow><TableCell class="font-bold">Framework, app</TableCell><TableCell>route it; strict Content-Type; authorization, validation, cost limits</TableCell><TableCell>415 / 422 gaps, injection, DoS</TableCell></TableRow>
+    <TableRow><TableCell class="font-bold">Database</TableCell><TableCell>parameterised queries, timeouts, result limits</TableCell><TableCell>injection, exhaustion</TableCell></TableRow>
+    <TableRow><TableCell class="font-bold">Logs, SIEM, docs</TableCell><TableCell>parse the method; no raw sensitive bodies; OpenAPI 3.2 has <code>query</code> <Cite t="OAS 3.2" href="https://spec.openapis.org/oas/v3.2.0.html" /></TableCell><TableCell>gaps in monitoring</TableCell></TableRow>
+  </TableBody>
+</Table>
 
 <!--
-⏱ 0:40 (ends 15:45) · Sources: RFC 10008 §4; RFC 9110 §17.9
+⏱ 0:55 (ends 17:45) · Sources: RFC 10008 §2.1, §2.7, §4; Fetch; RFC 9112 §6; RFC 9110 §9.1; Jabiyev et al. 2021; OWASP WSTG-CONF-06; OpenAPI 3.2.0
 
-SAY: An admin API that searches users by email and role, written three ways. The top three rows are where the methods differ. GET puts the email in the URI. POST and QUERY keep it out. Only GET and QUERY tell caches and retrying clients this is a safe read. For POST and QUERY the body can still be logged or inspected: exposure moves rather than disappears.
+SAY: An RFC is one thing. A working production path is a different thing. Read this table from top to bottom, as the request moves. The browser must send the preflight and use the upper-case name. The cache must put the content in the key. The WAF must allow QUERY and examine its body as a POST body. If not, an attacker changes the method to avoid the rules. OWASP tests exactly this. Load balancers and proxies must forward QUERY and frame the body in the same way. If not, you get 405, 501 or request smuggling. The application must have a strict Content-Type, authorization, validation and cost limits. The database must use parameterised queries. And the log parsers must know the method. OpenAPI 3.2 already has a "query" operation.
 
-[click] The bottom three rows are identical: authorisation, validation and injection defences, and rate and cost limits. The method changes none of these.
+NOTICE: Little of this is new. The new part is that every layer must know QUERY and treat its body correctly. One hop with no support breaks it. One hop that lets it through without the POST controls makes it a bypass.
 
-[click] My core claim: QUERY changes semantics and where the data travels; it is not a security control in itself.
-
-NEXT → And deployment is where a new method runs into trouble.
--->
-
----
-section: 4. Description
-frame: desc
-clicks: 1
----
-
-# Standardised is not the same as deployed
-
-<div class="s18">
-  <div class="card cd-lav">
-    <div class="s18-h">Protocol level: set by RFC 10008</div>
-    <ul class="bul s18-l">
-      <li>safe + idempotent semantics</li>
-      <li>Content-Type required; 4xx rules</li>
-      <li>cacheable; content in the cache key</li>
-      <li>Accept-Query, Location, Content-Location</li>
-      <li>redirect rules; CORS preflight</li>
-    </ul>
-  </div>
-  <div class="card cd-brown">
-    <div class="s18-h">Deployment level: decided at every hop</div>
-    <ul class="bul s18-l">
-      <li>method allowlists (LB, WAF, gateway): 405 / 501 <Cite r="9110" s="9.1" /></li>
-      <li>proxy / CDN forwarding and caching of QUERY</li>
-      <li>framework routing and body parsing</li>
-      <li>CORS configuration · clients: <span class="kbd">"query"</span> ≠ <span class="kbd">"QUERY"</span></li>
-      <li>logs, SIEM parsers · API docs: OpenAPI 3.2 has <span class="kbd">query</span> <Cite t="OAS 3.2" href="https://spec.openapis.org/oas/v3.2.0.html" /></li>
-    </ul>
-  </div>
-</div>
-<div class="s18-chain" v-click="1">
-  <span>Browser</span><b>→</b><span>CDN</span><b>→</b><span>Load balancer</span><b>→</b><span>WAF</span><b>→</b><span>Reverse proxy</span><b>→</b><span>Framework</span><b>→</b><span>Application</span>
-  <div class="s18-cap">One unsupported hop can break QUERY, or let it slip past a control.</div>
-</div>
-
-<style>
-.s18 { display: grid; grid-template-columns: 0.8fr 1.2fr; gap: 16px; }
-.s18-h { font-size: 21px; font-weight: 700; color: var(--brown); margin-bottom: 2px; }
-.s18-l > li { font-size: 19px; margin-top: 5px; }
-.s18-chain { margin-top: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 7px; }
-.s18-chain span { font-size: 18px; font-weight: 700; border: 1.5px solid var(--indigo); background: var(--lav); padding: 3px 10px; }
-.s18-chain b { font-size: 18px; }
-.s18-cap { width: 100%; margin-top: 8px; font-size: 21px; font-weight: 700; color: var(--brown); }
-</style>
-
-<!--
-⏱ 0:40 (ends 16:25) · Sources: RFC 10008; RFC 9110 §9.1; Fetch §2.2.1; OpenAPI 3.2.0
-
-SAY: Publishing an RFC and making it work in production are separate problems. On the left, what RFC 10008 fixes at the protocol level; all settled. On the right, what every hop decides for itself: method allowlists, where RFC 9110 says an unknown method gets 501 and a disallowed one 405; forwarding and caching; framework routing and body parsing; CORS; client libraries, since fetch() won't uppercase "query"; and logging and SIEM parsers. On the positive side, OpenAPI 3.2, released September 2025, already has a "query" operation.
-
-[click] So the whole chain matters: one unsupported hop breaks QUERY, and a hop that passes it through without its GET and POST controls turns it into a bypass.
-
-NEXT → My conclusion.
+NEXT → Conclusion.
 -->
 
 ---
 section: Conclusion
 frame: concl
-clicks: 2
 ---
 
-<div class="s21">
-  <div class="card cd-lav s21-c"><M t="GET" /><div class="s21-id">URI-oriented retrieval</div><ul class="bul"><li>query fits in the URI</li><li>links and caching matter</li></ul></div>
-  <div class="s21-a">semantic<br>gap<br>→</div>
-  <div class="card cd-orange s21-c"><M t="QUERY" /><div class="s21-id">Safe, body-oriented query</div><ul class="bul"><li>the operation <i>is</i> a query</li><li>large or structured input</li><li>every hop supports it</li></ul></div>
-  <div class="s21-a">broader<br>operations<br>→</div>
-  <div class="card cd-brown s21-c"><M t="POST" /><div class="s21-id">General processing</div><ul class="bul"><li>operation is not safe</li><li>changes state, submits</li></ul></div>
+<div class="grid grid-cols-3 gap-3">
+  <Card class="gap-2 py-3">
+    <CardHeader class="px-3"><CardTitle><M t="GET" /></CardTitle><CardDescription class="text-lg font-bold text-destructive">Get a resource by its URI</CardDescription></CardHeader>
+    <CardContent class="px-3"><ul class="bul tight"><li>the query fits in a URI</li><li>links and caches are important</li></ul></CardContent>
+  </Card>
+  <Card class="gap-2 border-2 border-primary py-3">
+    <CardHeader class="px-3"><CardTitle><M t="QUERY" /></CardTitle><CardDescription class="text-lg font-bold text-destructive">Safe query with content</CardDescription></CardHeader>
+    <CardContent class="px-3"><ul class="bul tight"><li>the operation <i>is</i> a query</li><li>the input is large or structured</li><li>all hops support it</li></ul></CardContent>
+  </Card>
+  <Card class="gap-2 py-3">
+    <CardHeader class="px-3"><CardTitle><M t="POST" /></CardTitle><CardDescription class="text-lg font-bold text-destructive">General processing</CardDescription></CardHeader>
+    <CardContent class="px-3"><ul class="bul tight"><li>the operation is not safe</li><li>it changes data or submits a form</li></ul></CardContent>
+  </Card>
 </div>
-<ul class="bul s21-take">
-  <li v-click="1"><b>QUERY is not a replacement for GET or POST.</b> It fills a semantic gap: safe, idempotent queries with structured request content.</li>
-  <li v-click="2">Its cybersecurity value depends on how clients, intermediaries, caches, gateways, applications and logs <b>implement</b> it, not on the method alone.</li>
+<ul class="bul take">
+  <li><b>QUERY does not replace GET or POST.</b> It fills one gap: safe, idempotent queries with request content.</li>
+  <li>Its security depends on how clients, caches, WAFs, gateways, applications and logs <b>implement</b> it. The method alone gives no security.</li>
 </ul>
 
-<style>
-.s21 { display: grid; grid-template-columns: 1fr 76px 1fr 76px 1fr; align-items: stretch; }
-.s21-c { font-size: 19px; padding: 10px 12px; }
-.s21-c .mpill { font-size: 21px; }
-.s21-id { font-size: 21px; font-weight: 700; color: var(--brown); margin: 6px 0 2px; line-height: 1.15; }
-.s21-c .bul > li { font-size: 19px; margin-top: 3px; padding-left: 20px; }
-.s21-a { display: flex; align-items: center; justify-content: center; text-align: center; font-size: 16px; font-weight: 700; line-height: 1.2; }
-.s21-take { margin-top: 18px; }
-.s21-take > li { font-size: 22px; margin-top: 10px; }
-</style>
-
 <!--
-⏱ 0:45 (ends 17:10)
+⏱ 0:45 (ends 18:30)
 
-SAY: To conclude, this isn't a contest with a winner. Use GET when the query fits naturally in a URI and you want links, bookmarks and mature caching. Use QUERY when the operation really is a safe, idempotent query with large or structured input, and every hop supports it. Use POST when the operation isn't safe.
+SAY: To conclude, no method wins. Use GET when the query fits in a URI and links and mature caches are important. Use QUERY when the operation is really a safe query with large or structured input, and all hops support it. Use POST when the operation is not safe.
 
-[click] First takeaway: QUERY is not a replacement for GET or POST; it fills the semantic gap between them.
-
-[click] Second, the cybersecurity takeaway: the method doesn't provide security by itself. Its value depends on how clients, intermediaries, caches, gateways, applications and logging implement it, so security teams need to be involved from the start of adoption.
+Two points to remember. QUERY does not replace the other methods. It fills one gap. And the method alone gives no security. Its value depends on how each layer implements it. Thus security teams must be part of the adoption from the start.
 
 NEXT → References, then questions.
 -->
@@ -1149,17 +875,19 @@ layout: queries
 <!--
 ⏱ Q&A (2–3 min)
 
-Likely questions and short answers:
+Possible questions and short answers:
 
-• "Why not just send a body with GET?" RFC 9110 §9.3.1: GET content has no generally defined semantics and some implementations reject it (request-smuggling risk). RFC 9205 §4.5.1: generic HTTP software will ignore or reject it.
+• "Why not send a body with GET?" RFC 9110 §9.3.1: content in a GET request has no defined meaning, and some implementations reject it. This gives a risk of request smuggling. RFC 9205 §4.5.1 says the same about generic HTTP software.
 
-• "Why a new method instead of SEARCH, REPORT or PROPFIND?" RFC 10008 Appendix B: those come from WebDAV and depend on a generic XML media type; "QUERY" maps onto the URI's query component. Early drafts did use SEARCH.
+• "Why a new method, and not SEARCH, REPORT or PROPFIND?" RFC 10008 Appendix B: those come from WebDAV, and they use a generic XML media type. "QUERY" also maps to the query component of the URI. Early drafts used SEARCH.
 
-• "Is QUERY more secure than GET?" Not inherently. It avoids URI exposure, but bodies can be logged, it adds cache-key complexity, and it needs support at every hop.
+• "Is QUERY more secure than GET?" Not by itself. It keeps the input out of URIs. But systems can log bodies, the cache key becomes more difficult, and every hop must support it.
 
-• "Can browsers send it?" Yes, with fetch(); cross-origin always triggers a preflight. HTML forms can't send it.
+• "Can browsers send it?" Yes, with fetch(). A cross-origin request always has a preflight. HTML forms cannot send it.
 
-• "Does QUERY help against CSRF?" It is safe, so it shouldn't change state; cross-site pages can't send it without a preflight, but a misconfigured CORS policy can still leak the results.
+• "Does QUERY help against CSRF?" It is safe, so it must not change state. A cross-site page cannot send it without a preflight. But a permissive CORS policy can still leak the results.
+
+• "Did you run the code?" Yes: server.mjs, curl, fetch and Python urllib on Node 24.18, curl 8.7.1 and Python 3.14, on 17 Oct 2026. The cache-key output is from a real run.
 -->
 
 ---

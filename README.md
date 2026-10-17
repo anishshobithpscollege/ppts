@@ -86,6 +86,18 @@ single-page app at `dist/<name>/`. `netlify.toml` and `vercel.json` publish `dis
 `/<name>/…` routes to that deck's `index.html`. For a sub-path (GitHub Pages),
 `pnpm build --base /ppts/`.
 
+**Vercel.** Import the repo as a project; `vercel.json` sets everything (framework "Other",
+output `dist`), so leave the dashboard's build settings alone. Two things in it are deliberate:
+
+- Vercel's built-in pnpm support stops at v10 and this repo uses pnpm 11, so `installCommand`
+  runs `npx pnpm@11.10.0` itself. When you bump `packageManager` in `package.json`, bump the
+  version in `vercel.json` too.
+- It sets `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1`: Chromium is only needed for `pnpm export`, not
+  for the site build.
+
+The build runs on Node 24 (`engines` in `package.json`). From the CLI: `vercel` for a preview,
+`vercel --prod` for production. `.vercel/` (written by `vercel link`) is git-ignored.
+
 ## Notes
 
 - The MSIS template follows the college PowerPoint exactly (section order, fonts, colours,

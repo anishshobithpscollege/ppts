@@ -4,42 +4,94 @@
   Template fonts: Calibri (text), Arial (footer, slide number), Courier New.
   Carlito is bundled as Calibri's metric-compatible fallback for machines without Office.
 
-  Only the template itself lives here: master chrome, section titles, body frames and the
-  generic building blocks (bullets, cards, table, flow nodes). Styles that belong to one
-  talk's content go in that deck's own style.css.
+  Colour: the only colour values in this template are in the token block below. They are the
+  template's own colours, assigned to shadcn's design tokens; everything else (this file, the
+  layouts, the shadcn-vue components from addons/shadcn, the decks) uses the tokens.
 */
 @import '@fontsource/carlito/400.css';
 @import '@fontsource/carlito/700.css';
 @import '@fontsource/carlito/400-italic.css';
 @import '@fontsource/carlito/700-italic.css';
 
+/* ---------- design tokens (shadcn names, MSIS values) ---------- */
 :root {
-  /* template colours: CC6600 accent, 993300 emphasis, theme accent2 333399 (tables) */
-  --orange: #cc6600;
-  --brown: #993300;
-  --indigo: #333399;
-  --indigo-dk: #2d2d8a;
-  --lav: #d6d6eb; /* accent2 at 20% on white: Light Style 3 banded rows */
-  --teal: #009999; /* theme hyperlink */
-  --teal-t: #daedef; /* accent5 */
-  --aqua: #bbe0e3; /* accent1 */
-  --grey: #808080;
-  --footer: #d47d26; /* CC6600 at 85.1% alpha on white, as in the master */
-  --calibri: 'Calibri', 'Carlito', sans-serif;
-  --arial: 'Arial', 'Liberation Sans', sans-serif;
-  --courier: 'Courier New', 'Courier', monospace;
-  --slidev-theme-primary: #cc6600;
+  --radius: 0px; /* PowerPoint shapes: square corners */
+
+  --background: #ffffff;
+  --foreground: #000000;
+  --card: #ffffff;
+  --card-foreground: #000000;
+  --popover: #ffffff;
+  --popover-foreground: #000000;
+  --primary: #cc6600; /* template accent: section titles, the double rule, emphasis */
+  --primary-foreground: #ffffff;
+  --secondary: #d6d6eb; /* accent2 at 20% on white: Light Style 3 banded rows */
+  --secondary-foreground: #000000;
+  --muted: #daedef; /* accent5 */
+  --muted-foreground: #595959; /* Text 1, lighter 35% */
+  --accent: #bbe0e3; /* accent1 */
+  --accent-foreground: #000000;
+  --destructive: #993300; /* template emphasis brown */
+  --destructive-foreground: #ffffff;
+  --warning: #cc6600;
+  --warning-foreground: #993300;
+  --border: #333399; /* accent2: table and box borders */
+  --input: #333399;
+  --ring: #cc6600;
+  --chart-1: #cc6600;
+  --chart-2: #333399;
+  --chart-3: #009999; /* theme hyperlink */
+  --chart-4: #993300;
+  --chart-5: #808080;
+
+  /* derived from tokens */
+  --footer: color-mix(in srgb, var(--primary) 85.1%, var(--background)); /* the master's footer bar */
+
+  /* type */
+  --font-sans: 'Calibri', 'Carlito', sans-serif;
+  --font-mono: 'Courier New', 'Courier', monospace;
+  --font-arial: 'Arial', 'Liberation Sans', sans-serif;
+
+  /* code: high contrast for washed-out projectors, still tokens */
+  --shiki-token-keyword: var(--chart-2);
+  --shiki-token-string: var(--destructive);
+  --shiki-token-string-expression: var(--destructive);
+  --shiki-token-constant: var(--primary);
+  --shiki-token-function: var(--foreground);
+  --shiki-token-punctuation: var(--foreground);
+
+  --slidev-theme-primary: var(--primary);
+  --k: 0.84; /* baseline offset of Calibri/Carlito in a line-height:1 box, see .at */
+}
+
+/* shadcn-vue components sized for a 960pt canvas (Tailwind reads these at the point of use) */
+.slidev-layout {
+  --spacing: 4px;
+  --text-xs: 14px;
+  --text-xs--line-height: 1.3;
+  --text-sm: 17px;
+  --text-sm--line-height: 1.3;
+  --text-base: 19px;
+  --text-base--line-height: 1.3;
+  --text-lg: 21px;
+  --text-lg--line-height: 1.25;
+  --text-xl: 24px;
+  --text-xl--line-height: 1.2;
 }
 
 .slidev-layout {
-  font-family: var(--calibri);
-  color: #000;
-  background: #fff;
+  font-family: var(--font-sans);
+  color: var(--foreground);
+  background: var(--background);
 }
 .slidev-layout code,
 .slidev-layout pre,
 .mono {
-  font-family: var(--courier);
+  font-family: var(--font-mono);
+}
+/* Courier New is thin; the template's code is set bold so it survives a projector */
+.slidev-layout [data-slot='code-block'] {
+  font-weight: 700;
 }
 
 .slidev-vclick-target {
@@ -71,8 +123,8 @@
   right: 0;
   top: 54.75px;
   height: 4.5px;
-  border-top: 1px solid var(--orange);
-  border-bottom: 2.5px solid var(--orange);
+  border-top: 1px solid var(--primary);
+  border-bottom: 2.5px solid var(--primary);
 }
 .tpl-footer {
   position: absolute;
@@ -87,30 +139,27 @@
   left: 0;
   right: 0;
   top: 521.1px;
-  font-family: var(--arial);
+  font-family: var(--font-arial);
   font-size: 12px;
   line-height: 14px;
   text-align: center;
-  color: #000;
+  color: var(--foreground);
 }
 .tpl-slideno {
   position: absolute;
   right: 37.2px;
   top: 518.6px;
-  font-family: var(--arial);
+  font-family: var(--font-arial);
   font-size: 14px;
   line-height: 16px;
-  color: #000;
+  color: var(--foreground);
 }
 
 /* ---------- baseline positioning ----------
   PowerPoint places text by baseline. --k is where the baseline sits inside a
   line-height:1 box for Calibri/Carlito, so top = baseline - k * size.
-  Usage: <div class="at" style="--y: 240; --fs: 36; left: 378.8px;">
+  Usage: <div class="at" style="--y: 240; --fs: 36; left: 100px">
 */
-:root {
-  --k: 0.84;
-}
 .at {
   position: absolute;
   line-height: 1;
@@ -119,7 +168,7 @@
   top: calc(var(--y) * 1px - var(--k) * var(--fs) * 1px);
 }
 
-/* ---------- section title (Calibri bold, CC6600, right aligned) ---------- */
+/* ---------- section title (Calibri bold, accent, right aligned) ---------- */
 .tpl-title {
   --fs: 28;
   --y: 42.6;
@@ -128,9 +177,9 @@
   line-height: 1;
   font-size: calc(var(--fs) * 1px);
   top: calc(var(--y) * 1px - var(--k) * var(--fs) * 1px);
-  font-family: var(--calibri);
+  font-family: var(--font-sans);
   font-weight: 700;
-  color: var(--orange);
+  color: var(--primary);
   white-space: nowrap;
 }
 .tpl-title.t36 {
@@ -153,53 +202,40 @@
 .frame-refs { left: 7.2px; right: 7.2px; top: 63.6px; }
 .frame-outline { left: 39.2px; right: 39.2px; top: 70.4px; }
 
-/* ---------- base typography ----------
-  What the slides used to inherit from @slidev/theme-default (layouts.css), kept here
-  so the template has no dependency on another theme.
+/* ---------- element defaults ----------
+  Wrapped in :where() so they weigh nothing: a component's own classes (CardTitle is an h3,
+  CardDescription a p) and a slide's utility classes always win over them.
 */
-.slidev-layout h1 + p {
-  @apply -mt-2 opacity-50 mb-4;
-}
-.slidev-layout p + h2,
-.slidev-layout ul + h2,
-.slidev-layout table + h2 {
-  @apply mt-10;
-}
-.slidev-layout h2 {
-  @apply text-3xl;
-}
-.slidev-layout h3 {
-  @apply text-2xl;
-}
-.slidev-layout h4 {
-  @apply text-xl;
-}
-.slidev-layout h5 {
-  @apply text-base;
-}
-.slidev-layout h6 {
-  @apply text-sm pt-1 uppercase tracking-widest font-500 -ml-[0.05em];
-}
-.slidev-layout h6:not(.opacity-100) {
-  @apply opacity-40;
-}
-
-/* in-body topic line under the section title */
-.slidev-layout h1 {
+:where(.slidev-layout) h1 {
   margin: 0 0 10px;
   padding: 0;
-  font-family: var(--calibri);
   font-size: 24px;
   line-height: 1.15;
   font-weight: 700;
-  color: var(--brown);
-  letter-spacing: 0;
+  color: var(--destructive);
 }
-.slidev-layout p {
-  margin: 0;
+:where(.slidev-layout) h2 { font-size: 30px; font-weight: 700; }
+:where(.slidev-layout) h3 { font-size: 24px; font-weight: 700; }
+:where(.slidev-layout) h4 { font-size: 20px; font-weight: 700; }
+:where(.slidev-layout) p { margin: 0; }
+:where(.slidev-layout) b,
+:where(.slidev-layout) strong { font-weight: 700; }
+:where(.slidev-layout) a { color: inherit; }
+/* inline code: same weight as Slidev's own rule so this one (loaded later) replaces it */
+.slidev-layout :not(pre) > code {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.92em;
+  padding: 0 4px;
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--background);
+  color: var(--foreground);
+  white-space: nowrap;
 }
-.slidev-layout h1 + p {
-  opacity: 1;
+.slidev-layout :not(pre) > code::before,
+.slidev-layout :not(pre) > code::after {
+  content: none;
 }
 
 /* master body text: bullet "•" level 1, "–" level 2 */
@@ -232,98 +268,27 @@
 
 .txt { font-size: 20px; line-height: 1.25; }
 .small { font-size: 16px; line-height: 1.25; }
-.brown { color: var(--brown); }
-.orange { color: var(--orange); }
-.ok { color: var(--teal); font-weight: 700; }
-.bad { color: var(--brown); font-weight: 700; }
-
-/* boxes in the template's table look: 1pt accent2 borders */
-.card {
-  border: 1.5px solid var(--indigo);
-  padding: 8px 12px;
-  background: #fff;
-}
-.cd-lav { background: var(--lav); }
-.cd-teal { border-color: var(--teal); background: var(--teal-t); }
-.cd-brown { border-color: var(--brown); border-width: 2px; }
-.cd-orange { border-color: var(--orange); border-width: 2px; }
-
-/* Light Style 3 - Accent 2, the template's literature-review table style */
-.tbl {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 17px;
-  line-height: 1.22;
-}
-.tbl th,
-.tbl td {
-  border: 1px solid var(--indigo);
-  padding: 4px 7px;
-  text-align: left;
-  vertical-align: middle;
-}
-.tbl th {
-  font-weight: 700;
-  text-align: center;
-  background: #fff;
-  border-bottom: 2px solid var(--indigo);
-}
-.tbl tbody tr:nth-child(odd) td {
-  background: var(--lav);
-}
-.tbl tbody tr:nth-child(even) td {
-  background: #fff;
-}
-
-/* flow diagrams */
-.node {
-  border: 1.5px solid var(--indigo);
-  background: var(--lav);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  font-weight: 700;
-  font-size: 16px;
-  line-height: 1.1;
-  padding: 4px 3px;
-}
-.node svg {
-  font-size: 24px;
-  margin-bottom: 2px;
-  color: var(--indigo);
-}
-.arrow {
-  color: #000;
-  font-size: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
 
 /* ---------- layouts: title, outline, queries, thank-you ---------- */
-.ts-tech { font-weight: 700; color: var(--orange); }
+.ts-tech { font-weight: 700; color: var(--primary); }
 .ts-c { left: 20px; width: 936px; text-align: center; }
 .ts-title { font-weight: 700; }
-.ts-name { font-family: var(--arial); font-weight: 700; color: var(--brown); }
+.ts-name { font-family: var(--font-arial); font-weight: 700; color: var(--destructive); }
 .ts-p1 { left: 39.2px; }
 .ts-p2 { left: 487.2px; }
-.ts-pm { font-weight: 700; color: var(--brown); }
+.ts-pm { font-weight: 700; color: var(--destructive); }
 
 .ol { position: relative; }
 .ol-i { position: absolute; left: 0; font-size: 20px; line-height: 1; white-space: nowrap; }
 .ol-i span { display: inline-block; width: 27px; }
 
-.qs { color: var(--brown); }
+.qs { color: var(--destructive); }
 
-/* ---------- section content: Literature Review table, References ---------- */
-.tbl.lit { font-size: 15.5px; line-height: 1.2; }
-.tbl.lit th { font-size: 18px; height: 30px; padding: 2px 6px; }
-.tbl.lit td { padding: 5px 7px; vertical-align: top; }
-.tbl.lit a { color: var(--teal) !important; text-decoration: underline; border: none !important; }
-
+/* ---------- References ---------- */
 .refs p { position: relative; padding-left: 72px; font-size: 14px; line-height: 1.2; margin: 0 0 7px; }
 .refs p span { position: absolute; left: 0; }
-.refs a { color: #000 !important; text-decoration: none !important; border: none !important; }
-.refs a:hover { color: var(--teal) !important; text-decoration: underline !important; }
+.refs a { color: var(--foreground); text-decoration: none; }
+.refs a:hover { color: var(--chart-3); text-decoration: underline; }
+
+/* Literature Review table (LitTable): the table's own text-sm would win over an inherited size */
+[data-slot='table'].lit { font-size: var(--lit-fs, 15.5px); line-height: 1.2; }

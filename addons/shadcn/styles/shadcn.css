@@ -1,0 +1,115 @@
+/*
+  shadcn-vue primitives, compiled by Tailwind CSS v4 (see ../vite.config.ts).
+
+  Tokens. This file sets no colour. Every template supplies the shadcn token set for light
+  and `.dark`, and this file only maps Tailwind's colour names onto it:
+
+    --background --foreground --card --card-foreground --popover --popover-foreground
+    --primary --primary-foreground --secondary --secondary-foreground --muted
+    --muted-foreground --accent --accent-foreground --destructive --destructive-foreground
+    --border --input --ring --chart-1 ... --chart-5 --radius
+    --warning --warning-foreground   (an added pair, the way shadcn's theming docs add colours)
+
+  Tailwind's default palette is switched off (`--color-*: initial`), so a component cannot
+  compile `bg-red-500` or `text-white`: only token colours exist.
+
+  Scale. Utilities read --spacing and --text-* at the point of use, so a template can scale
+  every component for its canvas by redefining them on `.slidev-layout`.
+
+  Order. No preflight (Slidev ships the UnoCSS reset). Utilities are unlayered, and
+  setup/main.ts appends this sheet after Slidev's own CSS (uno.css included). Slidev's UnoCSS
+  also emits common classes such as `.block` or `.px-3`; loading last lets a component's
+  variants (`in-data-numbered:grid`, `group-data-[size=sm]/code-block:px-2.5`) beat them.
+  A slide changes a component through its `class` prop: cn() drops the component's
+  conflicting class, so the slide's class applies.
+*/
+@layer theme, base;
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' source(none);
+
+@source '../src';
+@source '../components';
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --color-*: initial;
+
+  /* shadows are tinted with the foreground token instead of a fixed black */
+  --shadow-2xs: 0 1px color-mix(in oklab, var(--foreground) 5%, transparent);
+  --shadow-xs: 0 1px 2px 0 color-mix(in oklab, var(--foreground) 5%, transparent);
+  --shadow-sm:
+    0 1px 3px 0 color-mix(in oklab, var(--foreground) 10%, transparent),
+    0 1px 2px -1px color-mix(in oklab, var(--foreground) 10%, transparent);
+  --shadow-md:
+    0 4px 6px -1px color-mix(in oklab, var(--foreground) 10%, transparent),
+    0 2px 4px -2px color-mix(in oklab, var(--foreground) 10%, transparent);
+}
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+}
+
+@layer base {
+  :root {
+    /* the UnoCSS reset reads this for every element's default border colour */
+    --un-default-border-color: var(--border);
+
+    /* code: the highlighter's css-variables theme, pointed at design tokens.
+       A template may re-point these (still to tokens) for contrast on its surface. */
+    --shiki-foreground: var(--foreground);
+    --shiki-background: transparent;
+    --shiki-token-keyword: var(--primary);
+    --shiki-token-string: var(--chart-2);
+    --shiki-token-string-expression: var(--chart-2);
+    --shiki-token-constant: var(--chart-1);
+    --shiki-token-function: var(--chart-3);
+    --shiki-token-parameter: var(--foreground);
+    --shiki-token-punctuation: var(--muted-foreground);
+    --shiki-token-comment: var(--muted-foreground);
+    --shiki-token-link: var(--primary);
+    --shiki-token-inserted: var(--chart-2);
+    --shiki-token-deleted: var(--destructive);
+  }
+}
+
+/* utilities the code-block registry item expects from shadcn-vue's own stylesheet */
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+}
+@utility scroll-fade-x {
+  scrollbar-gutter: auto;
+}
+@utility scroll-fade-y {
+  scrollbar-gutter: auto;
+}

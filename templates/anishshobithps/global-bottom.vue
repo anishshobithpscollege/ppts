@@ -58,7 +58,7 @@ onBeforeUnmount(() => {
   width: 140px;
   height: 140px;
   border-radius: 50%;
-  background: var(--glow);
+  background: color-mix(in oklab, var(--ring) 10%, transparent);
   filter: blur(48px);
   pointer-events: none;
   transition: opacity 0.3s ease;

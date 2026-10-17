@@ -8,7 +8,6 @@ info: |
 duration: 5min
 exportFilename: exifleak
 download: true
-monaco: true
 layout: cover
 kicker: Shell scripting / M.E. CyberSecurity
 ---
@@ -95,19 +94,19 @@ section: Why it matters
 
 <div class="cells c2 stagger">
   <div class="case">
-    <div class="case-head"><span class="case-year mono">2007</span><h3>US Army, Iraq</h3><Source href="https://www.itnews.com.au/news/apaches-destroyed-using-geotagged-photo-data-293745">iTnews, 2012</Source></div>
+    <div class="case-head"><span class="case-year mono">2007</span><h3>US Army, Iraq</h3><Cite href="https://www.itnews.com.au/news/apaches-destroyed-using-geotagged-photo-data-293745">iTnews, 2012</Cite></div>
     <p>Geotagged flightline photos helped attackers find four new Apache helicopters. Mortars destroyed them. The Army disclosed it in 2012.</p>
   </div>
   <div class="case">
-    <div class="case-head"><span class="case-year mono">2010</span><h3>Adam Savage</h3><Source href="https://www.benton.org/headlines/web-photos-reveal-secrets-where-you-live">NYT via Benton, Aug 2010</Source></div>
+    <div class="case-head"><span class="case-year mono">2010</span><h3>Adam Savage</h3><Cite href="https://www.benton.org/headlines/web-photos-reveal-secrets-where-you-live">NYT via Benton, Aug 2010</Cite></div>
     <p>He tweeted a photo of his car outside his home, captioned "off to work". The geotag gave the address.</p>
   </div>
   <div class="case">
-    <div class="case-head"><span class="case-year mono">2012</span><h3>Higinio Ochoa</h3><Source href="https://www.computerworld.com/article/1432091/embedded-data-not-breasts-brought-down-hacker-2.html">Computerworld, 2012</Source></div>
+    <div class="case-head"><span class="case-year mono">2012</span><h3>Higinio Ochoa</h3><Cite href="https://www.computerworld.com/article/1432091/embedded-data-not-breasts-brought-down-hacker-2.html">Computerworld, 2012</Cite></div>
     <p>The FBI says GPS in a photo of his girlfriend pointed to her home in Australia. He was arrested in March.</p>
   </div>
   <div class="case">
-    <div class="case-head"><span class="case-year mono">2012</span><h3>John McAfee</h3><Source href="https://thenextweb.com/insider/2012/12/03/it-gets-stranger-now-mcafee-claims-that-he-falsely-edited-the-metadata-on-the-photo-that-placed-him-in-guatemala/">The Next Web, 2012</Source></div>
+    <div class="case-head"><span class="case-year mono">2012</span><h3>John McAfee</h3><Cite href="https://thenextweb.com/insider/2012/12/03/it-gets-stranger-now-mcafee-claims-that-he-falsely-edited-the-metadata-on-the-photo-that-placed-him-in-guatemala/">The Next Web, 2012</Cite></div>
     <p>A published photo carried GPS that put him in Guatemala. He was arrested two days later, and later claimed he faked the data.</p>
   </div>
 </div>
@@ -183,11 +182,14 @@ section: The script
 import code from './exifleak.sh?raw'
 </script>
 
-<MonacoCode
+<Snippet
   :code="code"
   lang="bash"
-  :font-size="16"
-  :line-height="25"
+  title="exifleak.sh"
+  numbers
+  dense
+  :font="15"
+  class="script"
   :steps="[
     { lines: '6-13', label: 'the list, and the one helper that prints' },
     { lines: '15-25', label: 'awk: degrees + minutes/60 + seconds/3600' },
@@ -255,7 +257,7 @@ section: Demo
 cols: 7fr 4fr
 ---
 
-<Terminal title="~/photos" :size="14.5" class="demo">
+<Terminal title="~/photos" :font="14.5" class="demo">
   <div class="ln"><span class="t-prompt">$</span> ./exifleak.sh demo</div>
   <div class="ln"> </div>
   <div class="ln"><span class="t-dim">demo/IMG_4821.jpg</span></div>
@@ -276,7 +278,7 @@ cols: 7fr 4fr
 ::right::
 
 <div v-click class="after">
-  <Terminal title="wipe it, then look again" :size="14.5">
+  <Terminal title="wipe it, then look again" :font="14.5">
     <div class="ln"><span class="t-prompt">$</span> ./exifleak.sh -s \</div>
     <div class="ln">    demo/IMG_4821.jpg</div>
     <div class="ln"><span class="t-ok">scrubbed</span> demo/IMG_4821.jpg</div>
@@ -318,13 +320,13 @@ section: Limits
     <div class="label">ExifTool caveat</div>
     <h3>The wipe is not total</h3>
     <p>PDF edits are incremental, so old metadata stays recoverable. <code>-all=</code> also drops orientation and colour profile on JPEGs.</p>
-    <Source href="https://exiftool.org/exiftool_pod.html">ExifTool docs</Source>
+    <Cite href="https://exiftool.org/exiftool_pod.html">ExifTool docs</Cite>
   </div>
   <div>
     <div class="label">Parser risk</div>
     <h3>The scanner is attack surface</h3>
     <p>ExifTool had RCE via DjVu (CVE-2021-22204, before 12.24) and filename injection (CVE-2022-23935, before 12.38). Stay patched.</p>
-    <Source href="https://nvd.nist.gov/vuln/detail/CVE-2022-23935">NVD</Source>
+    <Cite href="https://nvd.nist.gov/vuln/detail/CVE-2022-23935">NVD</Cite>
   </div>
 </div>
 

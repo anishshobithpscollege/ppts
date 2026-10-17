@@ -32,7 +32,7 @@ const dims = computed(() => {
     <svg :viewBox="viewBox" :width="dims.w" :height="dims.h" fill="none" class="logo-mark" aria-hidden="true">
       <g v-if="waving" class="logo-arm">
         <path d="M44 42 L53 31" stroke="currentColor" stroke-width="3" stroke-linecap="round" />
-        <circle cx="54.5" cy="29" r="3.2" fill="var(--brand)" />
+        <circle cx="54.5" cy="29" r="3.2" fill="var(--ring)" />
       </g>
 
       <!-- outline: drawn by the pencil, then the body fills in -->
@@ -57,9 +57,9 @@ const dims = computed(() => {
         <g transform="rotate(-58)">
           <polygon points="0,0 2.4,-0.9 2.4,0.9" fill="currentColor" />
           <polygon points="2.4,-0.9 5.8,-2.1 5.8,2.1 2.4,0.9" stroke="currentColor" stroke-width="0.6" stroke-linejoin="round" fill="var(--background)" />
-          <rect x="5.8" y="-2.1" width="12" height="4.2" stroke="currentColor" stroke-width="0.6" fill="var(--brand)" />
+          <rect x="5.8" y="-2.1" width="12" height="4.2" stroke="currentColor" stroke-width="0.6" fill="var(--ring)" />
           <rect x="17.8" y="-2.1" width="2.2" height="4.2" stroke="currentColor" stroke-width="0.6" fill="var(--muted-foreground)" />
-          <path d="M20 -2.1 H21.4 A1.6 2.1 0 0 1 21.4 2.1 H20 Z" stroke="currentColor" stroke-width="0.6" fill="var(--heart)" />
+          <path d="M20 -2.1 H21.4 A1.6 2.1 0 0 1 21.4 2.1 H20 Z" stroke="currentColor" stroke-width="0.6" fill="var(--destructive)" />
         </g>
       </g>
     </svg>

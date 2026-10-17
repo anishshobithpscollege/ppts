@@ -1,46 +1,44 @@
 /*
-  anishshobithps template.
-
-  Tokens are the website's (anishshobithps.com/src/app/global.css), converted from oklch to
-  sRGB hex once so every export path (PDF, PNG, editable PPTX) reads plain colours. The
-  original oklch value is in each comment. Light is :root, dark is .dark (Slidev toggles it
-  with `d`), exactly like the site's next-themes setup.
+  anishshobithps template: the look of anishshobithps.com on a 1280 px Slidev canvas.
+  Light is :root, dark is .dark (Slidev toggles it with `d`), like the site's next-themes setup.
 */
 
+/* ---------- design tokens ----------
+  shadcn's token set with the website's own values (anishshobithps.com is a shadcn app; these
+  are its global.css values, oklch kept as written: the editable-PPTX exporter reads oklch).
+  Slides use the brand green as --primary (the site's --brand-text, readable as text and as a
+  fill) and --ring (the site's --brand, for marks and rules). --warning is the site's added pair.
+  Everything below this block, the components and the decks only reference these names.
+*/
 :root {
-  /* surfaces and text */
-  --background: #fdfffe; /* oklch(1 0.005 155) */
-  --foreground: #09090b; /* oklch(0.141 0.005 285.823) */
-  --card: #fdfffe;
-  --muted: #f4f4f5; /* oklch(0.967 0.001 286.375) */
-  --muted-foreground: #71717b; /* oklch(0.552 0.016 285.938) */
-  --line: #e4e4e7; /* oklch(0.92 0.004 286.32) */
-  --hatch: #e4e4e7; /* --line, drawn at 1px on a 10px grid like the site's `hatch` utility */
+  --radius: 0.625rem;
 
-  /* brand */
-  --brand: #0e9254; /* oklch(0.58 0.14 155) */
-  --brand-text: #006630; /* oklch(0.44 0.13 155) */
-  --selection-bg: #63e197; /* oklch(0.82 0.155 155) */
-  --selection-fg: #030504; /* oklch(0.112 0.008 155) */
-  --warning: #fe9a00; /* oklch(0.769 0.188 70.08) */
-  --destructive: #e7000b; /* oklch(0.577 0.245 27.325) */
-  --heart: #ff2056; /* oklch(0.645 0.246 16.439) */
-
-  /* color-mix(in oklab, <token> N%, var(--background)), precomputed */
-  --fg-3: #f4f7f5;
-  --fg-6: #ecefed;
-  --fg-11: #dde1df;
-  --fg-15: #d2d5d4;
-  --fg-29: #acafae;
-  --fg-47: #7e7f80;
-  --fg-80: #303133;
-  --brand-4: #f4fcf6;
-  --brand-9: #eaf6ee;
-  --brand-16: #dceee1;
-  --brand-wash: #e4f3e8;
-  --brand-border: #bfdfc9;
-  --glow: rgba(14, 146, 84, 0.1); /* oklch(0.58 0.14 155 / 0.1) */
-  --shadow: rgba(9, 9, 11, 0.07);
+  --background: oklch(1 0.005 155);
+  --foreground: oklch(0.141 0.005 285.823);
+  --card: oklch(1 0.005 155);
+  --card-foreground: oklch(0.141 0.005 285.823);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.141 0.005 285.823);
+  --primary: oklch(0.44 0.13 155);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.967 0.001 286.375);
+  --secondary-foreground: oklch(0.21 0.006 285.885);
+  --muted: oklch(0.967 0.001 286.375);
+  --muted-foreground: oklch(0.552 0.016 285.938);
+  --accent: color-mix(in oklab, var(--ring) 9%, var(--card)); /* brand wash */
+  --accent-foreground: var(--primary);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.985 0 0);
+  --warning: oklch(0.769 0.188 70.08);
+  --warning-foreground: oklch(0.555 0.163 48.998);
+  --border: oklch(0.92 0.004 286.32);
+  --input: oklch(0.92 0.004 286.32);
+  --ring: oklch(0.58 0.14 155);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
 
   /* type */
   --font-display: 'Bricolage Grotesque Variable', ui-sans-serif, system-ui, sans-serif;
@@ -50,10 +48,17 @@
   --ease-pop: cubic-bezier(0.3, 1.6, 0.5, 1);
   --ease-out: cubic-bezier(0.33, 1, 0.68, 1);
 
+  /* code (shadcn Code Block and markdown fences) */
+  --shiki-token-keyword: var(--chart-1);
+  --shiki-token-string: var(--primary);
+  --shiki-token-string-expression: var(--primary);
+  --shiki-token-constant: var(--chart-3);
+  --shiki-token-function: var(--chart-2);
+
   /* Slidev hooks */
   --slidev-slide-container-background: var(--background);
-  --slidev-theme-primary: var(--brand);
-  --slidev-code-background: var(--fg-3);
+  --slidev-theme-primary: var(--primary);
+  --slidev-code-background: var(--muted);
   --slidev-code-foreground: var(--foreground);
   --slidev-code-font-family: var(--font-mono);
   --slidev-code-font-size: 21px;
@@ -64,31 +69,42 @@
 }
 
 .dark {
-  --background: #09090b; /* oklch(0.141 0.005 285.823) */
-  --foreground: #fafafa; /* oklch(0.985 0 0) */
-  --card: #18181b; /* oklch(0.21 0.006 285.885) */
-  --muted: #27272a; /* oklch(0.274 0.006 286.033) */
-  --muted-foreground: #9f9fa9; /* oklch(0.705 0.015 286.067) */
-  --line: #1c1c1e; /* oklch(1 0 0 / 10%) over the background */
-  --hatch: #232326;
-  --brand-text: #43c07a; /* oklch(0.72 0.15 155) */
-  --destructive: #ff6467; /* oklch(0.704 0.191 22.216) */
-
-  --fg-3: #0e0e11;
-  --fg-6: #141416;
-  --fg-11: #1d1d20;
-  --fg-15: #262628;
-  --fg-29: #444446;
-  --fg-47: #6e6e6f;
-  --fg-80: #c3c3c3;
-  --brand-4: #0b0d0e;
-  --brand-9: #0d1311;
-  --brand-16: #101c16;
-  --brand-wash: #121b17;
-  --brand-border: #1d3829;
-  --glow: rgba(200, 175, 160, 0.08); /* oklch(0.8 0.03 40 / 0.08) */
-  --shadow: rgba(0, 0, 0, 0.5);
+  --background: oklch(0.141 0.005 285.823);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.21 0.006 285.885);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.21 0.006 285.885);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.72 0.15 155);
+  --primary-foreground: oklch(0.141 0.005 285.823);
+  --secondary: oklch(0.274 0.006 286.033);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.274 0.006 286.033);
+  --muted-foreground: oklch(0.705 0.015 286.067);
+  --accent: color-mix(in oklab, var(--ring) 14%, var(--card));
+  --destructive: oklch(0.704 0.191 22.216);
+  --warning-foreground: oklch(0.828 0.189 84.429);
+  --border: color-mix(in oklab, var(--foreground) 10%, var(--background));
+  --input: color-mix(in oklab, var(--foreground) 15%, var(--background));
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --shiki-token-keyword: var(--chart-5);
+  --shiki-token-constant: var(--chart-3);
+  --shiki-token-function: var(--chart-2);
   --slidev-code-background: var(--card);
+}
+
+/* shadcn-vue components sized for the 1280 px canvas (Tailwind reads these where used) */
+.slidev-layout {
+  --spacing: 5px;
+  --text-xs: 15px;
+  --text-sm: 18px;
+  --text-base: 21px;
+  --text-lg: 24px;
+  --text-xl: 28px;
 }
 
 /* ---------- base ---------- */
@@ -114,16 +130,16 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-.slidev-layout ::selection,
-.slidev-layout mark {
-  background: var(--selection-bg);
-  color: var(--selection-fg);
+:where(.slidev-layout) ::selection,
+:where(.slidev-layout) mark {
+  background: color-mix(in oklab, var(--ring) 40%, var(--background));
+  color: var(--foreground);
 }
 
-.slidev-layout h1,
-.slidev-layout h2,
-.slidev-layout h3,
-.slidev-layout h4 {
+:where(.slidev-layout) h1,
+:where(.slidev-layout) h2,
+:where(.slidev-layout) h3,
+:where(.slidev-layout) h4 {
   margin: 0;
   font-family: var(--font-display);
   font-optical-sizing: auto;
@@ -134,28 +150,28 @@ body {
 }
 
 /* slide title, the site's TypographyH2 scaled to the canvas */
-.slidev-layout h1 {
+:where(.slidev-layout) h1 {
   font-size: 48px;
   font-weight: 700;
 }
-.slidev-layout h1 + p,
-.slidev-layout h1 + div {
+:where(.slidev-layout) h1 + p,
+:where(.slidev-layout) h1 + div {
   margin-top: 18px;
 }
-.slidev-layout h2 {
+:where(.slidev-layout) h2 {
   font-size: 40px;
   font-weight: 700;
 }
-.slidev-layout h3 {
+:where(.slidev-layout) h3 {
   font-size: 28px;
   font-weight: 600;
 }
-.slidev-layout h4 {
+:where(.slidev-layout) h4 {
   font-size: 22px;
   font-weight: 600;
 }
 
-.slidev-layout p {
+:where(.slidev-layout) p {
   margin: 0;
   text-wrap: pretty;
 }
@@ -185,24 +201,24 @@ body {
 .byline span + span::before {
   content: '/';
   margin-right: 22px;
-  color: var(--fg-29);
+  color: color-mix(in oklab, var(--muted-foreground) 50%, var(--background));
 }
 
-.slidev-layout mark {
+:where(.slidev-layout) mark {
   padding: 0 0.25em;
   border-radius: 4px;
   font-style: normal;
 }
 
-.slidev-layout a {
+:where(.slidev-layout) a {
   color: inherit;
   border-bottom: 0;
   text-decoration: underline;
   text-underline-offset: 4px;
-  text-decoration-color: var(--fg-29);
+  text-decoration-color: color-mix(in oklab, var(--muted-foreground) 50%, var(--background));
 }
 
-.slidev-layout strong {
+:where(.slidev-layout) strong {
   font-weight: 700;
 }
 
@@ -216,21 +232,21 @@ body {
   font-weight: 600;
 }
 
-.slidev-layout ul,
-.slidev-layout ol {
+:where(.slidev-layout) ul,
+:where(.slidev-layout) ol {
   margin: 0;
   padding: 0;
   list-style: none;
 }
-.slidev-layout li {
+:where(.slidev-layout) li {
   position: relative;
   margin: 0;
   padding-left: 1.4em;
 }
-.slidev-layout li + li {
+:where(.slidev-layout) li + li {
   margin-top: 0.5em;
 }
-.slidev-layout ul > li::before {
+:where(.slidev-layout) ul > li::before {
   content: '';
   position: absolute;
   left: 0.15em;
@@ -238,39 +254,39 @@ body {
   width: 0.42em;
   height: 0.42em;
   border-radius: 2px;
-  background: var(--brand);
+  background: var(--ring);
   rotate: 45deg;
 }
-.slidev-layout ol {
+:where(.slidev-layout) ol {
   counter-reset: item;
 }
-.slidev-layout ol > li {
+:where(.slidev-layout) ol > li {
   counter-increment: item;
 }
-.slidev-layout ol > li::before {
+:where(.slidev-layout) ol > li::before {
   content: counter(item, decimal-leading-zero);
   position: absolute;
   left: 0;
   top: 0.35em;
   font-family: var(--font-mono);
   font-size: 0.6em;
-  color: var(--brand-text);
+  color: var(--primary);
 }
-.slidev-layout ol > li {
+:where(.slidev-layout) ol > li {
   padding-left: 2.1em;
 }
 
-.slidev-layout blockquote {
+:where(.slidev-layout) blockquote {
   margin: 0;
   padding-left: 1.2em;
-  border-left: 2px solid var(--brand);
+  border-left: 2px solid var(--ring);
   color: var(--muted-foreground);
   font-style: italic;
 }
 
-.slidev-layout kbd {
+:where(.slidev-layout) kbd {
   padding: 0.1em 0.45em;
-  border: 1px solid var(--line);
+  border: 1px solid var(--border);
   border-bottom-width: 2px;
   border-radius: 6px;
   background: var(--muted);
@@ -278,14 +294,14 @@ body {
   font-size: 0.75em;
 }
 
-.slidev-layout table {
+:where(.slidev-layout) table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.8em;
 }
-.slidev-layout th {
+:where(.slidev-layout) th {
   padding: 10px 14px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--border);
   text-align: left;
   font-family: var(--font-mono);
   font-size: 0.7em;
@@ -294,9 +310,9 @@ body {
   text-transform: uppercase;
   color: var(--muted-foreground);
 }
-.slidev-layout td {
+:where(.slidev-layout) td {
   padding: 10px 14px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--border);
 }
 
 /* ---------- code ---------- */
@@ -304,8 +320,8 @@ body {
 .slidev-layout pre.slidev-code,
 .slidev-layout .slidev-code-wrapper pre,
 .slidev-layout .shiki-magic-move-container {
-  border: 1px solid var(--line);
-  box-shadow: 0 1px 0 var(--shadow);
+  border: 1px solid var(--border);
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--foreground) 7%, transparent);
 }
 .slidev-layout .slidev-code {
   font-feature-settings: 'calt', 'liga';
@@ -426,8 +442,8 @@ body {
   display: grid;
   gap: 1px;
   margin-inline: -55px;
-  border-block: 1px solid var(--line);
-  background: var(--line);
+  border-block: 1px solid var(--border);
+  background: var(--border);
 }
 .cells.c1 { grid-template-columns: 1fr; }
 .cells.c2 { grid-template-columns: repeat(2, 1fr); }
@@ -467,7 +483,7 @@ body {
 .cells.c3 > :nth-child(3n),
 .cells.c4 > :nth-child(4n) { padding-right: 55px; }
 
-.cells > .lit { background: var(--brand-wash); }
+.cells > .lit { background: var(--accent); }
 .cells > .warn { background: color-mix(in srgb, var(--warning) 8%, var(--card)); }
 
 /* PanelRow: rounded rows on a --line background, first row flat on top, last flat below */
@@ -476,9 +492,9 @@ body {
   flex-direction: column;
   gap: 1px;
   overflow: hidden;
-  border: 1px solid var(--line);
+  border: 1px solid var(--border);
   border-radius: 14px;
-  background: var(--line);
+  background: var(--border);
 }
 .panel > * {
   border-radius: 14px;
@@ -519,8 +535,8 @@ body {
 .hatch {
   background-image: repeating-linear-gradient(
     315deg,
-    var(--hatch) 0,
-    var(--hatch) 1px,
+    var(--border) 0,
+    var(--border) 1px,
     transparent 0,
     transparent 50%
   );
@@ -537,7 +553,7 @@ body {
   color: var(--muted-foreground);
 }
 .label.accent {
-  color: var(--brand-text);
+  color: var(--primary);
 }
 
 .mono {
@@ -547,7 +563,7 @@ body {
   color: var(--muted-foreground);
 }
 .brand {
-  color: var(--brand-text);
+  color: var(--primary);
 }
 .display {
   font-family: var(--font-display);

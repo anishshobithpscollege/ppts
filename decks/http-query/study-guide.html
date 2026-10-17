@@ -1,0 +1,1870 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HTTP QUERY Study Guide</title>
+<meta name="description" content="The protocol, the code, the security analysis, the literature and a bank of likely questions for the HTTP QUERY (RFC 10008) seminar.">
+<style>
+/* ---------- tokens (MSIS template colours: CC6600 orange, 993300 brown, 333399 navy) ---------- */
+:root{
+  --bg:#ffffff; --fg:#1c1917; --muted:#f6f3f0; --muted-fg:#57534e; --line:#e7e2dd; --line-2:#d6cfc8;
+  --card:#ffffff; --code-bg:#faf8f6;
+  --brand:#cc6600; --brand-text:#993300; --brand-bg:#fdf1e6; --brand-bd:#f0c9a3;
+  --warn:#92400e; --warn-bg:#fff6e5; --warn-bd:#f1c984;
+  --bad:#b91c1c; --bad-bg:#fdecec; --bad-bd:#f3b4b4;
+  --blue:#333399; --blue-bg:#ededf8; --blue-bd:#c4c4e8;
+  --ok:#15803d; --ok-bg:#eaf6ee; --ok-bd:#bfdfc9;
+  --t-kw:#333399; --t-str:#0b7a45; --t-var:#993300; --t-cmt:#78716c; --t-bi:#b45309; --t-fn:#0369a1; --t-opt:#be185d; --t-op:#57534e; --t-num:#9a3412;
+  --shadow:0 1px 2px rgba(28,25,23,.06);
+  --f-display:Calibri,Carlito,'Segoe UI',ui-sans-serif,system-ui,-apple-system,sans-serif;
+  --f-sans:Calibri,Carlito,'Segoe UI',ui-sans-serif,system-ui,-apple-system,sans-serif;
+  --f-mono:ui-monospace,'SF Mono',Menlo,Consolas,'Courier New',monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f0d0c; --fg:#f5f2ef; --muted:#24201d; --muted-fg:#a8a29e; --line:#2c2724; --line-2:#433c37;
+    --card:#171412; --code-bg:#13110f;
+    --brand:#f08a2c; --brand-text:#f5a35a; --brand-bg:#2b1a0b; --brand-bd:#6b3b12;
+    --warn:#fbbf24; --warn-bg:#2b2008; --warn-bd:#6b4a0d;
+    --bad:#ff6467; --bad-bg:#2e1214; --bad-bd:#6b2226;
+    --blue:#a5a5f5; --blue-bg:#1b1b3a; --blue-bd:#34346b;
+    --ok:#43c07a; --ok-bg:#0f2a1b; --ok-bd:#1e5c3a;
+    --t-kw:#a5a5f5; --t-str:#6ee7a1; --t-var:#f5a35a; --t-cmt:#8f8a85; --t-bi:#fbbf24; --t-fn:#67c8ff; --t-opt:#f472b6; --t-op:#a8a29e; --t-num:#fdba74;
+    --shadow:0 1px 2px rgba(0,0,0,.5);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f0d0c; --fg:#f5f2ef; --muted:#24201d; --muted-fg:#a8a29e; --line:#2c2724; --line-2:#433c37;
+  --card:#171412; --code-bg:#13110f;
+  --brand:#f08a2c; --brand-text:#f5a35a; --brand-bg:#2b1a0b; --brand-bd:#6b3b12;
+  --warn:#fbbf24; --warn-bg:#2b2008; --warn-bd:#6b4a0d;
+  --bad:#ff6467; --bad-bg:#2e1214; --bad-bd:#6b2226;
+  --blue:#a5a5f5; --blue-bg:#1b1b3a; --blue-bd:#34346b;
+  --ok:#43c07a; --ok-bg:#0f2a1b; --ok-bd:#1e5c3a;
+  --t-kw:#a5a5f5; --t-str:#6ee7a1; --t-var:#f5a35a; --t-cmt:#8f8a85; --t-bi:#fbbf24; --t-fn:#67c8ff; --t-opt:#f472b6; --t-op:#a8a29e; --t-num:#fdba74;
+  --shadow:0 1px 2px rgba(0,0,0,.5);
+  color-scheme:dark;
+}
+
+/* ---------- base ---------- */
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:76px;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font:400 17px/1.65 var(--f-sans);-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+::selection{background:#ffd0a1;color:#1a0d00}
+a{color:var(--brand-text);text-underline-offset:3px}
+a:hover{text-decoration-thickness:2px}
+code,kbd,samp,pre{font-family:var(--f-mono);font-variant-ligatures:none}
+code{font-size:.86em;background:var(--muted);border:1px solid var(--line);border-radius:5px;padding:.08em .35em;white-space:break-spaces;overflow-wrap:anywhere}
+h1,h2,h3,h4{font-family:var(--f-display);line-height:1.15;letter-spacing:-.01em;margin:0}
+p{margin:0 0 .9em;max-width:74ch}
+ul,ol{margin:0 0 1em;padding-left:1.35em;max-width:74ch}
+li{margin:.25em 0}
+li>p{margin:0}
+strong{font-weight:700}
+hr{border:0;border-top:1px solid var(--line);margin:2.5rem 0}
+.mono{font-family:var(--f-mono)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:4px}
+
+/* ---------- top bar ---------- */
+.topbar{position:sticky;top:0;z-index:30;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.topbar-in{max-width:1280px;margin:0 auto;padding:0 16px;height:56px;display:flex;align-items:center;gap:12px}
+.brand{font:700 1.05rem var(--f-display);color:var(--fg);text-decoration:none;display:flex;align-items:center;gap:.5rem;white-space:nowrap}
+.brand span{white-space:nowrap}
+.brand i{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:7px;background:var(--brand);color:#fff;font:700 .85rem var(--f-display);font-style:normal}
+.spacer{flex:1}
+.btn{flex:none;white-space:nowrap;font:600 .85rem var(--f-sans);color:var(--fg);background:var(--card);border:1px solid var(--line-2);border-radius:8px;padding:.45rem .7rem;cursor:pointer;display:inline-flex;align-items:center;gap:.4rem;line-height:1}
+.btn:hover{border-color:var(--brand)}
+.btn[aria-pressed="true"]{background:var(--brand-bg);border-color:var(--brand)}
+.toc-m{position:static}
+.toc-m summary{list-style:none}
+.toc-m summary::-webkit-details-marker{display:none}
+.toc-m[open] .toc-pop{display:block}
+.toc-pop{display:none;position:fixed;right:16px;top:64px;width:min(360px,calc(100vw - 32px));max-height:calc(100vh - 80px);overflow:auto;background:var(--card);border:1px solid var(--line-2);border-radius:12px;padding:8px;box-shadow:0 12px 40px rgba(0,0,0,.18)}
+@media(min-width:1040px){.toc-m{display:none}}
+@media(max-width:520px){.brand .long{display:none}.topbar-in{gap:8px}}
+
+/* ---------- layout ---------- */
+.shell{max-width:1280px;margin:0 auto;padding:0 16px 80px;display:grid;grid-template-columns:minmax(0,1fr);gap:0 48px}
+@media(min-width:1040px){.shell{grid-template-columns:250px minmax(0,1fr)}}
+aside.toc{display:none}
+@media(min-width:1040px){
+  aside.toc{display:block;position:sticky;top:76px;align-self:start;max-height:calc(100vh - 96px);overflow:auto;padding:20px 0}
+}
+.toc-title{font:600 .72rem var(--f-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted-fg);padding:0 10px 8px}
+.toc a,.toc-pop a{display:flex;gap:.6rem;align-items:baseline;padding:.4rem .6rem;border-radius:8px;color:var(--muted-fg);text-decoration:none;font-size:.92rem;line-height:1.3}
+.toc a b,.toc-pop a b{font:500 .72rem var(--f-mono);color:var(--muted-fg);opacity:.8;min-width:1.6rem}
+.toc a:hover,.toc-pop a:hover{background:var(--muted);color:var(--fg)}
+.toc a.on{background:var(--brand-bg);color:var(--brand-text);font-weight:700}
+main{min-width:0}
+
+/* ---------- hero ---------- */
+.hero{margin:0;padding:56px 0 36px;background:var(--bg);border-bottom:4px double var(--brand)}
+.hero-in{max-width:1280px;margin:0 auto;padding:0 16px}
+.kicker{font:500 .78rem var(--f-mono);text-transform:uppercase;letter-spacing:.1em;color:var(--brand-text);margin-bottom:14px}
+.hero h1{font-size:clamp(2.2rem,6.5vw,4rem);font-weight:700;max-width:16ch;background:var(--bg);display:inline;box-decoration-break:clone;-webkit-box-decoration-break:clone;padding:.05em .18em .05em 0}
+.hero .lead{font-size:clamp(1.05rem,2.4vw,1.3rem);color:var(--muted-fg);max-width:60ch;margin:18px 0 20px;background:var(--bg);display:inline-block;padding:.2rem .6rem .2rem 0}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0;list-style:none;max-width:none}
+.chips li{margin:0;font:500 .78rem var(--f-mono);background:var(--card);border:1px solid var(--line-2);border-radius:999px;padding:.35rem .75rem;color:var(--muted-fg)}
+.chips li b{color:var(--fg)}
+
+/* ---------- sections ---------- */
+.sec{padding-top:56px}
+.sec>h2{font-size:clamp(1.7rem,4.2vw,2.5rem);font-weight:700;display:flex;gap:.7rem;align-items:baseline;flex-wrap:wrap;margin-bottom:.35rem}
+.sec>h2 .num{font:500 .85rem var(--f-mono);color:var(--brand-text);background:var(--brand-bg);border:1px solid var(--brand-bd);border-radius:6px;padding:.2rem .5rem;transform:translateY(-.25em)}
+.sec>.intro{font-size:1.08rem;color:var(--muted-fg);margin-bottom:1.6rem}
+.sec h3{font-size:1.4rem;font-weight:700;margin:2.4rem 0 .7rem}
+.sec h4{font-size:1.08rem;font-weight:700;margin:1.6rem 0 .4rem;font-family:var(--f-sans)}
+
+/* ---------- badges and callouts ---------- */
+.b{display:inline-block;font:600 .68rem var(--f-mono);text-transform:uppercase;letter-spacing:.06em;border-radius:5px;padding:.18rem .45rem;border:1px solid;vertical-align:.12em;white-space:nowrap}
+.b-deck{color:var(--brand-text);background:var(--brand-bg);border-color:var(--brand-bd)}
+.b-tested{color:var(--blue);background:var(--blue-bg);border-color:var(--blue-bd)}
+.b-source{color:var(--muted-fg);background:var(--muted);border-color:var(--line-2)}
+.b-analysis{color:var(--warn);background:var(--warn-bg);border-color:var(--warn-bd)}
+.co{border:1px solid var(--line-2);border-left-width:4px;border-radius:10px;padding:.8rem 1rem;margin:1.2rem 0;background:var(--card);max-width:80ch}
+.co>:last-child{margin-bottom:0}
+.co .t{font:700 .78rem var(--f-mono);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.35rem;display:block}
+.co-note{border-left-color:var(--blue);background:var(--blue-bg)} .co-note .t{color:var(--blue)}
+.co-tip{border-left-color:var(--brand);background:var(--brand-bg)} .co-tip .t{color:var(--brand-text)}
+.co-warn{border-left-color:#d97706;background:var(--warn-bg)} .co-warn .t{color:var(--warn)}
+.co-bad{border-left-color:var(--bad);background:var(--bad-bg)} .co-bad .t{color:var(--bad)}
+.say{border:1px dashed var(--brand);border-radius:10px;padding:.8rem 1rem;margin:1rem 0;background:var(--card);max-width:80ch}
+.say .t{font:700 .72rem var(--f-mono);text-transform:uppercase;letter-spacing:.08em;color:var(--brand-text);display:block;margin-bottom:.25rem}
+.say p{margin:0;font-size:1.02rem}
+
+/* ---------- cards and grids ---------- */
+.grid{display:grid;gap:14px;margin:1rem 0 1.4rem}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr))}
+.g3{grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr))}
+.card{background:var(--card);border:1px solid var(--line-2);border-radius:12px;padding:1rem 1.05rem;box-shadow:var(--shadow)}
+.card h4{margin:0 0 .35rem;font-size:1.05rem}
+.card p{margin:0 0 .5rem;font-size:.97rem}
+.card p:last-child,.card>:last-child{margin-bottom:0}
+.card .yr{font:500 .8rem var(--f-mono);color:var(--brand-text)}
+.card .src{font-size:.82rem;color:var(--muted-fg)}
+.stat{text-align:left}
+.stat b{display:block;font:700 2rem var(--f-display);color:var(--brand-text);line-height:1}
+.stat span{font-size:.88rem;color:var(--muted-fg)}
+
+/* ---------- tables ---------- */
+.tw{overflow-x:auto;margin:1rem 0 1.4rem;border:1px solid var(--line-2);border-radius:12px;background:var(--card)}
+.tw table{width:100%;border-collapse:collapse;font-size:.94rem;min-width:520px}
+.tw th,.tw td{padding:.6rem .8rem;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+.tw th{font:600 .72rem var(--f-mono);text-transform:uppercase;letter-spacing:.06em;background:var(--muted);color:var(--muted-fg);white-space:nowrap}
+.tw tr:last-child td{border-bottom:0}
+.tw td p{margin:0 0 .4em}
+.tw td>:last-child{margin-bottom:0}
+.tw td ul{margin:0;padding-left:1.1em}
+.tw td.k{white-space:nowrap}
+.tw tr.hit td{background:var(--brand-bg)}
+
+/* ---------- code ---------- */
+pre{margin:0}
+.code,.hl{background:var(--code-bg);border:1px solid var(--line-2);border-radius:12px;padding:.9rem 1rem;overflow:auto;font-size:.86rem;line-height:1.6;tab-size:4;margin:1rem 0 1.4rem;position:relative;max-width:100%}
+.code code,.hl code{background:none;border:0;padding:0;font-size:inherit;white-space:pre;overflow-wrap:normal}
+.t-kw{color:var(--t-kw);font-weight:500}.t-s{color:var(--t-str)}.t-v{color:var(--t-var)}.t-c{color:var(--t-cmt);font-style:italic}.t-b{color:var(--t-bi)}.t-f{color:var(--t-fn);font-weight:500}.t-o{color:var(--t-opt)}.t-p{color:var(--t-op)}
+.copy{position:absolute;top:8px;right:8px;font:600 .72rem var(--f-mono);background:var(--card);color:var(--muted-fg);border:1px solid var(--line-2);border-radius:6px;padding:.25rem .5rem;cursor:pointer}
+.copy:hover{color:var(--fg);border-color:var(--brand)}
+.listing{background:var(--code-bg);border:1px solid var(--line-2);border-radius:12px;overflow:auto;margin:1rem 0 1.4rem;max-height:560px}
+.listing .cl{display:flex;font:400 .84rem/1.6 var(--f-mono);min-width:max-content}
+.listing .cl:hover{background:var(--muted)}
+.listing .n{flex:none;width:3.2rem;text-align:right;padding:0 .8rem 0 0;color:var(--muted-fg);user-select:none;position:sticky;left:0;background:var(--code-bg)}
+.listing .cl:hover .n{background:var(--muted)}
+.listing .n a{color:inherit;text-decoration:none}
+.listing .n a:hover{color:var(--brand-text);text-decoration:underline}
+.listing .tx{white-space:pre;padding-right:1rem}
+.listing .zone{border-top:1px dashed var(--line-2)}
+
+/* line-by-line tables */
+.walk{border:1px solid var(--line-2);border-radius:12px;overflow:hidden;background:var(--card);margin:.8rem 0 1.6rem}
+.walk table{width:100%;border-collapse:collapse;font-size:.94rem}
+.walk td{padding:.55rem .75rem;vertical-align:top;border-bottom:1px solid var(--line)}
+.walk tr:last-child td{border-bottom:0}
+.walk td.ln{width:3rem;font:500 .78rem var(--f-mono);color:var(--muted-fg);text-align:right;white-space:nowrap}
+.walk td.cd{width:42%;background:var(--code-bg);font:400 .82rem/1.55 var(--f-mono);white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word}
+.walk td.me p{margin:0 0 .45em}.walk td.me>:last-child{margin-bottom:0}
+.walk tr:target td{background:var(--brand-bg)}
+.walk-h{display:flex;flex-wrap:wrap;gap:.5rem .8rem;align-items:baseline;margin:2rem 0 .3rem}
+.walk-h h4{margin:0;font-size:1.15rem}
+.walk-h .rng{font:500 .78rem var(--f-mono);color:var(--brand-text);background:var(--brand-bg);border:1px solid var(--brand-bd);border-radius:5px;padding:.1rem .45rem}
+@media(max-width:720px){
+  .walk table,.walk tbody{display:block}
+  .walk tr{display:grid;grid-template-columns:2.6rem 1fr;border-bottom:1px solid var(--line)}
+  .walk tr:last-child{border-bottom:0}
+  .walk td{border:0}
+  .walk td.cd{width:auto}
+  .walk td.me{grid-column:1 / -1;padding-top:0}
+}
+
+/* ---------- diagrams ---------- */
+figure.diagram{margin:1.4rem 0 1.8rem;background:var(--card);border:1px solid var(--line-2);border-radius:14px;box-shadow:var(--shadow);position:relative}
+figure.diagram .dg-top{display:flex;gap:.6rem;align-items:center;justify-content:space-between;padding:.6rem .8rem;border-bottom:1px solid var(--line)}
+figure.diagram .dg-top b{font:600 .72rem var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted-fg)}
+.dg-body{overflow:auto;padding:14px 12px;text-align:center;min-height:90px;-webkit-overflow-scrolling:touch}
+.dg-body svg{max-width:100%;height:auto;display:inline-block;overflow:visible}
+.dg-hint{display:none;font:500 .72rem var(--f-sans);color:var(--muted-fg);margin-left:auto}
+figure.pannable .dg-hint{display:inline}
+.dg-body .pending{color:var(--muted-fg);font-size:.9rem;padding:2rem 0}
+figure.diagram figcaption{padding:.75rem 1rem 1rem;border-top:1px solid var(--line);font-size:.95rem}
+figcaption .cap-t{display:block;font-weight:700;margin-bottom:.25rem}
+figcaption .inwords{display:block;color:var(--muted-fg)}
+.mm-error{white-space:pre-wrap;text-align:left;font-size:.8rem;color:var(--bad);background:var(--bad-bg);border:1px solid var(--bad-bd);border-radius:8px;padding:.7rem}
+dialog.zoom{width:min(1200px,96vw);height:min(86vh,900px);max-width:none;padding:0;border:1px solid var(--line-2);border-radius:14px;background:var(--card);color:var(--fg);overflow:hidden}
+dialog.zoom[open]{display:flex;flex-direction:column}
+dialog.zoom::backdrop{background:rgba(0,0,0,.55)}
+dialog.zoom header{display:flex;gap:.5rem;align-items:center;padding:.6rem .8rem;border-bottom:1px solid var(--line)}
+dialog.zoom header b{flex:1;font:600 .85rem var(--f-sans);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+dialog.zoom .zbody{flex:1;overflow:auto;padding:16px;touch-action:pan-x pan-y pinch-zoom}
+dialog.zoom .zbody svg{display:block;margin:0 auto;height:auto}
+
+/* ---------- Q and A ---------- */
+.qa-tools{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:1rem 0 1.2rem}
+.qa-tools input{flex:1 1 240px;font:500 .95rem var(--f-sans);color:var(--fg);background:var(--card);border:1px solid var(--line-2);border-radius:10px;padding:.65rem .85rem;min-width:0}
+.qa-tools .count{font:500 .8rem var(--f-mono);color:var(--muted-fg)}
+.qa-group{margin-top:2rem}
+.qa-group>h3{margin-top:0;display:flex;gap:.6rem;align-items:baseline}
+.qa-group>h3 small{font:500 .78rem var(--f-mono);color:var(--muted-fg)}
+details.qa{border:1px solid var(--line-2);border-radius:10px;background:var(--card);margin:.5rem 0;max-width:86ch}
+details.qa>summary{cursor:pointer;list-style:none;padding:.75rem 2.6rem .75rem 1rem;font-weight:700;position:relative;line-height:1.4}
+details.qa>summary::-webkit-details-marker{display:none}
+details.qa>summary::after{content:"+";position:absolute;right:1rem;top:.55rem;font:500 1.3rem var(--f-mono);color:var(--brand-text)}
+details.qa[open]>summary::after{content:"\2212"}
+details.qa[open]>summary{border-bottom:1px solid var(--line)}
+details.qa .a{padding:.8rem 1rem .9rem}
+details.qa .a p{margin:0 0 .6em}
+details.qa .a>:last-child{margin-bottom:0}
+details.qa .a .tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:.6rem}
+details.qa[hidden]{display:none}
+
+/* ---------- misc ---------- */
+.kv{display:grid;grid-template-columns:auto 1fr;gap:.35rem 1rem;margin:.6rem 0 1rem;max-width:80ch}
+.kv dt{font:600 .8rem var(--f-mono);color:var(--brand-text);padding-top:.15rem}
+.kv dd{margin:0}
+.steps{counter-reset:s;list-style:none;padding:0;max-width:80ch}
+.steps>li{counter-increment:s;position:relative;padding:.1rem 0 .1rem 2.6rem;margin:.7rem 0}
+.steps>li::before{content:counter(s);position:absolute;left:0;top:0;width:1.9rem;height:1.9rem;border-radius:50%;background:var(--brand-bg);border:1px solid var(--brand-bd);color:var(--brand-text);display:grid;place-items:center;font:600 .85rem var(--f-mono)}
+.foot{margin-top:4rem;padding-top:1.5rem;border-top:1px solid var(--line);color:var(--muted-fg);font-size:.9rem}
+.nowrap{white-space:nowrap}
+@media print{
+  .topbar,aside.toc,.btn,.copy{display:none!important}
+  .shell{display:block}
+  details.qa .a{display:block}
+  body{font-size:12px}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+
+/* ---------- additions for this guide ---------- */
+.t-n{color:var(--t-num)}
+.m{display:inline-block;font:700 .78em var(--f-mono);letter-spacing:.02em;padding:.06em .42em;border-radius:4px;border:1px solid var(--line-2);color:var(--fg);background:var(--card);vertical-align:.08em;white-space:nowrap}
+.m-q{background:var(--brand);border-color:var(--brand);color:#fff}
+.m-g{background:var(--blue);border-color:var(--blue);color:var(--bg)}
+.m-p{background:var(--brand-text);border-color:var(--brand-text);color:var(--bg)}
+.uri{font:700 clamp(.95rem,2.6vw,1.45rem) var(--f-mono);margin:1.2rem 0 2.6rem;white-space:nowrap;overflow-x:auto;padding:0 0 2.2rem}
+.uri .seg{position:relative;border-bottom:4px solid var(--seg);padding-bottom:2px}
+.uri .lab{position:absolute;left:50%;top:calc(100% + 6px);transform:translateX(-50%);font:700 .72rem var(--f-sans);color:var(--seg);white-space:nowrap}
+.uri .u1{--seg:var(--t-fn)}.uri .u2{--seg:var(--ok)}.uri .u3{--seg:var(--fg)}.uri .u4{--seg:var(--brand);background:var(--brand-bg)}.uri .u5{--seg:var(--bad)}
+.check{list-style:none;padding-left:0;max-width:86ch}
+.check>li{position:relative;padding-left:1.7rem;margin:.4rem 0}
+.check>li::before{content:"";position:absolute;left:0;top:.28em;width:1rem;height:1rem;border:1.5px solid var(--brand);border-radius:4px;background:var(--card)}
+.yes{color:var(--ok);font-weight:700}.no{color:var(--bad);font-weight:700}
+.tw tr.q td{background:var(--brand-bg)}
+.tw td.c{text-align:center}
+blockquote{margin:1rem 0 1.2rem;padding:.6rem 1rem;border-left:4px solid var(--brand);background:var(--muted);border-radius:0 10px 10px 0;max-width:80ch}
+blockquote p{margin:0}
+blockquote cite{display:block;margin-top:.35rem;font-style:normal;font-size:.88rem;color:var(--muted-fg)}
+.lit{border-left:4px solid var(--brand)}
+.lit .meta{font:500 .8rem var(--f-mono);color:var(--brand-text);margin-bottom:.3rem}
+.lit dl{display:grid;grid-template-columns:auto 1fr;gap:.25rem .8rem;margin:.6rem 0 0;font-size:.95rem}
+.lit dt{font-weight:700;color:var(--muted-fg)}
+.lit dd{margin:0}
+.refs-list{padding-left:0;list-style:none;max-width:none}
+.refs-list li{position:relative;padding-left:3.2rem;margin:.45rem 0;font-size:.95rem}
+.refs-list li b{position:absolute;left:0;font:600 .85rem var(--f-mono);color:var(--brand-text)}
+.walk td.ln{width:4.4rem}
+@media(max-width:720px){.walk tr{grid-template-columns:4rem 1fr}}
+</style>
+</head>
+<body>
+<a class="sr" href="#start">Skip to content</a>
+<header class="topbar">
+  <div class="topbar-in">
+    <a class="brand" href="#top"><i>Q</i> <span>HTTP QUERY<span class="long"> study guide</span></span></a>
+    <span class="spacer"></span>
+    <details class="toc-m">
+      <summary class="btn" aria-label="Open contents">Contents</summary>
+      <nav class="toc-pop" aria-label="Contents (mobile)" id="toc-m"></nav>
+    </details>
+    <button class="btn" id="theme" type="button" aria-label="Change colour theme">Theme: auto</button>
+  </div>
+</header>
+
+<div class="hero" id="top">
+  <div class="hero-in">
+    <div class="kicker">Technical seminar / M.E. CyberSecurity / MSIS, MAHE</div>
+    <h1>Understand the HTTP QUERY method from every angle.</h1><br>
+    <p class="lead">The protocol, the code, the security analysis, the literature, and a bank of likely questions. Read it before the talk.</p>
+    <ul class="chips">
+      <li><b>Standard</b> RFC 10008, June 2026</li>
+      <li><b>Talk</b> 28 slides, 18:30, 1 click</li>
+      <li><b>Tested</b> Node 24.18, curl 8.7.1, Python 3.14</li>
+      <li><b>Diagrams</b> <span id="dg-count">0</span></li>
+      <li><b>Questions</b> <span id="qa-total">0</span></li>
+    </ul>
+  </div>
+</div>
+
+<div class="shell">
+<aside class="toc" aria-label="Contents">
+  <div class="toc-title">Contents</div>
+  <nav id="toc"></nav>
+</aside>
+<main id="main">
+
+<!-- ================= 00 START ================= -->
+<section class="sec" id="start" data-num="00" data-toc="Start here">
+  <h2><span class="num">00</span> Start here</h2>
+  <p class="intro">Read this part first. It gives the whole talk on one page. The other parts go deeper.</p>
+
+  <h3>How to trust each statement</h3>
+  <p>Each important fact has a label. The label tells you where the fact comes from.</p>
+  <dl class="kv">
+    <dt><span class="b b-deck">Deck</span></dt><dd>The slides or the speaker notes say it.</dd>
+    <dt><span class="b b-tested">Tested</span></dt><dd>I ran it on this Mac on 17 October 2026. The tools were Node 24.18.0, curl 8.7.1 and Python 3.14.6.</dd>
+    <dt><span class="b b-source">Source</span></dt><dd>An outside document says it. A link is next to it, or the section number is given.</dd>
+    <dt><span class="b b-analysis">Analysis</span></dt><dd>This is my own reading. The deck does not say it. Present it as your own view, not as a fact from the RFC.</dd>
+  </dl>
+  <div class="co co-note">
+    <span class="t">Fixed terms in this guide</span>
+    <p>A <b>hop</b> is one system between the client and the origin: a CDN, a proxy, a WAF, a load balancer. The <b>origin</b> is the server that owns the resource. The <b>query component</b> is the part of a URI after <code>?</code>. The <b>query content</b> is the body of a QUERY request. <b>Safe</b> and <b>idempotent</b> have the meanings in part 01.</p>
+  </div>
+
+  <h3>The talk in 60 seconds</h3>
+  <ol class="steps">
+    <li>The method tells every hop what the client wants to do. <span class="m m-g">GET</span> is safe and idempotent. <span class="m m-p">POST</span> is neither.</li>
+    <li>GET puts the query in the URI. A long query hits length limits that the client cannot know. Logs, history and the <code>Referer</code> header keep URIs.</li>
+    <li>POST puts the query in the body. But POST does not promise "safe". Thus caches and automatic retries do not work.</li>
+    <li>HTTP had no standard method for "safe, idempotent, with the query in the body". RFC 10008 (June 2026) adds <span class="m m-q">QUERY</span> for this gap.</li>
+    <li>A QUERY request must have a <code>Content-Type</code>. The server must not guess the type. Caches can keep responses, but the cache key must include the body.</li>
+    <li>The server can give two URIs. <code>Location</code>: a GET runs the query again. <code>Content-Location</code>: a GET returns this result again.</li>
+    <li>Security: safe is not secure. The body is still untrusted input. Caches must key on the body. Browsers always send a CORS preflight. Signatures must cover <code>Content-Digest</code>.</li>
+    <li>Deployment: every hop must know QUERY. One hop with no support breaks the request. One hop with weak rules makes a bypass.</li>
+    <li>Conclusion: QUERY does not replace GET or POST. Its security depends on the implementation, not on the method.</li>
+  </ol>
+
+  <figure class="diagram" data-title="The big picture" data-minw="460">
+    <script type="text/plain" class="mm">
+flowchart TD
+  A["A client wants to read data<br/>with a query"]:::blue --> B{"Does the query<br/>fit in a URI?"}
+  B -->|yes| G["GET<br/>query in the URI"]:::ok
+  B -->|no| C{"Does the request<br/>change data?"}
+  C -->|yes| P["POST<br/>general processing"]:::warn
+  C -->|no| Q["QUERY<br/>safe, idempotent,<br/>query in the body"]:::q
+  G --> R1["Watch: the URI goes into<br/>logs, history, Referer"]:::bad
+  Q --> R2["Watch: cache key, CORS,<br/>signatures, WAF rules"]:::bad
+  P --> R3["No reuse from cache,<br/>no automatic retry"]:::mute
+    </script>
+    <figcaption><span class="cap-t">The choice between the three methods, and what to watch for each one.</span>
+      <span class="inwords">In words: if the query fits in a URI, use GET, and keep sensitive data out of the URI. If the request changes data, use POST. Otherwise, use QUERY, and check the cache key, CORS, signatures and WAF rules.</span></figcaption>
+  </figure>
+
+  <h3>Numbers to remember</h3>
+  <div class="grid g4">
+    <div class="card stat"><b>10008</b><span>RFC number. Standards Track, June 2026</span></div>
+    <div class="card stat"><b>3</b><span>authors: Reschke (greenbytes), Snell (Cloudflare), Bishop (Akamai)</span></div>
+    <div class="card stat"><b>8000</b><span>octets: the minimum URI length that HTTP recommends</span></div>
+    <div class="card stat"><b>30 → 54</b><span>characters of the JSON filter, before and after percent-encoding <span class="b b-tested">Tested</span></span></div>
+    <div class="card stat"><b>3</b><span>CORS-safelisted methods: GET, HEAD, POST</span></div>
+    <div class="card stat"><b>6</b><span>method names that <code>fetch()</code> changes to upper case</span></div>
+    <div class="card stat"><b>6 of 8</b><span>status-code rows on slide 18 that I tested with curl</span></div>
+    <div class="card stat"><b>16 KiB</b><span>body limit in <code>server.mjs</code>; results are limited to 100</span></div>
+    <div class="card stat"><b>28</b><span>slides; 18:30 of talk; 1 click</span></div>
+    <div class="card stat"><b>22</b><span>references; 7 of them in the literature tables</span></div>
+  </div>
+
+  <h3>Answers at three lengths</h3>
+  <div class="say"><span class="t">10 seconds</span><p>QUERY is a new HTTP method. It is safe and idempotent, the same as GET. But it sends the query in the body, the same as POST.</p></div>
+  <div class="say"><span class="t">30 seconds</span><p>GET puts the query in the URI. Long queries break, and logs keep them. POST puts the query in the body, but it does not promise "safe". Thus caches and retries do not work. RFC 10008 adds QUERY: a safe, idempotent request with the query in the body. Caches can keep its responses, and the server can give the query its own URI.</p></div>
+  <div class="say"><span class="t">2 minutes</span><p>Start with the 30-second answer. Then add the rules: <code>Content-Type</code> is mandatory, and the server must not guess the type. A wrong type gets 415, and a query that the server cannot run gets 422. The cache key must include the body. <code>Location</code> gives a URI that runs the query again. Then the security points: safe is not secure, so injection and authorization stay the same. A cache that ignores part of the body can send one user's results to another user. Browsers always send a CORS preflight. A signature must cover <code>Content-Digest</code>, because <code>@query</code> is empty. End with deployment: every hop must support QUERY, and its security depends on the implementation.</p></div>
+</section>
+
+<!-- ================= 01 BASICS ================= -->
+<section class="sec" id="basics" data-num="01" data-toc="HTTP basics">
+  <h2><span class="num">01</span> HTTP basics you need</h2>
+  <p class="intro">Learn these ideas first. Parts 02 to 06 use them.</p>
+
+  <h3>The parts of an HTTP message</h3>
+  <p>A request and a response have the same four parts. Slide 3 shows them with numbers <span class="b b-deck">Deck</span>.</p>
+  <pre class="code hl" data-lang="http"><code>GET /products?category=laptop HTTP/1.1
+Host: shop.example
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJFUzI1NiJ9…
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+Cache-Control: max-age=60
+
+{ "results": [ { "id": 7, "name": "ThinkPad X1" } ] }</code></pre>
+  <div class="tw"><table>
+    <thead><tr><th>Part</th><th>In a request</th><th>In a response</th></tr></thead>
+    <tbody>
+      <tr><td class="k"><b>Start line</b></td><td>method, target URI, version: <code>GET /products?category=laptop HTTP/1.1</code></td><td>version, status code, reason: <code>HTTP/1.1 200 OK</code></td></tr>
+      <tr><td class="k"><b>Header fields</b></td><td><code>Host</code>, <code>Accept</code>, <code>Authorization</code>, <code>Content-Type</code></td><td><code>Content-Type</code>, <code>Cache-Control</code>, <code>Location</code></td></tr>
+      <tr><td class="k"><b>Empty line</b></td><td colspan="2">It separates the headers from the content.</td></tr>
+      <tr><td class="k"><b>Content</b></td><td>Optional. A GET request has none. POST and QUERY expect it.</td><td>The representation, for example JSON.</td></tr>
+    </tbody>
+  </table></div>
+  <p>RFC 9110 calls the method "the primary source of request semantics" <span class="b b-source">Source</span> RFC 9110 §9.1. Each hop reads the method to know what the client wants to do.</p>
+
+  <h3>Safe and idempotent</h3>
+  <div class="grid g2">
+    <div class="card"><h4>Safe (RFC 9110 §9.2.1)</h4><p>The client does not ask for a change of state on the server. Thus a cache, a prefetcher, a crawler or a link preview can send the request with no risk to the user.</p><p>The server can still log the request, count it or charge for it. The client did not ask for these effects, so the method stays safe.</p></div>
+    <div class="card"><h4>Idempotent (RFC 9110 §9.2.2)</h4><p>One request and ten identical requests have the same intended effect. Thus a client can send the request again after a connection fails. It does not need to know if the first one arrived.</p><p>"A proxy MUST NOT automatically retry non-idempotent requests." All safe methods are also idempotent.</p></div>
+  </div>
+  <div class="tw"><table>
+    <thead><tr><th>Method</th><th>Safe</th><th>Idempotent</th><th>Request content</th><th>Typical use</th></tr></thead>
+    <tbody>
+      <tr><td><span class="m m-g">GET</span></td><td class="yes">yes</td><td class="yes">yes</td><td>no defined meaning</td><td>get a representation</td></tr>
+      <tr><td><span class="m">HEAD</span></td><td class="yes">yes</td><td class="yes">yes</td><td>no defined meaning</td><td>GET with no response content</td></tr>
+      <tr><td><span class="m">OPTIONS</span></td><td class="yes">yes</td><td class="yes">yes</td><td>rare</td><td>discovery, CORS preflight</td></tr>
+      <tr class="q"><td><span class="m m-q">QUERY</span></td><td class="yes">yes</td><td class="yes">yes</td><td><b>expected</b></td><td>a query with input in the body</td></tr>
+      <tr><td><span class="m">PUT</span></td><td class="no">no</td><td class="yes">yes</td><td>expected</td><td>replace a resource</td></tr>
+      <tr><td><span class="m">DELETE</span></td><td class="no">no</td><td class="yes">yes</td><td>no defined meaning</td><td>remove a resource</td></tr>
+      <tr><td><span class="m m-p">POST</span></td><td class="no">no</td><td class="no">no</td><td>expected</td><td>general processing</td></tr>
+      <tr><td><span class="m">PATCH</span></td><td class="no">no</td><td class="no">no</td><td>expected</td><td>partial change</td></tr>
+    </tbody>
+  </table></div>
+  <p><span class="b b-source">Source</span> RFC 9110 §9.2 and §9.3; RFC 10008 §5.1 for QUERY. The IANA method registry lists the safe and idempotent values of each method.</p>
+  <div class="co co-warn">
+    <span class="t">Safe is a promise about intent</span>
+    <p>The definition of safe "does not prevent an implementation from including behavior that is potentially harmful" <span class="b b-source">Source</span> RFC 9110 §9.2.1. If a safe method can start an unsafe action, for example <code>GET /item?do=delete</code>, then "the resource owner MUST disable or disallow that action".</p>
+  </div>
+
+  <h3>Method names are case-sensitive</h3>
+  <p>RFC 9110 §9.1 says that the method token is case-sensitive. Thus <code>QUERY</code> and <code>query</code> are two different methods. All registered methods are upper case.</p>
+  <p>The Fetch standard changes only six names to upper case: <code>DELETE</code>, <code>GET</code>, <code>HEAD</code>, <code>OPTIONS</code>, <code>POST</code> and <code>PUT</code> <span class="b b-source">Source</span> <a href="https://fetch.spec.whatwg.org/#concept-method-normalize" target="_blank" rel="noopener">Fetch, normalize</a>. With <code>method: 'query'</code>, <code>fetch()</code> sends <code>query</code>. Node 24 replied 400 to a lower-case <code>query</code> request <span class="b b-tested">Tested</span>.</p>
+
+  <h3>The parts of a URI</h3>
+  <div class="uri" aria-label="URI with five labelled parts">
+    <span class="seg u1">https<span class="lab">scheme</span></span>://<span class="seg u2">shop.example<span class="lab">authority</span></span><span class="seg u3">/search<span class="lab">path</span></span><span class="seg u4">?q=laptop&amp;page=2<span class="lab">query</span></span><span class="seg u5">#results<span class="lab">fragment</span></span>
+  </div>
+  <div class="tw"><table>
+    <thead><tr><th>Part</th><th>Example</th><th>What it does</th><th>RFC 3986</th></tr></thead>
+    <tbody>
+      <tr><td class="k">scheme</td><td><code>https</code></td><td>The protocol.</td><td>§3.1</td></tr>
+      <tr><td class="k">authority</td><td><code>shop.example</code></td><td>The host, and a port if necessary.</td><td>§3.2</td></tr>
+      <tr><td class="k">path</td><td><code>/search</code></td><td>The resource, in a hierarchy.</td><td>§3.3</td></tr>
+      <tr><td class="k">query</td><td><code>q=laptop&amp;page=2</code></td><td>Data that identifies the resource together with the path.</td><td>§3.4</td></tr>
+      <tr><td class="k">fragment</td><td><code>results</code></td><td>A part of the page. The browser does not send it to the server.</td><td>§3.5</td></tr>
+    </tbody>
+  </table></div>
+  <div class="co co-warn">
+    <span class="t">Two different things, one word</span>
+    <p>The <b>query component</b> is part of a URI. It is part of an identifier. The <b>QUERY method</b> sends its input in the body. RFC 10008 §1.1 calls that body the "query content". A QUERY request can also have a query component in its target URI. Its effect is specific to the resource (RFC 10008 §2).</p>
+  </div>
+
+  <h3>Status codes in this talk</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Code</th><th>Name</th><th>Where it appears</th></tr></thead>
+    <tbody>
+      <tr><td class="k"><b>200</b></td><td>OK</td><td>A QUERY with results, and a GET to a stored query.</td></tr>
+      <tr><td class="k"><b>204</b></td><td>No Content</td><td>The reply to OPTIONS (discovery and CORS preflight).</td></tr>
+      <tr><td class="k"><b>303</b></td><td>See Other</td><td>Redirects a QUERY to a GET on another URI (RFC 10008 §2.5).</td></tr>
+      <tr><td class="k"><b>304</b></td><td>Not Modified</td><td>A conditional request when the result did not change (§2.6).</td></tr>
+      <tr><td class="k"><b>400</b></td><td>Bad Request</td><td>No <code>Content-Type</code>, or content that does not agree with its type.</td></tr>
+      <tr><td class="k"><b>405</b></td><td>Method Not Allowed</td><td>The resource does not allow this method. Comes with <code>Allow</code>.</td></tr>
+      <tr><td class="k"><b>406</b></td><td>Not Acceptable</td><td>The server cannot give a response in the <code>Accept</code> format.</td></tr>
+      <tr><td class="k"><b>413</b></td><td>Content Too Large</td><td>Not on the slides. The better reply for a body over the limit (part 04).</td></tr>
+      <tr><td class="k"><b>414</b></td><td>URI Too Long</td><td>The problem that QUERY solves (slide 6).</td></tr>
+      <tr><td class="k"><b>415</b></td><td>Unsupported Media Type</td><td>The query format is not supported. Comes with <code>Accept-Query</code>.</td></tr>
+      <tr><td class="k"><b>422</b></td><td>Unprocessable Content</td><td>The query is valid, but the server cannot run it.</td></tr>
+      <tr><td class="k"><b>501</b></td><td>Not Implemented</td><td>The server does not know the method (RFC 9110 §9.1).</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ================= 02 PROBLEM ================= -->
+<section class="sec" id="problem" data-num="02" data-toc="The problem">
+  <h2><span class="num">02</span> The problem that QUERY solves</h2>
+  <p class="intro">This part answers the question "why a new method?". There are three problems: length, exposure, and a gap in the method table.</p>
+
+  <h3>Problem 1: the URI gets too long</h3>
+  <p>A search with many filters makes a long URI. Slide 6 shows one. The server replies <code>414 URI Too Long</code> <span class="b b-deck">Deck</span>.</p>
+  <pre class="code hl" data-lang="http"><code>GET /search?q=laptop&amp;brand=lenovo,dell,hp&amp;price_min=40000&amp;price_max=100000&amp;ram=16,32&amp;sort=price&amp;page=2&amp;filters=%7B%22gpu%22%3A%5B%22rtx-4060%22%2C%22rx-7600%22%5D%7D HTTP/1.1
+Host: shop.example
+
+HTTP/1.1 414 URI Too Long</code></pre>
+  <ul>
+    <li><b>No fixed limit.</b> "It is RECOMMENDED that all senders and recipients support, at a minimum, URIs with lengths of 8000 octets" <span class="b b-source">Source</span> RFC 9110 §4.1. This is a minimum, not a maximum.</li>
+    <li><b>Unknown limits.</b> The request goes through many systems. Each one can have a different limit, and the client cannot know them before it sends the request <span class="b b-source">Source</span> RFC 10008 §1.</li>
+    <li><b>Encoding cost.</b> Some characters must be percent-encoded. Each one becomes three characters.</li>
+  </ul>
+  <div class="tw"><table>
+    <thead><tr><th>Form</th><th>Text</th><th>Length</th></tr></thead>
+    <tbody>
+      <tr><td class="k">JSON filter</td><td><code>{"gpu":["rtx-4060","rx-7600"]}</code></td><td>30</td></tr>
+      <tr><td class="k"><code>encodeURIComponent()</code></td><td><code>%7B%22gpu%22%3A%5B%22rtx-4060%22%2C%22rx-7600%22%5D%7D</code></td><td>54</td></tr>
+    </tbody>
+  </table></div>
+  <p>Twelve characters change: <code>{ } [ ] : ,</code> and six quotes. Each adds two characters, so 30 + 24 = 54 <span class="b b-tested">Tested</span> with Node.</p>
+
+  <h3>Problem 2: many systems record the URI</h3>
+  <p>Slide 7 follows one admin search through a normal production path <span class="b b-deck">Deck</span>.</p>
+  <figure class="diagram" data-title="Where a URI is recorded" data-minw="520">
+    <script type="text/plain" class="mm">
+flowchart LR
+  B["Browser<br/>history, bookmarks"]:::blue --> C["CDN or proxy<br/>edge access logs"]:::bad
+  C --> W["WAF<br/>request logs, alerts"]:::bad
+  W --> R["Reverse proxy<br/>access log"]:::bad
+  R --> A["Application<br/>app logs, APM"]:::bad
+  A --> S["SIEM<br/>indexed, kept for months"]:::bad
+  B -. "Referer on the next<br/>same-origin request" .-> X["Next page<br/>or its server"]:::warn
+    </script>
+    <figcaption><span class="cap-t">Each hop can keep a copy of the URI.</span>
+      <span class="inwords">In words: the browser keeps the URI in history. The CDN, the WAF, the reverse proxy and the application write it to their logs. The SIEM indexes all the logs and keeps them. The Referer header can send the URI to the next page.</span></figcaption>
+  </figure>
+  <pre class="code" data-lang="text"><code>203.0.113.7 - - [17/Oct/2026:10:42:07 +0530] "GET /users/search?email=alice@example.com&amp;role=admin HTTP/1.1" 200 512 "-" "Mozilla/5.0"
+203.0.113.7 - - [17/Oct/2026:10:42:09 +0530] "QUERY /users/search HTTP/1.1" 200 512 "-" "Mozilla/5.0"</code></pre>
+  <p>The first line is the GET search in the nginx "combined" log format. The email is in the log. The second line is the same search as QUERY. The request line has only the path.</p>
+  <blockquote><p>"URIs are intended to be shared, not secured, even when they identify secure resources."</p><cite>RFC 9110 §17.9</cite></blockquote>
+  <div class="tw"><table>
+    <thead><tr><th>Place</th><th>What it keeps</th><th>Who can read it <span class="b b-analysis">Analysis</span></th></tr></thead>
+    <tbody>
+      <tr><td class="k">Browser history, bookmarks</td><td>the full URI</td><td>anyone with the device; sync services</td></tr>
+      <tr><td class="k"><code>Referer</code> header</td><td>the full URI on same-origin requests; only the origin on cross-origin requests by default</td><td>the next server</td></tr>
+      <tr><td class="k">CDN, proxy logs</td><td>the request line</td><td>the CDN operator; the log pipeline</td></tr>
+      <tr><td class="k">WAF</td><td>the request line, and sometimes the body</td><td>the security team; the WAF vendor</td></tr>
+      <tr><td class="k">Reverse proxy log</td><td>the request line</td><td>the operations team</td></tr>
+      <tr><td class="k">App logs, APM</td><td>the URL, and sometimes the body</td><td>developers; the APM vendor</td></tr>
+      <tr><td class="k">SIEM</td><td>indexed copies of all the above</td><td>many analysts, for a long time</td></tr>
+    </tbody>
+  </table></div>
+  <div class="co co-bad">
+    <span class="t">The body is not a secret either</span>
+    <p>Body logs, WAF and APM tools and each TLS-terminating hop can see the content. RFC 10008 §4 says that URIs are "more likely" to be logged. More likely does not mean always <span class="b b-deck">Deck</span>. QUERY decreases exposure. It does not remove it.</p>
+  </div>
+  <p>The Referer default: browsers now use the <code>strict-origin-when-cross-origin</code> policy. A cross-origin request gets only the origin. A same-origin request still gets the full URL <span class="b b-source">Source</span> <a href="https://www.w3.org/TR/referrer-policy/" target="_blank" rel="noopener">W3C Referrer Policy</a>. Starov et al. (2016) measured PII leaks from contact forms on 100,000 sites, and the Referer header was one of the paths (reference [15]).</p>
+
+  <h3>Problem 3: a gap between GET and POST</h3>
+  <div class="tw"><table>
+    <thead><tr><th></th><th>Query input in the URI</th><th>Query input in the content</th></tr></thead>
+    <tbody>
+      <tr><td class="k"><b>Safe and idempotent</b></td><td><span class="m m-g">GET</span> gets a resource; the query is part of the URI</td><td><b>Empty before RFC 10008.</b> Now <span class="m m-q">QUERY</span></td></tr>
+      <tr><td class="k"><b>Not safe</b></td><td><code>GET /item?do=delete</code>: bad practice; the owner must disallow it</td><td><span class="m m-p">POST</span>: the resource decides what to do with the content</td></tr>
+    </tbody>
+  </table></div>
+  <blockquote><p>POST for a query "hinders caching and uses an unsafe method for what would otherwise be a safe request."</p><cite>RFC 9110 §17.9</cite></blockquote>
+  <div class="grid g2">
+    <div class="card"><h4>Why not GET with a body?</h4><p>"Content received in a GET request has no generally defined semantics." A client "SHOULD NOT generate content in a GET request" unless the origin server said that it supports it <span class="b b-source">Source</span> RFC 9110 §9.3.1.</p><p>Some hops drop the body. Some reject the request. If two hops disagree about the body, request smuggling becomes possible <span class="b b-analysis">Analysis</span>.</p></div>
+    <div class="card"><h4>Why not POST?</h4><p>POST is not safe and not idempotent. A proxy must not send it again automatically. A cache can use a POST response only for a later GET or HEAD <span class="b b-source">Source</span> RFC 10008 Table 1.</p><p>Also, WAF and CSRF rules treat POST as a write. A read-only search then gets the same controls as a payment <span class="b b-analysis">Analysis</span>.</p></div>
+  </div>
+  <div class="co co-tip">
+    <span class="t">The one-line answer</span>
+    <p>GET has the right meaning in the wrong place. POST has the right place with the wrong meaning. QUERY has the right meaning in the right place.</p>
+  </div>
+</section>
+
+<!-- ================= 03 RFC ================= -->
+<section class="sec" id="rfc" data-num="03" data-toc="RFC 10008">
+  <h2><span class="num">03</span> QUERY in RFC 10008</h2>
+  <p class="intro">This part follows the RFC section by section. Learn the section numbers. The panel can ask "where does the RFC say that?".</p>
+
+  <h3>The RFC at a glance</h3>
+  <p><b>RFC 10008, "The HTTP QUERY Method".</b> J. Reschke (greenbytes), J. M. Snell (Cloudflare), M. Bishop (Akamai). IETF Standards Track, June 2026. DOI 10.17487/RFC10008 <span class="b b-source">Source</span> <a href="https://www.rfc-editor.org/rfc/rfc10008.html" target="_blank" rel="noopener">rfc-editor.org</a>.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Section</th><th>Title</th><th>The main point</th></tr></thead>
+    <tbody>
+      <tr><td class="k">§1</td><td>Introduction</td><td>Why GET and POST are not enough. Table 1 compares GET, QUERY and POST.</td></tr>
+      <tr><td class="k">§1.1</td><td>Terminology</td><td>"URI query parameter" and "query content".</td></tr>
+      <tr><td class="k">§2</td><td>QUERY</td><td>Safe and idempotent. Servers MUST fail the request if <code>Content-Type</code> is missing or inconsistent.</td></tr>
+      <tr><td class="k">§2.1</td><td>Media Types and Content Negotiation</td><td>4xx for bad metadata; 415, 422 and 406; no type guessing.</td></tr>
+      <tr><td class="k">§2.2</td><td>Equivalent Resource</td><td>A resource that answers GET with the same result as the QUERY.</td></tr>
+      <tr><td class="k">§2.3</td><td>Content-Location Response Field</td><td>A URI for <i>this result</i>.</td></tr>
+      <tr><td class="k">§2.4</td><td>Location Response Field</td><td>A URI for <i>the query</i>: a GET runs it again.</td></tr>
+      <tr><td class="k">§2.5</td><td>Redirection</td><td>301, 302, 307, 308 keep QUERY. 303 means GET.</td></tr>
+      <tr><td class="k">§2.6</td><td>Conditional Requests</td><td>The same as GET on the equivalent resource. 304 is possible.</td></tr>
+      <tr><td class="k">§2.7</td><td>Caching</td><td>Cacheable. The cache key MUST include the content.</td></tr>
+      <tr><td class="k">§2.8</td><td>Range Requests</td><td>The same as GET, but of little use. Use the paging of the query format.</td></tr>
+      <tr><td class="k">§3</td><td>The Accept-Query Header Field</td><td>Lists the query formats that a resource accepts.</td></tr>
+      <tr><td class="k">§4</td><td>Security Considerations</td><td>Logs, sensitive URIs, cache normalisation, CORS.</td></tr>
+      <tr><td class="k">§5</td><td>IANA Considerations</td><td>Registers QUERY (safe, idempotent) and Accept-Query.</td></tr>
+      <tr><td class="k">App. A</td><td>Examples</td><td>A.1 simple query, A.2 and A.3 discovery, A.4 Location and Content-Location, A.5 conditional requests, A.6 more formats.</td></tr>
+      <tr><td class="k">App. B</td><td>Selection of the Method Name</td><td>Why "QUERY" and not SEARCH, REPORT or PROPFIND.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>The definition</h3>
+  <p>QUERY asks the target resource to process the content of the request in a safe and idempotent way, and to send back the result <span class="b b-source">Source</span> RFC 10008, Abstract and §2. The client can send the request again or start it again after a failure, and no partial change of state can occur.</p>
+  <ul>
+    <li>The <b>target URI</b> sets the scope. <code>QUERY /contacts</code> queries the contacts.</li>
+    <li>The <b>content</b> is the query. Its format comes from <code>Content-Type</code>.</li>
+    <li>A query component in the target URI is allowed. Its effect is specific to the resource (§2).</li>
+  </ul>
+
+  <h3>Table 1 of the RFC</h3>
+  <div class="tw"><table>
+    <thead><tr><th></th><th><span class="m m-g">GET</span></th><th><span class="m m-q">QUERY</span></th><th><span class="m m-p">POST</span></th></tr></thead>
+    <tbody>
+      <tr><td class="k"><b>Safe</b></td><td>yes</td><td class="yes">yes</td><td>potentially no</td></tr>
+      <tr><td class="k"><b>Idempotent</b></td><td>yes</td><td class="yes">yes</td><td>potentially no</td></tr>
+      <tr><td class="k"><b>URI for the query itself</b></td><td>yes (by definition)</td><td>optional (<code>Location</code>)</td><td>no</td></tr>
+      <tr><td class="k"><b>URI for the query result</b></td><td>optional (<code>Content-Location</code>)</td><td>optional (<code>Content-Location</code>)</td><td>optional (<code>Content-Location</code>)</td></tr>
+      <tr><td class="k"><b>Cacheable</b></td><td>yes</td><td class="yes">yes</td><td>yes, but only for future GET or HEAD requests</td></tr>
+      <tr><td class="k"><b>Content (body)</b></td><td>no defined semantics</td><td>expected (semantics per target resource)</td><td>expected (semantics per target resource)</td></tr>
+    </tbody>
+  </table></div>
+  <p>"Potentially no" means: one POST endpoint can be harmless, but the method promises nothing <span class="b b-deck">Deck</span>.</p>
+
+  <h3>Rules for the request content (§2, §2.1)</h3>
+  <figure class="diagram" data-title="How a server checks a QUERY request" data-minw="460">
+    <script type="text/plain" class="mm">
+flowchart TD
+  A["A QUERY request arrives"]:::q --> B{"Content-Type<br/>present?"}
+  B -->|no| E1["4xx, for example 400<br/>MUST fail"]:::bad
+  B -->|yes| C{"Media type<br/>supported?"}
+  C -->|no| E2["415<br/>with Accept-Query"]:::bad
+  C -->|yes| D{"Content agrees<br/>with the type?"}
+  D -->|no| E3["400<br/>do not guess the type"]:::bad
+  D -->|yes| F{"Can the server<br/>run this query?"}
+  F -->|no| E4["422"]:::warn
+  F -->|yes| G{"Accept format<br/>supported?"}
+  G -->|no| E5["406"]:::warn
+  G -->|yes| OK["2xx with the result<br/>maybe Location and Content-Location"]:::ok
+    </script>
+    <figcaption><span class="cap-t">The checks of §2.1, in order.</span>
+      <span class="inwords">In words: no Content-Type gives a 4xx. An unknown type gives 415. Content that does not agree with its type gives 400. A valid query that the server cannot run gives 422. An Accept format that the server cannot give gives 406. Otherwise, the server sends the result.</span></figcaption>
+  </figure>
+  <div class="co co-note">
+    <span class="t">MUST or "is appropriate"?</span>
+    <p>Two rules are mandatory. A server MUST fail a request with a missing or inconsistent <code>Content-Type</code>, and the problem "MUST be rejected with a 4xx" response. A server "is not allowed to infer a media type from the request content". The exact codes 400, 415, 422 and 406 are the RFC's recommendations ("is appropriate", "can be used") <span class="b b-source">Source</span> RFC 10008 §2, §2.1.</p>
+  </div>
+  <p><b>Why no guessing?</b> Content sniffing lets an attacker make the server read the body as a different format. The client and the server then disagree about the query <span class="b b-analysis">Analysis</span>.</p>
+
+  <h3>The Accept-Query header (§3)</h3>
+  <ul>
+    <li>A response header. It says: this resource supports QUERY, with these query formats.</li>
+    <li>It is a Structured Field (RFC 9651): a List of Tokens or Strings. Each item is a media range. Media type parameters become Structured Field parameters.</li>
+    <li>Wildcards: only <code>*/*</code> and <code>type/*</code>. The order of the items is not significant.</li>
+    <li>It applies to all URIs with the same path. The query component is ignored.</li>
+  </ul>
+  <pre class="code hl" data-lang="http"><code>Accept-Query: "application/jsonpath", application/sql;charset="UTF-8"</code></pre>
+  <div class="tw"><table>
+    <thead><tr><th>Question of the client</th><th>Request</th><th>Answer</th><th>Where</th></tr></thead>
+    <tbody>
+      <tr><td>Does this resource support QUERY?</td><td><code>OPTIONS</code></td><td><code>Allow</code> lists QUERY</td><td>App. A.2</td></tr>
+      <tr><td>Does it? (direct test)</td><td><code>QUERY</code></td><td>405 if not supported</td><td>App. A.2</td></tr>
+      <tr><td>Which query formats?</td><td><code>HEAD</code></td><td><code>Accept-Query</code></td><td>App. A.3</td></tr>
+      <tr><td>Which formats? (after an error)</td><td><code>QUERY</code> with a wrong type</td><td>415 with <code>Accept-Query</code></td><td>§2.1</td></tr>
+    </tbody>
+  </table></div>
+  <p><code>server.mjs</code> sends <code>Allow</code> and <code>Accept-Query</code> on OPTIONS (204), and <code>Accept-Query</code> on 415 <span class="b b-tested">Tested</span>. It does not handle HEAD: a HEAD request gets 405 <span class="b b-tested">Tested</span>. This is a limit of the demo.</p>
+
+  <h3>Location and Content-Location (§2.2 to §2.4)</h3>
+  <figure class="diagram" data-title="Two URIs from one QUERY" data-minw="520">
+    <script type="text/plain" class="mm">
+sequenceDiagram
+  participant C as Client
+  participant S as Server /contacts
+  C->>S: QUERY /contacts (the query in the body)
+  S-->>C: 200 OK with the results<br/>Location: /contacts/stored-queries/42<br/>Content-Location: /contacts/stored-results/17
+  Note over C: Later
+  C->>S: GET /contacts/stored-queries/42
+  S-->>C: 200 OK with fresh results (the query runs again)
+  C->>S: GET /contacts/stored-results/17
+  S-->>C: 200 OK with the same stored result
+    </script>
+    <figcaption><span class="cap-t">Location is the query. Content-Location is the result.</span>
+      <span class="inwords">In words: the server answers the QUERY and gives two URIs. A GET to the Location URI runs the query again with no body. A GET to the Content-Location URI returns the stored result of the first run.</span></figcaption>
+  </figure>
+  <div class="tw"><table>
+    <thead><tr><th></th><th><code>Location</code> (§2.4)</th><th><code>Content-Location</code> (§2.3)</th></tr></thead>
+    <tbody>
+      <tr><td class="k">Identifies</td><td>the <b>query</b>: the "equivalent resource" of §2.2</td><td>the <b>result</b> of this one run</td></tr>
+      <tr><td class="k">A later GET gives</td><td>the current result; the query runs again</td><td>the same stored result</td></tr>
+      <tr><td class="k">Good for</td><td>links, bookmarks, plain GET caches, conditional requests</td><td>getting one result again</td></tr>
+      <tr><td class="k">Lifetime</td><td colspan="2">Both "might be temporary". After an error, the client sends the QUERY again (App. A.4.1).</td></tr>
+    </tbody>
+  </table></div>
+  <div class="co co-bad">
+    <span class="t">Security rule for these URIs (§4)</span>
+    <p>If the query has sensitive information, the new URI "SHOULD be chosen such that it does not include any sensitive portions". If the server puts the query into the URI, the data goes back into the logs.</p>
+    <p><span class="b b-analysis">Analysis</span> <code>server.mjs</code> uses a counter: <code>/contacts/stored-queries/1</code>, <code>/2</code>, <code>/3</code>. Another client can guess these URIs and run a query that it did not write. A real server must link each stored query to its owner, check authorization on the GET, or use an unguessable ID.</p>
+  </div>
+
+  <h3>Redirects (§2.5)</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Status</th><th>Type</th><th>What the client does</th></tr></thead>
+    <tbody>
+      <tr><td class="k">301, 308</td><td>permanent</td><td>sends the <b>QUERY</b> again to the new URI</td></tr>
+      <tr><td class="k">302, 307</td><td>temporary</td><td>sends the <b>QUERY</b> again to the new URI</td></tr>
+      <tr><td class="k">303</td><td>See Other</td><td>sends a <b>GET</b> to the <code>Location</code> URI (an "indirect response", App. A.4.3)</td></tr>
+    </tbody>
+  </table></div>
+  <p>Old browsers change POST to GET after a 301 or 302. RFC 10008 says that this exception does not apply to QUERY <span class="b b-source">Source</span> §2.5.</p>
+
+  <h3>Conditional and range requests (§2.6, §2.8)</h3>
+  <ul>
+    <li><b>Conditional.</b> The selected representation of a QUERY is the same as for a GET to the equivalent resource. Thus <code>ETag</code>, <code>If-None-Match</code> and <code>304 Not Modified</code> work. App. A.5 shows this with XSLT and SQL queries.</li>
+    <li><b>Range.</b> Range requests work the same as for GET. But byte ranges are of little use for query results. The RFC expects the paging of the query format, for example SQL <code>FETCH FIRST</code>.</li>
+  </ul>
+
+  <h3>Caching (§2.7)</h3>
+  <ul>
+    <li>"The response to a QUERY method is cacheable; a cache MAY use it to satisfy subsequent QUERY requests".</li>
+    <li>"The cache key for a QUERY request ... MUST incorporate the request content" and its related metadata, for example <code>Content-Type</code>.</li>
+    <li>Caches MAY remove differences that do not change the meaning: content encodings, or format rules such as those of <code>+json</code> types. This normalisation is only for the key. The cache must not change the request that it forwards.</li>
+    <li>A client can send <code>Cache-Control: no-transform</code>. It is advisory.</li>
+  </ul>
+  <p>Part 05 explains the risk of a wrong normalisation.</p>
+
+  <h3>IANA registration (§5)</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Registry</th><th>Entry</th><th>Values</th></tr></thead>
+    <tbody>
+      <tr><td>HTTP Method Registry</td><td><code>QUERY</code></td><td>Safe: yes. Idempotent: yes. Reference: §2.</td></tr>
+      <tr><td>HTTP Field Name Registry</td><td><code>Accept-Query</code></td><td>Status: permanent. Structured type: List. Reference: §3.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Why the name QUERY (Appendix B)</h3>
+  <p>The method registry already had three safe, idempotent methods with a body: <code>PROPFIND</code> (RFC 4918), <code>REPORT</code> (RFC 3253) and <code>SEARCH</code> (RFC 5323). The early drafts used SEARCH. The authors chose QUERY for three reasons:</p>
+  <ol>
+    <li>The other methods use a generic media type (<code>application/xml</code>) for the content. QUERY gets its meaning only from the content type.</li>
+    <li>All three come from WebDAV, and many developers have mixed feelings about WebDAV.</li>
+    <li>"QUERY" maps well to the query component of the URI.</li>
+  </ol>
+</section>
+
+<!-- ================= 04 CODE ================= -->
+<section class="sec" id="code" data-num="04" data-toc="Code walk">
+  <h2><span class="num">04</span> The code, line by line</h2>
+  <p class="intro">The deck shows code from real files in <code>decks/http-query/snippets/</code>. I ran each file. This part explains each line, and gives the result of each test.</p>
+
+  <h3>Run it yourself</h3>
+  <p>Open two terminals in the repository. Start the server in the first one. Run the clients in the second one. Node 24 or newer is necessary.</p>
+  <pre class="code copyable" data-lang="bash"><code>node decks/http-query/snippets/server.mjs
+bash decks/http-query/snippets/client.sh
+node decks/http-query/snippets/client.mjs
+python3 decks/http-query/snippets/client.py
+node decks/http-query/snippets/cache-key.mjs</code></pre>
+
+  <h3>server.mjs: the whole file</h3>
+  <p>A QUERY endpoint in plain Node, with no framework. Slide 17 shows lines 14 to 34. Click a line number to go to its explanation.</p>
+  <div class="listing" id="listing-server" data-src="server" data-zones="5,14,21,26,31,36,41,48"></div>
+
+  <div class="walk-h"><h4>Set-up</h4><span class="rng">lines 1–12</span></div>
+  <div class="walk" data-src="server"><table><tbody>
+    <tr data-l="3"><td class="me"><p>Imports <code>createServer</code> from the built-in <code>node:http</code> module. Node's HTTP parser in version 24 accepts the method name <code>QUERY</code> <span class="b b-tested">Tested</span>.</p></td></tr>
+    <tr data-l="5"><td class="me"><p>The only query format that this server accepts.</p></td></tr>
+    <tr data-l="6"><td class="me"><p>The methods that this resource allows. The server sends this value in <code>Allow</code> on OPTIONS and on 405.</p></td></tr>
+    <tr data-l="7-11"><td class="me"><p>The demo data: three contacts.</p></td></tr>
+    <tr data-l="12"><td class="me"><p>A map from a URI to a stored query. Each entry is an "equivalent resource" (§2.2).</p><p><span class="b b-analysis">Analysis</span> The map is in memory. It is lost when the server stops, and it grows with no limit. A real server needs a store with an expiry time.</p></td></tr>
+  </tbody></table></div>
+
+  <div class="walk-h"><h4>Routing</h4><span class="rng">lines 14–20</span></div>
+  <div class="walk" data-src="server"><table><tbody>
+    <tr data-l="14"><td class="me"><p>One handler for all requests. It is <code>async</code> because it reads the body with <code>await</code>.</p></td></tr>
+    <tr data-l="15-16"><td class="me"><p>OPTIONS gets <code>204</code> with <code>Allow</code> and <code>Accept-Query</code>. This is discovery (App. A.2 and A.3).</p></td></tr>
+    <tr data-l="17-18"><td class="me"><p>A GET to a stored-query URI runs that query again (§2.4). The client does not send the body again.</p></td></tr>
+    <tr data-l="19-20"><td class="me"><p>Any other method gets <code>405</code> with <code>Allow</code> (RFC 9110 §15.5.6). A GET to <code>/contacts</code> itself also gets 405, and so does a GET to an unknown stored-query URI <span class="b b-tested">Tested</span>. A 404 is better for the unknown URI <span class="b b-analysis">Analysis</span>.</p></td></tr>
+  </tbody></table></div>
+
+  <div class="walk-h"><h4>The checks of §2.1</h4><span class="rng">lines 21–30</span></div>
+  <div class="walk" data-src="server"><table><tbody>
+    <tr data-l="21"><td class="me"><p>Reads <code>Content-Type</code>, removes parameters such as <code>charset</code>, and removes spaces. The <code>?.</code> operator gives <code>undefined</code> when the header is missing.</p></td></tr>
+    <tr data-l="22-23"><td class="me"><p>No type: <code>400</code>. RFC 10008 §2 says that the server MUST fail the request.</p></td></tr>
+    <tr data-l="24-25"><td class="me"><p>A type that is not JSON: <code>415</code> with <code>Accept-Query</code>, so that the client knows the supported type (§2.1).</p></td></tr>
+    <tr data-l="26-28"><td class="me"><p>Reads the body (16 KiB at most) and parses it as JSON. A parse error gives <code>400</code>. The server does not guess another format.</p><p>A body over 16 KiB also ends here, and it gets 400 <span class="b b-tested">Tested</span>. <code>413 Content Too Large</code> is more correct. The change is below.</p></td></tr>
+    <tr data-l="29-30"><td class="me"><p>Valid JSON, but <code>q</code> is not a string: <code>422</code>. The syntax is correct, but the server cannot run the query (§2.1).</p></td></tr>
+  </tbody></table></div>
+
+  <div class="walk-h"><h4>Store and reply</h4><span class="rng">lines 31–34</span></div>
+  <div class="walk" data-src="server"><table><tbody>
+    <tr data-l="31-32"><td class="me"><p>Makes a new URI from a counter and stores the query under it.</p></td></tr>
+    <tr data-l="33"><td class="me"><p>Sends <code>200</code> with the results and the new URI in <code>Location</code>.</p></td></tr>
+    <tr data-l="34"><td class="me"><p>Listens on port 8787.</p></td></tr>
+  </tbody></table></div>
+
+  <div class="walk-h"><h4>Helpers</h4><span class="rng">lines 36–56</span></div>
+  <div class="walk" data-src="server"><table><tbody>
+    <tr data-l="36-39"><td class="me"><p><code>search()</code> finds contacts whose email contains <code>q</code>. The default limit is 10. <code>Math.min(..., 100)</code> is a cost limit: a safe query can still be expensive.</p></td></tr>
+    <tr data-l="41-46"><td class="me"><p><code>send()</code> sets <code>Content-Type</code> only when there is a body, writes the status and the headers, and ends the response.</p></td></tr>
+    <tr data-l="48-56"><td class="me"><p><code>readBody()</code> reads the body chunk by chunk. It stops with an error when the text is longer than <code>max</code>. Thus a large body cannot fill the memory.</p></td></tr>
+  </tbody></table></div>
+
+  <h4>A better status for a large body <span class="b b-analysis">Analysis</span></h4>
+  <p>Replace lines 26 to 28 with these lines. Then a large body gets 413, and bad JSON still gets 400. I ran this change on a copy of the file: 20,000 bytes gave 413, <code>nope</code> gave 400, and a valid query gave 200 <span class="b b-tested">Tested</span>.</p>
+  <pre class="code hl" data-lang="js"><code>  let text, query
+  try { text = await readBody(req, 16 * 1024) }
+  catch { return send(res, 413, { error: 'content too large' }) }
+  try { query = JSON.parse(text) }
+  catch { return send(res, 400, { error: 'not valid JSON' }) } // no sniffing</code></pre>
+
+  <h3>Every test that I ran</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Request</th><th>Result <span class="b b-tested">Tested</span></th><th>Rule</th></tr></thead>
+    <tbody>
+      <tr><td><code>client.sh</code>: QUERY, JSON <code>{"q":"example.org","limit":10}</code></td><td>200, <code>Location: /contacts/stored-queries/1</code>, 1 contact</td><td>§2, §2.4</td></tr>
+      <tr><td><code>client.mjs</code>: <code>fetch()</code> with <code>method: 'QUERY'</code></td><td>200, <code>/contacts/stored-queries/2</code></td><td>Fetch</td></tr>
+      <tr><td><code>client.py</code>: <code>urllib</code> with <code>method="QUERY"</code>, <code>q: "example"</code></td><td>200, a new Location, 3 contacts</td><td>§2</td></tr>
+      <tr><td>No <code>Content-Type</code></td><td>400</td><td>§2</td></tr>
+      <tr><td><code>Content-Type: text/plain</code></td><td>415, <code>Accept-Query: application/json</code></td><td>§2.1</td></tr>
+      <tr><td>curl <code>--data</code> with no <code>-H</code> (curl then sends <code>application/x-www-form-urlencoded</code>)</td><td>415</td><td>§2.1</td></tr>
+      <tr><td>JSON type, body <code>nope</code></td><td>400, <code>{"error":"not valid JSON"}</code></td><td>§2.1</td></tr>
+      <tr><td>JSON type, body <code>{"q":5}</code></td><td>422</td><td>§2.1</td></tr>
+      <tr><td>OPTIONS</td><td>204, <code>Allow: GET, QUERY, OPTIONS</code>, <code>Accept-Query</code></td><td>App. A.2</td></tr>
+      <tr><td>PUT, HEAD, or GET <code>/contacts</code></td><td>405 with <code>Allow</code></td><td>RFC 9110 §15.5.6</td></tr>
+      <tr><td>GET <code>/contacts/stored-queries/1</code></td><td>200, the query runs again</td><td>§2.4</td></tr>
+      <tr><td>Method <code>query</code> (lower case)</td><td>400, from Node's parser, before the handler</td><td>RFC 9110 §9.1</td></tr>
+      <tr><td>Method <code>FOO</code></td><td>400, from Node's parser. RFC 9110 recommends 501</td><td>RFC 9110 §9.1</td></tr>
+      <tr><td>Body of 20,000 bytes</td><td>400 (413 is better; see above)</td><td>RFC 9110 §15.5.14</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>The clients</h3>
+  <div class="grid g3">
+    <div class="card"><h4>curl</h4><pre class="code hl" data-lang="bash"><code>curl -i -X QUERY localhost:8787/contacts \
+  -H 'Content-Type: application/json' \
+  --data '{"q":"example.org","limit":10}'</code></pre><p><code>-X</code> sets any method. <code>-i</code> shows the response headers. <code>--data</code> sends the body. Without <code>-H</code>, curl sends the form type, and the server replies 415 <span class="b b-tested">Tested</span>.</p></div>
+    <div class="card"><h4>fetch()</h4><pre class="code hl" data-lang="js"><code>const res = await fetch(url, {
+  method: 'QUERY', // upper case
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ q: 'example', limit: 10 }),
+})</code></pre><p>Works in a browser and in Node 24. Write the method in upper case. In a browser, a cross-origin call sends a preflight first (part 05).</p></div>
+    <div class="card"><h4>Python</h4><pre class="code hl" data-lang="python"><code>req = urllib.request.Request(
+    "http://localhost:8787/contacts",
+    method="QUERY",
+    data=json.dumps({"q": "example", "limit": 10}).encode(),
+    headers={"Content-Type": "application/json"},
+)</code></pre><p><code>urllib</code> sends any method name. Without the header, it sends the form type, and the server replies 415 <span class="b b-tested">Tested</span>.</p></div>
+  </div>
+
+  <h3>cache-key.mjs</h3>
+  <p>This file shows why the cache key must include all of the content (slide 20). It is runnable.</p>
+  <div class="walk" data-src="cachekey"><table><tbody>
+    <tr data-l="2"><td class="me"><p>Imports the hash function.</p></td></tr>
+    <tr data-l="4-5"><td class="me"><p><code>key()</code> joins all parts with new lines, hashes them with SHA-256, and keeps 8 hex characters. Short keys are easy to compare on a slide.</p></td></tr>
+    <tr data-l="7-8"><td class="me"><p><code>canonical</code> sorts the keys of the object before it makes the JSON text. This is an allowed normalisation: the key order does not change the meaning.</p></td></tr>
+    <tr data-l="9-10"><td class="me"><p><code>lossy</code> keeps only <code>q</code> and <code>limit</code>, the fields that this cache knows. It drops <code>role</code>. This is a wrong normalisation.</p></td></tr>
+    <tr data-l="12-13"><td class="me"><p>Two queries. They differ only in <code>role</code>. The key order is also different.</p></td></tr>
+    <tr data-l="15-20"><td class="me"><p>For each normaliser, make the key of both queries from the method, the path, the type and the normalised content. Print "SAME KEY" if the keys are equal.</p></td></tr>
+  </tbody></table></div>
+  <pre class="code" data-lang="text"><code>canonical  40c775a1 e37c99e9 distinct
+lossy      85f28a1f 85f28a1f SAME KEY</code></pre>
+  <p><b>Read the output.</b> <code>canonical</code> gives two keys, which is correct. <code>lossy</code> gives one key for the admin query and the user query. A cache with this key sends the response of the first request to the second user <span class="b b-tested">Tested</span>.</p>
+
+  <h3>search-handler.js</h3>
+  <p>An excerpt, not a full program (slide 19). It shows that the body of a QUERY is untrusted input.</p>
+  <div class="walk" data-src="handler"><table><tbody>
+    <tr data-l="3-4"><td class="me"><p>Authorization. Only an admin can search users by email. A read-only request is not automatically an allowed request.</p></td></tr>
+    <tr data-l="5"><td class="me"><p>A cost limit: 20 by default, 100 at most.</p></td></tr>
+    <tr data-l="6"><td class="me"><p><b>Wrong.</b> The value goes directly into the SQL text. A value such as <code>' OR '1'='1</code> changes the query. This is SQL injection. It is the same for a body and for a URI.</p></td></tr>
+    <tr data-l="7-8"><td class="me"><p><b>Correct.</b> A parameterised query. The value goes as <code>$1</code>, the limit as <code>$2</code>, with a 2-second timeout.</p></td></tr>
+  </tbody></table></div>
+
+  <h3>signed-query.http</h3>
+  <pre class="code hl" data-lang="http"><code>QUERY /contacts HTTP/1.1
+Host: api.example
+Content-Type: application/json
+Content-Digest: sha-256=:GjhZOZY3l3wb+QJHAv9VxkZ0ELmAZyVIh7P1ySNLh/U=:
+Signature-Input: sig1=("@method" "@target-uri" "content-type" "content-digest");created=1792226000;keyid="svc-a"
+Signature: sig1=:MEUCIQ…:
+
+{"q":"security","limit":10}</code></pre>
+  <p>The <code>Content-Digest</code> value is real. This command gives it <span class="b b-tested">Tested</span>:</p>
+  <pre class="code copyable" data-lang="bash"><code>printf '%s' '{"q":"security","limit":10}' | openssl dgst -sha256 -binary | base64</code></pre>
+  <p>The <code>Signature</code> value is shortened with "…". It is not a real signature. <code>created=1792226000</code> is 17 October 2026, 08:33:20 UTC.</p>
+</section>
+
+<!-- ================= 05 SECURITY ================= -->
+<section class="sec" id="security" data-num="05" data-toc="Security analysis">
+  <h2><span class="num">05</span> Security analysis</h2>
+  <p class="intro">This is the main part of the seminar. Each topic gives the risk, the cause and the defence. The labels show which parts are from the RFCs and which parts are my analysis.</p>
+
+  <h3>Threat model in five questions</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Question</th><th>Answer for QUERY <span class="b b-analysis">Analysis</span></th></tr></thead>
+    <tbody>
+      <tr><td class="k"><b>What do we protect?</b></td><td>The query data (it can be personal), the results, and the resources of the server.</td></tr>
+      <tr><td class="k"><b>Who attacks?</b></td><td>A web page in the victim's browser. A client that sends crafted QUERY requests. An insider who reads logs. An attacker who uses a hop with weak rules.</td></tr>
+      <tr><td class="k"><b>Where?</b></td><td>At each hop: browser, cache, WAF, proxy, application, database, logs.</td></tr>
+      <tr><td class="k"><b>What is new?</b></td><td>A new method name. A body that each hop must read and key. A CORS preflight. New URIs from <code>Location</code>.</td></tr>
+      <tr><td class="k"><b>What stays the same?</b></td><td>Injection, authorization, cost, and information disclosure.</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>Safe is not the same as secure</h3>
+  <blockquote><p>"This definition of safe methods does not prevent an implementation from including behavior that is potentially harmful".</p><cite>RFC 9110 §9.2.1</cite></blockquote>
+  <div class="tw"><table>
+    <thead><tr><th>Risk</th><th>Why QUERY does not stop it</th><th>Defence</th></tr></thead>
+    <tbody>
+      <tr><td class="k"><b>Injection</b></td><td>The body is untrusted input. SQL, NoSQL, LDAP and search languages are all possible formats.</td><td>Parameterised queries. Schema validation. An allow-list of fields and operators.</td></tr>
+      <tr><td class="k"><b>Broken authorization</b></td><td>Read-only does not mean allowed. A search of users by email is sensitive.</td><td>Check permission for each query, and for each GET to a stored-query URI.</td></tr>
+      <tr><td class="k"><b>Resource exhaustion</b></td><td>A small query can be very expensive: deep nesting, many joins, large results. Cha et al. (2020) and Hartig &amp; Pérez (2018) show this for GraphQL.</td><td>Body size limit, depth limit, timeout, result limit, cost analysis before the run.</td></tr>
+      <tr><td class="k"><b>Information disclosure</b></td><td>The result can include fields or records that the caller must not see.</td><td>Filter fields and records by the caller's permissions.</td></tr>
+      <tr><td class="k"><b>Automated repetition</b></td><td>Clients send idempotent requests again by design. Scrapers also send many requests.</td><td>Rate limits and quotas, the same as for GET.</td></tr>
+    </tbody>
+  </table></div>
+  <p>Slide 19 shows the injection with the red line and the fix with the green lines <span class="b b-deck">Deck</span>. Part 04 explains each line.</p>
+
+  <h3>Cache risks</h3>
+  <p>Caches can keep QUERY responses. This is an advantage. It is also the largest new attack surface <span class="b b-deck">Deck</span>.</p>
+  <figure class="diagram" data-title="A lossy cache key leaks data" data-minw="480">
+    <script type="text/plain" class="mm">
+flowchart TD
+  A["Admin sends QUERY<br/>q: a, limit: 10, role: admin"]:::blue --> K1["Lossy key uses only<br/>q and limit: 85f28a1f"]:::bad
+  K1 --> C["The cache stores the<br/>admin results under 85f28a1f"]:::bad
+  U["User sends QUERY<br/>role: user, limit: 10, q: a"]:::blue --> K2["Lossy key: 85f28a1f<br/>the same key"]:::bad
+  K2 --> H["Cache hit: the user<br/>gets the admin results"]:::bad
+  C --> H
+    </script>
+    <figcaption><span class="cap-t">This is the output of cache-key.mjs, as a flow.</span>
+      <span class="inwords">In words: the cache makes the key from only two fields. Two different queries get the same key. The second user gets the response of the first user.</span></figcaption>
+  </figure>
+  <ul>
+    <li><b>The rule.</b> The key MUST include the content and its metadata. Normalisation is allowed. A wrong normalisation gives wrong responses <span class="b b-source">Source</span> RFC 10008 §2.7, §4.</li>
+    <li><b>Old caches.</b> Many caches use only the method and the URI as the key <span class="b b-source">Source</span> RFC 9111 §2. A cache that does not know QUERY must not store its responses at all.</li>
+    <li><b>Authenticated requests.</b> A shared cache must not use a stored response to a request with <code>Authorization</code> for other requests, unless the response allows it (for example <code>public</code> or <code>s-maxage</code>) <span class="b b-source">Source</span> RFC 9111 §3.5.</li>
+    <li><b>Cache-poisoned denial of service</b> <span class="b b-analysis">Analysis</span>. Nguyen et al. (2019) made the origin return an error with a header that the cache ignores. The cache stored the error. For QUERY, the attacker can send the same body as a popular query, and add such a header. The cache can then keep the error under the key of the popular query.</li>
+    <li><b>Web cache deception</b> <span class="b b-analysis">Analysis</span>. Mirheidari et al. (2020) made caches store private pages through path confusion. The result URIs of QUERY (<code>Content-Location</code>) hold private results. Send <code>Cache-Control: private</code> or <code>no-store</code> for them.</li>
+  </ul>
+  <div class="co co-tip">
+    <span class="t">Defences for caches</span>
+    <ul>
+      <li>Key on the method, the target URI, <code>Content-Type</code> and the full content.</li>
+      <li>Normalise only what you understand. If you are not sure, do not normalise.</li>
+      <li>Send <code>Cache-Control: private</code> for results that are specific to one user.</li>
+      <li>Give a <code>Location</code>. Then shared caches can use a plain GET, which they handle well.</li>
+      <li>Test: send two queries that differ in one field, and check that the second one is not a cache hit.</li>
+    </ul>
+  </div>
+
+  <h3>Browsers and CORS</h3>
+  <figure class="diagram" data-title="A cross-origin QUERY from a browser" data-minw="540">
+    <script type="text/plain" class="mm">
+sequenceDiagram
+  participant P as Page on app.example
+  participant B as Browser
+  participant A as api.example
+  P->>B: fetch(url, method QUERY, JSON body)
+  B->>A: OPTIONS /contacts<br/>Origin: https://app.example<br/>Access-Control-Request-Method: QUERY
+  A-->>B: 204<br/>Access-Control-Allow-Origin: https://app.example<br/>Access-Control-Allow-Methods: QUERY
+  B->>A: QUERY /contacts with the body
+  A-->>B: 200 with Location<br/>Access-Control-Expose-Headers: Location
+  B-->>P: the response, Location readable
+    </script>
+    <figcaption><span class="cap-t">The browser asks first, then sends the QUERY.</span>
+      <span class="inwords">In words: the page calls fetch. The browser sends an OPTIONS preflight. The server allows QUERY from this origin. Then the browser sends the real request. The page can read Location only because the server exposes it.</span></figcaption>
+  </figure>
+  <div class="tw"><table>
+    <thead><tr><th>How the request is sent</th><th>Preflight?</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Cross-origin <code>fetch()</code> with QUERY</td><td class="yes">always</td><td>Only GET, HEAD and POST are CORS-safelisted methods <span class="b b-source">Source</span> <a href="https://fetch.spec.whatwg.org/#methods" target="_blank" rel="noopener">Fetch</a>, RFC 10008 §4</td></tr>
+      <tr><td>Same-origin <code>fetch()</code></td><td class="no">no</td><td>CORS applies only to cross-origin requests</td></tr>
+      <tr><td>curl, a service, a script</td><td class="no">no</td><td>CORS is a browser rule</td></tr>
+      <tr><td>HTML form</td><td>cannot send QUERY</td><td>A form uses GET, POST or <code>dialog</code> <span class="b b-source">Source</span> HTML Standard</td></tr>
+      <tr><td><code>fetch()</code> with <code>mode: 'no-cors'</code></td><td>cannot send QUERY</td><td>Fetch throws a <code>TypeError</code> for a method that is not safelisted</td></tr>
+    </tbody>
+  </table></div>
+  <div class="grid g2">
+    <div class="card"><h4>The good news</h4><p>A malicious page cannot send QUERY to your API without your permission in a preflight. A form can send a cross-site POST with no preflight. Thus QUERY has stronger protection than POST <span class="b b-deck">Deck</span>.</p></div>
+    <div class="card"><h4>The risk that stays</h4><p>QUERY is safe, so a forged QUERY must not change anything. The real risk is <b>reading</b>. If the server reflects any <code>Origin</code> and sends <code>Access-Control-Allow-Credentials: true</code>, any page can read the user's results. Chen et al. (2018) found that CORS is often configured incorrectly.</p></div>
+  </div>
+  <ul class="check">
+    <li>Use an allow-list of origins. Do not reflect the <code>Origin</code> header when you allow credentials.</li>
+    <li>Send <code>Vary: Origin</code> when the response depends on the origin.</li>
+    <li>Expose only the headers that the page needs, for example <code>Location</code>.</li>
+    <li>Set <code>Access-Control-Max-Age</code> so that the browser does not send a preflight for each request.</li>
+  </ul>
+
+  <h3>Signatures between services (RFC 9421)</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Component</th><th>For a GET search</th><th>For a QUERY search</th></tr></thead>
+    <tbody>
+      <tr><td class="k"><code>@method</code></td><td>GET</td><td>QUERY</td></tr>
+      <tr><td class="k"><code>@target-uri</code></td><td>the URI with the search terms</td><td>the URI with no search terms</td></tr>
+      <tr><td class="k"><code>@query</code></td><td>the search terms</td><td>only <code>?</code> (§2.2.7: an absent query is signed as <code>?</code>)</td></tr>
+      <tr><td class="k"><code>content-digest</code></td><td>not used</td><td><b>the search terms</b>, through the hash of the body (RFC 9530)</td></tr>
+    </tbody>
+  </table></div>
+  <ul>
+    <li>RFC 9421 "does not provide coverage for the content of an HTTP message under the signature". Sign the <code>Content-Digest</code> field. The verifier must calculate the digest again over the bytes that it got <span class="b b-source">Source</span> RFC 9421 §7.2.8.</li>
+    <li>Some frameworks merge URI parameters and form parameters in the body. An attacker can then "shadow or replace" a signed parameter with an unsigned one <span class="b b-source">Source</span> RFC 9421 §7.5.8. QUERY content can be form-encoded.</li>
+    <li>A signature gives integrity and origin. It does not give authorization or confidentiality.</li>
+  </ul>
+  <p><b>The verifier, step by step</b> <span class="b b-analysis">Analysis</span></p>
+  <ol class="steps">
+    <li>Check that the signature covers <code>@method</code>, <code>@target-uri</code>, <code>content-type</code> and <code>content-digest</code>.</li>
+    <li>Calculate the SHA-256 of the body that arrived. Compare it with <code>Content-Digest</code>.</li>
+    <li>Verify the signature with the key of <code>keyid</code>.</li>
+    <li>Check the <code>created</code> time, to limit replay.</li>
+    <li>Read the query from one place only: the body.</li>
+  </ol>
+
+  <h3>Request smuggling and body framing <span class="b b-analysis">Analysis</span></h3>
+  <ul>
+    <li>HTTP/1.1 finds the end of a body with <code>Content-Length</code> or with chunked <code>Transfer-Encoding</code> <span class="b b-source">Source</span> RFC 9112 §6.</li>
+    <li>A hop that does not know QUERY can reject it (405 or 501). Or it can handle the body in a different way from the next hop.</li>
+    <li>When two hops disagree about where a request ends, an attacker can hide a second request in the body. T-Reqs found such differences between pairs of real servers (Jabiyev et al., 2021).</li>
+    <li>Defence: test QUERY with a body through every hop. Reject requests that have both <code>Content-Length</code> and <code>Transfer-Encoding</code>. Use HTTP/2 between hops where possible.</li>
+  </ul>
+
+  <h3>WAF rules</h3>
+  <ul>
+    <li>OWASP test case WSTG-CONF-06 tests HTTP methods. It includes method tampering to get around access control <span class="b b-source">Source</span> <a href="https://owasp.org/www-project-web-security-testing-guide/stable/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/06-Test_HTTP_Methods" target="_blank" rel="noopener">OWASP</a>.</li>
+    <li>A WAF that examines only POST bodies lets QUERY bodies through with no check. A rule that finds SQL words in a GET URI does not see the same words in a QUERY body <span class="b b-analysis">Analysis</span>.</li>
+    <li>Add QUERY to the body rules. Use the same size limits as for POST. Allow QUERY only on the routes that support it.</li>
+  </ul>
+
+  <h3>Logs and monitoring <span class="b b-analysis">Analysis</span></h3>
+  <ul>
+    <li>A log parser that expects only the classic methods can drop QUERY lines, or give them the wrong label.</li>
+    <li>Do not log raw query bodies with personal data. Log the stored-query ID or a hash of the body, and its size.</li>
+    <li>Watch the rate of 405 and 415 replies. A sudden increase can show a scan or a broken client.</li>
+  </ul>
+
+  <h3>Is QUERY more secure than GET?</h3>
+  <div class="tw"><table>
+    <thead><tr><th>Better</th><th>The same</th><th>New work</th></tr></thead>
+    <tbody>
+      <tr><td><ul><li>The input is not in the URI. Fewer copies in logs, history and Referer.</li><li>A cross-site page cannot send it without a preflight.</li><li>Reads no longer need an unsafe POST.</li></ul></td><td><ul><li>Injection, authorization, cost, disclosure.</li><li>Bodies can still be logged.</li><li>TLS is still necessary.</li></ul></td><td><ul><li>The cache key must include the body.</li><li>Every hop must support QUERY.</li><li>Signatures need <code>Content-Digest</code>.</li><li>Stored-query URIs need access control.</li></ul></td></tr>
+    </tbody>
+  </table></div>
+  <div class="co co-tip">
+    <span class="t">The short answer</span>
+    <p>Not by itself. QUERY decreases one exposure, the URI. It adds work at the cache, the WAF, the proxy and the signature. The result depends on the implementation.</p>
+  </div>
+</section>
+
+<!-- ================= 06 DEPLOY ================= -->
+<section class="sec" id="deploy" data-num="06" data-toc="Deployment">
+  <h2><span class="num">06</span> Deployment and the decision</h2>
+  <p class="intro">An RFC is one thing. A working production path is a different thing. Use this part to answer "how would you deploy it?".</p>
+
+  <h3>GET, QUERY or POST?</h3>
+  <figure class="diagram" data-title="Choose the method for a new endpoint" data-minw="480">
+    <script type="text/plain" class="mm">
+flowchart TD
+  S["A new endpoint"]:::blue --> A{"Does it change<br/>state?"}
+  A -->|yes| POST["POST, PUT, PATCH<br/>or DELETE"]:::warn
+  A -->|no| B{"Is the input small<br/>and not sensitive?"}
+  B -->|yes| GET["GET"]:::ok
+  B -->|no| C{"Do all hops<br/>support QUERY?"}
+  C -->|yes| QUERY["QUERY<br/>with Location for links"]:::q
+  C -->|not yet| D["POST for now<br/>plan the move to QUERY"]:::mute
+    </script>
+    <figcaption><span class="cap-t">The conclusion slide, as a decision.</span>
+      <span class="inwords">In words: a change of state needs an unsafe method. A small, harmless query uses GET. A large or sensitive query uses QUERY if every hop supports it. If not, use POST until the hops are ready.</span></figcaption>
+  </figure>
+
+  <h3>Checklist for each hop</h3>
+  <div class="grid g2">
+    <div class="card"><h4>Browser, client</h4><ul class="check"><li>Write <code>QUERY</code> in upper case.</li><li>Expect a preflight for cross-origin calls.</li><li>Read <code>Location</code> only if the server exposes it.</li></ul></div>
+    <div class="card"><h4>CDN, cache</h4><ul class="check"><li>Key on method, URI, type and content.</li><li>Normalise only what is safe.</li><li>If QUERY is not supported, do not store its responses.</li></ul></div>
+    <div class="card"><h4>WAF</h4><ul class="check"><li>Allow QUERY on the correct routes.</li><li>Examine its body as a POST body.</li><li>Use the same size limits as POST.</li></ul></div>
+    <div class="card"><h4>Load balancer, proxy</h4><ul class="check"><li>Forward QUERY with its body.</li><li>Frame the body the same way as the next hop.</li><li>Test for smuggling with a body.</li></ul></div>
+    <div class="card"><h4>Framework, application</h4><ul class="check"><li>Route QUERY. Answer OPTIONS with <code>Allow</code>.</li><li>Strict <code>Content-Type</code>: 400, 415, 422.</li><li>Authorization, validation, cost limits.</li></ul></div>
+    <div class="card"><h4>Database</h4><ul class="check"><li>Parameterised queries only.</li><li>Timeouts and result limits.</li></ul></div>
+    <div class="card"><h4>Logs, SIEM</h4><ul class="check"><li>Parse the method QUERY.</li><li>No raw sensitive bodies in logs.</li></ul></div>
+    <div class="card"><h4>Documentation</h4><ul class="check"><li>OpenAPI 3.2.0 has a <code>query</code> operation in the Path Item Object <span class="b b-source">Source</span> <a href="https://spec.openapis.org/oas/v3.2.0.html" target="_blank" rel="noopener">OAS 3.2</a>.</li><li>List the query formats (<code>Accept-Query</code>).</li></ul></div>
+  </div>
+
+  <h3>A test plan with curl <span class="b b-analysis">Analysis</span></h3>
+  <p>Run these commands through the real production path, not only against the origin. <code>api.example</code> is a placeholder.</p>
+  <pre class="code copyable" data-lang="bash"><code># 1. Does the full path pass QUERY with its body? Expect 200.
+curl -si -X QUERY https://api.example/contacts -H 'Content-Type: application/json' --data '{"q":"a"}' | head -1
+# 2. Discovery. Expect Allow with QUERY, and Accept-Query.
+curl -si -X OPTIONS https://api.example/contacts | grep -i '^allow\|^accept-query'
+# 3. Strict Content-Type. Expect 415.
+curl -si -X QUERY https://api.example/contacts --data 'x' | head -1
+# 4. Lower-case method. Expect 400 or 501, never 200.
+curl -si -X query https://api.example/contacts -H 'Content-Type: application/json' --data '{}' | head -1
+# 5. Cache key. Two bodies that differ in one field must not share a cached response.
+curl -si -X QUERY https://api.example/contacts -H 'Content-Type: application/json' --data '{"q":"a","role":"admin"}' | grep -i '^age\|^x-cache'
+curl -si -X QUERY https://api.example/contacts -H 'Content-Type: application/json' --data '{"q":"a","role":"user"}' | grep -i '^age\|^x-cache'</code></pre>
+
+  <h3>A fallback while hops change</h3>
+  <p>App. A.2 says that a client can send a QUERY and expect 405 if the resource does not support it. A client can then send the same content with POST <span class="b b-analysis">Analysis</span>. Keep the POST route read-only and give it the same controls.</p>
+
+  <h3>What is known to work</h3>
+  <ul>
+    <li>Node 24.18 <code>node:http</code> accepts QUERY. curl, <code>fetch()</code> in Node and Python <code>urllib</code> send it <span class="b b-tested">Tested</span>.</li>
+    <li>OpenAPI 3.2.0 (September 2025) can describe a QUERY operation <span class="b b-source">Source</span>.</li>
+    <li>For any other product, read its documentation and test it. Do not say "it supports QUERY" without a test.</li>
+  </ul>
+</section>
+
+<!-- ================= 07 LITERATURE ================= -->
+<section class="sec" id="literature" data-num="07" data-toc="Literature">
+  <h2><span class="num">07</span> Literature review</h2>
+  <p class="intro">The slides have two literature tables: three standards and four studies. The other sources are in the references only. This part gives the details of each one.</p>
+
+  <h3>How I chose the sources</h3>
+  <ul>
+    <li>The standards are the primary sources. RFC 10008 defines QUERY. RFC 9110 and RFC 9205 explain the problem.</li>
+    <li>No peer-reviewed study of RFC 10008 itself was found (Crossref and web search, October 2026) <span class="b b-deck">Deck</span>. This is normal for a standard from June 2026.</li>
+    <li>Thus the studies examine the mechanisms that QUERY uses: caches, request parsing and CORS. All four are from ACM CCS or USENIX Security, two top security venues.</li>
+  </ul>
+
+  <h3>Standards on slide 10</h3>
+  <div class="grid g3">
+    <div class="card lit"><div class="meta">[1] RFC 10008 · IETF · 2026</div><h4>The HTTP QUERY Method</h4><p>Reschke, Snell, Bishop.</p><dl><dt>Purpose</dt><dd>Define a safe, idempotent method that sends the query as content.</dd><dt>Findings</dt><dd>Content-Type is mandatory. Responses are cacheable, and the key must include the content. Accept-Query. Browsers send a preflight.</dd><dt>In the talk</dt><dd>Slides 8, 12 to 22.</dd></dl></div>
+    <div class="card lit"><div class="meta">[2] RFC 9110 · STD 97 · 2022</div><h4>HTTP Semantics</h4><p>Fielding, Nottingham, Reschke (Eds.).</p><dl><dt>Purpose</dt><dd>Define the meaning of methods, status codes and fields.</dd><dt>Findings</dt><dd>Safe and idempotent describe intent. URIs are not secure (§17.9). POST for a safe query "uses an unsafe method".</dd><dt>In the talk</dt><dd>Slides 3, 4, 6 to 8, 19.</dd></dl></div>
+    <div class="card lit"><div class="meta">[6] RFC 9205 · BCP 56 · 2022</div><h4>Building Protocols with HTTP</h4><p>Nottingham.</p><dl><dt>Purpose</dt><dd>Best current practice for HTTP-based APIs.</dd><dt>Findings</dt><dd>GET queries can become too long and hard to encode. POST queries lose caching and links (§4.5.1).</dd><dt>In the talk</dt><dd>Slide 10, and the answer to "why not GET with a body?".</dd></dl></div>
+  </div>
+
+  <h3>Studies on slide 11</h3>
+  <div class="grid g2">
+    <div class="card lit"><div class="meta">[16] ACM CCS 2019 · pp. 1915–1936</div><h4>Your Cache Has Fallen: Cache-Poisoned Denial-of-Service Attack</h4><p>H. V. Nguyen, L. Lo Iacono, H. Federrath.</p><dl><dt>What they did</dt><dd>Tested 15 web caching solutions (proxy caches and CDNs). A header that the cache ignores makes the origin send an error, and the cache keeps that error. Three variants: header oversize (HHO), meta character (HMC) and method override (HMO).</dd><dt>What they found</dt><dd>1 proxy cache and 5 CDN services were vulnerable. One request can make a resource unavailable for many users.</dd><dt>Link to QUERY</dt><dd>Any part of the request that the origin uses, but the cache ignores, is a risk. For QUERY, that part can be in the body.</dd></dl></div>
+    <div class="card lit"><div class="meta">[17] USENIX Security 2020</div><h4>Cached and Confused: Web Cache Deception in the Wild</h4><p>S. A. Mirheidari, S. Arshad, K. Onarlioglu, B. Crispo, E. Kirda, W. Robertson.</p><dl><dt>What they did</dt><dd>Measured web cache deception on 340 high-profile sites from the Alexa Top 5K, with new path-confusion variants.</dd><dt>What they found</dt><dd>Caches exposed private data and authentication tokens. Many sites were vulnerable two years after the attack became public.</dd><dt>Link to QUERY</dt><dd>The cache and the origin must agree on what is private. QUERY result URIs hold private results.</dd></dl></div>
+    <div class="card lit"><div class="meta">[18] ACM CCS 2021 · pp. 1805–1820</div><h4>T-Reqs: HTTP Request Smuggling with Differential Fuzzing</h4><p>B. Jabiyev, S. Sprecher, K. Onarlioglu, E. Kirda.</p><dl><dt>What they did</dt><dd>Grammar-based differential fuzzing of 10 popular server, proxy and CDN technologies, tested in pairs.</dd><dt>What they found</dt><dd>New request manipulations that make two hops disagree, and server pairs that allow request smuggling.</dd><dt>Link to QUERY</dt><dd>A new method with a body is new input for exactly these parser differences.</dd></dl></div>
+    <div class="card lit"><div class="meta">[19] USENIX Security 2018</div><h4>We Still Don’t Have Secure Cross-Domain Requests: an Empirical Study of CORS</h4><p>J. Chen, J. Jiang, H. Duan, T. Wan, S. Chen, V. Paxson, M. Yang.</p><dl><dt>What they did</dt><dd>Studied the design, implementation and deployment of CORS in the real world.</dd><dt>What they found</dt><dd>CORS relaxes cross-origin "write" in subtle ways, adds risky trust dependencies, and is often configured incorrectly.</dd><dt>Link to QUERY</dt><dd>Every cross-origin QUERY uses CORS. The preflight protects only if the policy is correct.</dd></dl></div>
+  </div>
+
+  <h3>In the references only</h3>
+  <p>These sources support details on single slides. The slides cite them with a link where they are used.</p>
+  <div class="tw"><table>
+    <thead><tr><th>Ref.</th><th>Source</th><th>What it gives</th><th>Used on</th></tr></thead>
+    <tbody>
+      <tr><td class="k">[3]</td><td>RFC 9111, HTTP Caching</td><td>The primary cache key is the method and the URI (§2). Rules for authenticated requests (§3.5).</td><td>slide 20</td></tr>
+      <tr><td class="k">[4]</td><td>RFC 9112, HTTP/1.1</td><td>Message framing: <code>Content-Length</code> and <code>Transfer-Encoding</code> (§6).</td><td>slide 23</td></tr>
+      <tr><td class="k">[5]</td><td>RFC 3986, URI syntax</td><td>The five parts of a URI; query (§3.4); fragment (§3.5).</td><td>slide 5</td></tr>
+      <tr><td class="k">[7]</td><td>RFC 9421, HTTP Message Signatures</td><td><code>@query</code> (§2.2.7), content coverage (§7.2.8), query shadowing (§7.5.8).</td><td>slide 22</td></tr>
+      <tr><td class="k">[8]</td><td>RFC 9530, Digest Fields</td><td>The <code>Content-Digest</code> field.</td><td>slide 22</td></tr>
+      <tr><td class="k">[9]</td><td>WHATWG Fetch and HTML</td><td>Method normalisation, CORS-safelisted methods, form methods.</td><td>slides 16, 21</td></tr>
+      <tr><td class="k">[10]</td><td>W3C Referrer Policy</td><td>The default <code>strict-origin-when-cross-origin</code>.</td><td>slide 7 notes</td></tr>
+      <tr><td class="k">[11]</td><td>IANA HTTP Method Registry</td><td>QUERY: safe, idempotent.</td><td>slide 13</td></tr>
+      <tr><td class="k">[12]</td><td>OpenAPI 3.2.0</td><td>The <code>query</code> operation.</td><td>slide 23</td></tr>
+      <tr><td class="k">[13]</td><td>OWASP WSTG-CONF-06</td><td>Tests for HTTP methods and method tampering.</td><td>slide 23</td></tr>
+      <tr><td class="k">[14]</td><td>MDN, CORS</td><td>A readable guide to preflights and exposed headers.</td><td>slide 21</td></tr>
+      <tr><td class="k">[15]</td><td>Starov, Gill, Nikiforakis, PoPETs 2016</td><td>PII leaks from contact forms on the 100,000 most popular sites, including through the Referer header.</td><td>slide 7 (background)</td></tr>
+      <tr><td class="k">[20]</td><td>Cha et al., ESEC/FSE 2020</td><td>GraphQL query cost: a linear-time static analysis gives tight upper bounds. Tested on two commercial GraphQL APIs.</td><td>slide 19</td></tr>
+      <tr><td class="k">[21]</td><td>Hartig &amp; Pérez, WWW 2018</td><td>GraphQL semantics. Evaluation is NL-complete, but responses can be very large. The size can be calculated in polynomial time.</td><td>slide 19 notes</td></tr>
+      <tr><td class="k">[22]</td><td>Chen et al., ACM CCS 2016, "Host of Troubles"</td><td>Different hops read the <code>Host</code> header in different ways. The same lesson as T-Reqs: hops must agree.</td><td>background</td></tr>
+    </tbody>
+  </table></div>
+
+  <h3>The full reference list</h3>
+  <ol class="refs-list">
+    <li><b>[1]</b>J. Reschke, J. M. Snell, and M. Bishop, “<a href="https://www.rfc-editor.org/rfc/rfc10008.html" target="_blank" rel="noopener">The HTTP QUERY Method</a>,” RFC 10008, IETF, Jun. 2026, doi: 10.17487/RFC10008.</li>
+    <li><b>[2]</b>R. Fielding, M. Nottingham, and J. Reschke, Eds., “<a href="https://www.rfc-editor.org/rfc/rfc9110.html" target="_blank" rel="noopener">HTTP Semantics</a>,” STD 97, RFC 9110, Jun. 2022.</li>
+    <li><b>[3]</b>R. Fielding, M. Nottingham, and J. Reschke, Eds., “<a href="https://www.rfc-editor.org/rfc/rfc9111.html" target="_blank" rel="noopener">HTTP Caching</a>,” STD 98, RFC 9111, Jun. 2022.</li>
+    <li><b>[4]</b>R. Fielding, M. Nottingham, and J. Reschke, Eds., “<a href="https://www.rfc-editor.org/rfc/rfc9112.html" target="_blank" rel="noopener">HTTP/1.1</a>,” STD 99, RFC 9112, Jun. 2022.</li>
+    <li><b>[5]</b>T. Berners-Lee, R. Fielding, and L. Masinter, “<a href="https://www.rfc-editor.org/rfc/rfc3986.html" target="_blank" rel="noopener">Uniform Resource Identifier (URI): Generic Syntax</a>,” STD 66, RFC 3986, Jan. 2005.</li>
+    <li><b>[6]</b>M. Nottingham, “<a href="https://www.rfc-editor.org/rfc/rfc9205.html" target="_blank" rel="noopener">Building Protocols with HTTP</a>,” BCP 56, RFC 9205, Jun. 2022.</li>
+    <li><b>[7]</b>A. Backman, J. Richer, and M. Sporny, Eds., “<a href="https://www.rfc-editor.org/rfc/rfc9421.html" target="_blank" rel="noopener">HTTP Message Signatures</a>,” RFC 9421, Feb. 2024.</li>
+    <li><b>[8]</b>R. Polli and L. Pardue, “<a href="https://www.rfc-editor.org/rfc/rfc9530.html" target="_blank" rel="noopener">Digest Fields</a>,” RFC 9530, Feb. 2024.</li>
+    <li><b>[9]</b>WHATWG, “<a href="https://fetch.spec.whatwg.org/" target="_blank" rel="noopener">Fetch Standard</a>” and “<a href="https://html.spec.whatwg.org/" target="_blank" rel="noopener">HTML Standard</a>,” Living Standards.</li>
+    <li><b>[10]</b>W3C, “<a href="https://www.w3.org/TR/referrer-policy/" target="_blank" rel="noopener">Referrer Policy</a>.”</li>
+    <li><b>[11]</b>IANA, “<a href="https://www.iana.org/assignments/http-methods/" target="_blank" rel="noopener">Hypertext Transfer Protocol (HTTP) Method Registry</a>.”</li>
+    <li><b>[12]</b>OpenAPI Initiative, “<a href="https://spec.openapis.org/oas/v3.2.0.html" target="_blank" rel="noopener">OpenAPI Specification v3.2.0</a>,” Sep. 2025.</li>
+    <li><b>[13]</b>OWASP, “<a href="https://owasp.org/www-project-web-security-testing-guide/stable/4-Web_Application_Security_Testing/02-Configuration_and_Deployment_Management_Testing/06-Test_HTTP_Methods" target="_blank" rel="noopener">WSTG-CONF-06: Test HTTP Methods</a>,” Web Security Testing Guide.</li>
+    <li><b>[14]</b>MDN Web Docs, “<a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS" target="_blank" rel="noopener">Cross-Origin Resource Sharing (CORS)</a>.”</li>
+    <li><b>[15]</b>O. Starov, P. Gill, and N. Nikiforakis, “<a href="https://doi.org/10.1515/popets-2015-0028" target="_blank" rel="noopener">Are You Sure You Want to Contact Us? Quantifying the Leakage of PII via Website Contact Forms</a>,” Proc. Privacy Enhancing Technologies, vol. 2016, no. 1, pp. 20–33, 2016.</li>
+    <li><b>[16]</b>H. V. Nguyen, L. Lo Iacono, and H. Federrath, “<a href="https://doi.org/10.1145/3319535.3354215" target="_blank" rel="noopener">Your Cache Has Fallen: Cache-Poisoned Denial-of-Service Attack</a>,” in Proc. ACM CCS, 2019, pp. 1915–1936.</li>
+    <li><b>[17]</b>S. A. Mirheidari, S. Arshad, K. Onarlioglu, B. Crispo, E. Kirda, and W. Robertson, “<a href="https://www.usenix.org/conference/usenixsecurity20/presentation/mirheidari" target="_blank" rel="noopener">Cached and Confused: Web Cache Deception in the Wild</a>,” in Proc. 29th USENIX Security Symposium, 2020.</li>
+    <li><b>[18]</b>B. Jabiyev, S. Sprecher, K. Onarlioglu, and E. Kirda, “<a href="https://doi.org/10.1145/3460120.3485384" target="_blank" rel="noopener">T-Reqs: HTTP Request Smuggling with Differential Fuzzing</a>,” in Proc. ACM CCS, 2021, pp. 1805–1820.</li>
+    <li><b>[19]</b>J. Chen, J. Jiang, H. Duan, T. Wan, S. Chen, V. Paxson, and M. Yang, “<a href="https://www.usenix.org/conference/usenixsecurity18/presentation/chen-jianjun" target="_blank" rel="noopener">We Still Don’t Have Secure Cross-Domain Requests: an Empirical Study of CORS</a>,” in Proc. 27th USENIX Security Symposium, 2018.</li>
+    <li><b>[20]</b>A. Cha, E. Wittern, G. Baudart, J. C. Davis, L. Mandel, and J. A. Laredo, “<a href="https://doi.org/10.1145/3368089.3409670" target="_blank" rel="noopener">A Principled Approach to GraphQL Query Cost Analysis</a>,” in Proc. ESEC/FSE, 2020, pp. 257–268.</li>
+    <li><b>[21]</b>O. Hartig and J. Pérez, “<a href="https://doi.org/10.1145/3178876.3186014" target="_blank" rel="noopener">Semantics and Complexity of GraphQL</a>,” in Proc. The Web Conference (WWW), 2018, pp. 1155–1164.</li>
+    <li><b>[22]</b>J. Chen, J. Jiang, H. Duan, N. Weaver, T. Wan, and V. Paxson, “<a href="https://doi.org/10.1145/2976749.2978394" target="_blank" rel="noopener">Host of Troubles: Multiple Host Ambiguities in HTTP Implementations</a>,” in Proc. ACM CCS, 2016, pp. 1516–1527.</li>
+  </ol>
+</section>
+
+<!-- ================= 08 SLIDES ================= -->
+<section class="sec" id="slides" data-num="08" data-toc="Slide by slide">
+  <h2><span class="num">08</span> Slide by slide</h2>
+  <p class="intro">The main point of each slide, its time, and the question that it can start. The speaker notes in <code>slides.md</code> have the full text.</p>
+  <div class="tw"><table>
+    <thead><tr><th>#</th><th>Slide</th><th>Time (ends)</th><th>The one point to make</th><th>A question it can start</th></tr></thead>
+    <tbody>
+      <tr><td class="k">1</td><td>Title</td><td>0:25 (0:25)</td><td>QUERY, RFC 10008, June 2026. Most of the talk is security.</td><td></td></tr>
+      <tr><td class="k">2</td><td>Presentation Outline</td><td>0:20 (0:45)</td><td>The description is the main part.</td><td></td></tr>
+      <tr><td class="k">3</td><td>An HTTP request and its response</td><td>0:50 (1:35)</td><td>The method tells each hop what the client wants. GET has no content.</td><td>Why not a body on GET? (<a href="#q-a8">Q-A8</a>)</td></tr>
+      <tr><td class="k">4</td><td>Safe and idempotent methods</td><td>0:40 (2:15)</td><td>Safe: no change requested. Idempotent: same effect when repeated.</td><td>An example of idempotent but not safe? (<a href="#q-a2">Q-A2</a>)</td></tr>
+      <tr><td class="k">5</td><td>The parts of a URI</td><td>0:35 (2:50)</td><td>The query component and the QUERY method only share a word.</td><td></td></tr>
+      <tr><td class="k">6</td><td>Problems when the query grows</td><td>0:45 (3:35)</td><td>No fixed limit, unknown limits, 414, encoding cost 30 → 54.</td><td>What is the maximum URI length? (<a href="#q-a5">Q-A5</a>)</td></tr>
+      <tr><td class="k">7</td><td>Where the URI is recorded</td><td>1:05 (4:40)</td><td>Each hop keeps the URI. The body has less exposure, not zero.</td><td>Does the body stop logging? (<a href="#q-c2">Q-C2</a>)</td></tr>
+      <tr><td class="k">8</td><td>The gap between GET and POST</td><td>0:55 (5:35)</td><td>[click] QUERY fills the empty cell. It is not a replacement.</td><td>Why not POST? (<a href="#q-a9">Q-A9</a>)</td></tr>
+      <tr><td class="k">9</td><td>Objectives</td><td>0:25 (6:00)</td><td>Six objectives. The security one is the main one.</td><td></td></tr>
+      <tr><td class="k">10</td><td>Literature Review: standards</td><td>0:45 (6:45)</td><td>RFC 10008 defines it. RFC 9110 and 9205 show the gap.</td><td>Why so few papers? (<a href="#q-f1">Q-F1</a>)</td></tr>
+      <tr><td class="k">11</td><td>Literature Review: studies</td><td>0:55 (7:40)</td><td>Cache, parser and CORS studies: when hops disagree, attackers win.</td><td>Why these four? (<a href="#q-f2">Q-F2</a>)</td></tr>
+      <tr><td class="k">12</td><td>The same query in three ways</td><td>0:30 (8:10)</td><td>QUERY keeps the POST content. Only the method changes.</td><td></td></tr>
+      <tr><td class="k">13</td><td>GET, QUERY and POST compared</td><td>0:35 (8:45)</td><td>Table 1: safe, idempotent, cacheable, content expected.</td><td>Can a cache reuse POST responses? (<a href="#q-b9">Q-B9</a>)</td></tr>
+      <tr><td class="k">14</td><td>A QUERY request</td><td>0:40 (9:25)</td><td>Content-Type is mandatory. No guessing.</td><td>415 or 422? (<a href="#q-b4">Q-B4</a>)</td></tr>
+      <tr><td class="k">15</td><td>A QUERY response</td><td>0:55 (10:20)</td><td>Location runs the query again; Content-Location gets this result.</td><td>Location versus Content-Location (<a href="#q-b6">Q-B6</a>)</td></tr>
+      <tr><td class="k">16</td><td>Send a QUERY request</td><td>0:50 (11:10)</td><td>No new client software. Write QUERY in upper case.</td><td>Why did lower case fail? (<a href="#q-d2">Q-D2</a>)</td></tr>
+      <tr><td class="k">17</td><td>A server that follows RFC 10008</td><td>0:50 (12:00)</td><td>Lines 22 to 30 are §2.1 in code.</td><td>What would you change for production? (<a href="#q-d6">Q-D6</a>)</td></tr>
+      <tr><td class="k">18</td><td>Status codes for a QUERY request</td><td>0:45 (12:45)</td><td>Six rows tested. 406 and 501 are from the RFCs only.</td><td>Why does Node send 400, not 501? (<a href="#q-d7">Q-D7</a>)</td></tr>
+      <tr><td class="k">19</td><td>Safe is not the same as secure</td><td>1:00 (13:45)</td><td>Injection and authorization do not change with the method.</td><td>Is QUERY more secure than GET? (<a href="#q-c1">Q-C1</a>)</td></tr>
+      <tr><td class="k">20</td><td>QUERY in a cache</td><td>1:10 (14:55)</td><td>A lossy key gives admin results to a user.</td><td>Does a real CDN do this? (<a href="#q-c4">Q-C4</a>)</td></tr>
+      <tr><td class="k">21</td><td>QUERY from a browser: CORS</td><td>0:55 (15:50)</td><td>Always a preflight cross-origin. Forms cannot send it.</td><td>Does it help against CSRF? (<a href="#q-c7">Q-C7</a>)</td></tr>
+      <tr><td class="k">22</td><td>Sign a QUERY request</td><td>1:00 (16:50)</td><td><code>@query</code> is only "?". Sign <code>content-digest</code>.</td><td>How did you compute the digest? (<a href="#q-d5">Q-D5</a>)</td></tr>
+      <tr><td class="k">23</td><td>Deploy QUERY</td><td>0:55 (17:45)</td><td>Every hop must support it. One weak hop is a bypass.</td><td>Should we move all POST searches now? (<a href="#q-e3">Q-E3</a>)</td></tr>
+      <tr><td class="k">24</td><td>Conclusion</td><td>0:45 (18:30)</td><td>Not a replacement. Security depends on the implementation.</td><td></td></tr>
+      <tr><td class="k">25–26</td><td>References</td><td>not presented</td><td>22 references in IEEE style.</td><td></td></tr>
+      <tr><td class="k">27</td><td>Queries &amp; Suggestions</td><td>2–3 min</td><td>Use part 09.</td><td></td></tr>
+      <tr><td class="k">28</td><td>Thank you</td><td></td><td></td><td></td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<!-- ================= 09 QUESTIONS ================= -->
+<section class="sec" id="questions" data-num="09" data-toc="Question bank">
+  <h2><span class="num">09</span> Question bank</h2>
+  <p class="intro">Likely questions from the panel, with short answers. Type a word to filter, for example "cache" or "422".</p>
+  <div class="qa-tools">
+    <input id="qa-filter" type="search" placeholder="Filter the questions" aria-label="Filter the questions">
+    <button class="btn" id="qa-open" type="button">Open all</button>
+    <button class="btn" id="qa-close" type="button">Close all</button>
+    <span class="count" id="qa-count"></span>
+  </div>
+
+  <div class="qa-group">
+    <h3>A. HTTP basics <small></small></h3>
+    <details class="qa" id="q-a1"><summary>Q-A1. What does "safe" mean in HTTP?</summary><div class="a"><p>The client does not ask for a change of state on the server (RFC 9110 §9.2.1). Thus caches, prefetchers and crawlers can send the request freely. The server can still log or count the request. Safe describes the intent of the client, not the code of the server.</p></div></details>
+    <details class="qa" id="q-a2"><summary>Q-A2. What does "idempotent" mean? Give a method that is idempotent but not safe.</summary><div class="a"><p>Many identical requests have the same intended effect as one request (§9.2.2). Thus a client can send it again after a connection fails. PUT and DELETE are idempotent but not safe: they change state, but a second identical request changes nothing more.</p></div></details>
+    <details class="qa" id="q-a3"><summary>Q-A3. Are method names case-sensitive? Why does it matter?</summary><div class="a"><p>Yes (RFC 9110 §9.1). <code>fetch()</code> changes only six classic names to upper case. With <code>method: 'query'</code> it sends <code>query</code>, and Node 24 replied 400 (Tested). Always write <code>QUERY</code>.</p></div></details>
+    <details class="qa" id="q-a4"><summary>Q-A4. What is the difference between the query component and the QUERY method?</summary><div class="a"><p>The query component is the part of a URI after <code>?</code>. It is part of an identifier (RFC 3986 §3.4). The QUERY method sends its input in the body, which RFC 10008 §1.1 calls the "query content". They only share a word.</p></div></details>
+    <details class="qa" id="q-a5"><summary>Q-A5. What is the maximum length of a URI?</summary><div class="a"><p>HTTP has no maximum. RFC 9110 §4.1 recommends support for at least 8000 octets. Each hop can set its own limit, and the client cannot know these limits (RFC 10008 §1). A server that cannot accept a URI sends 414.</p></div></details>
+    <details class="qa" id="q-a6"><summary>Q-A6. Why does the fragment never appear in server logs?</summary><div class="a"><p>The browser does not send the fragment to the server. The fragment is processed only by the user agent (RFC 3986 §3.5).</p></div></details>
+    <details class="qa" id="q-a7"><summary>Q-A7. How much does percent-encoding add?</summary><div class="a"><p>Each encoded character becomes three characters. In the slide 6 example, 12 characters change, and 30 characters of JSON become 54 (Tested with <code>encodeURIComponent()</code>).</p></div></details>
+    <details class="qa" id="q-a8"><summary>Q-A8. Why not just send a body with GET?</summary><div class="a"><p>RFC 9110 §9.3.1: content in a GET request "has no generally defined semantics", and a client should not send it unless the origin server said that it supports it. RFC 9205 §4.5.1: generic HTTP software will ignore or reject it. If two hops handle that body in different ways, request smuggling becomes possible.</p></div></details>
+    <details class="qa" id="q-a9"><summary>Q-A9. Why not just use POST for queries?</summary><div class="a"><p>POST does not promise safe or idempotent. A proxy must not send it again automatically, and a cache can reuse a POST response only for a later GET. RFC 9110 §17.9 says that POST for a query "hinders caching and uses an unsafe method for what would otherwise be a safe request". RFC 9205 adds that POST loses the links of GET.</p></div></details>
+  </div>
+
+  <div class="qa-group">
+    <h3>B. RFC 10008 <small></small></h3>
+    <details class="qa" id="q-b1"><summary>Q-B1. What is RFC 10008, and who wrote it?</summary><div class="a"><p>"The HTTP QUERY Method", an IETF Standards Track RFC from June 2026. The authors are Julian Reschke (greenbytes), James M. Snell (Cloudflare) and Mike Bishop (Akamai).</p></div></details>
+    <details class="qa" id="q-b2"><summary>Q-B2. What must a QUERY request contain?</summary><div class="a"><p>Content, and a <code>Content-Type</code> that agrees with it. "Servers MUST fail the request" if <code>Content-Type</code> is missing or inconsistent (§2).</p></div></details>
+    <details class="qa" id="q-b3"><summary>Q-B3. Can the server guess the type when Content-Type is missing?</summary><div class="a"><p>No. "A server is not allowed to infer a media type from the request content" (§2.1). A missing type gets a 4xx, for example 400.</p></div></details>
+    <details class="qa" id="q-b4"><summary>Q-B4. When does a server send 415, and when 422?</summary><div class="a"><p>415: the server does not support the media type. It can add <code>Accept-Query</code> to list the supported types. 422: the type is supported and the content is valid, but the server cannot run this query, for example a field of the wrong type (§2.1).</p></div></details>
+    <details class="qa" id="q-b5"><summary>Q-B5. What is Accept-Query?</summary><div class="a"><p>A new response header (§3). It lists the query formats that a resource accepts. It is a Structured Field List, for example <code>Accept-Query: "application/jsonpath", application/sql;charset="UTF-8"</code>. It applies to all URIs with the same path.</p></div></details>
+    <details class="qa" id="q-b6"><summary>Q-B6. What is the difference between Location and Content-Location?</summary><div class="a"><p><code>Location</code> (§2.4) identifies the query: a later GET runs it again with no body. <code>Content-Location</code> (§2.3) identifies this result: a later GET returns the stored result. Both can be temporary.</p></div></details>
+    <details class="qa" id="q-b7"><summary>Q-B7. What is the "equivalent resource"?</summary><div class="a"><p>A resource that answers a GET with the same result as the QUERY (§2.2). The server can give it a URI in <code>Location</code>, but it does not have to.</p></div></details>
+    <details class="qa" id="q-b8"><summary>Q-B8. How do redirects work for QUERY?</summary><div class="a"><p>301, 302, 307 and 308 keep the QUERY method. The old browser rule that changes POST to GET does not apply. 303 tells the client to send a GET to the new URI (§2.5).</p></div></details>
+    <details class="qa" id="q-b9"><summary>Q-B9. Can caches keep QUERY responses? What is the rule?</summary><div class="a"><p>Yes. A cache MAY use a QUERY response for later QUERY requests. The cache key MUST include the request content and its metadata. Caches MAY remove differences that do not change the meaning, only for the key (§2.7).</p></div></details>
+    <details class="qa" id="q-b10"><summary>Q-B10. Do conditional and range requests work?</summary><div class="a"><p>Conditional requests work as for a GET to the equivalent resource, so 304 is possible (§2.6). Range requests work the same as for GET, but they are of little use. The query format should do its own paging (§2.8).</p></div></details>
+    <details class="qa" id="q-b11"><summary>Q-B11. Why "QUERY" and not SEARCH, REPORT or PROPFIND?</summary><div class="a"><p>Appendix B: those methods come from WebDAV and use a generic XML media type. QUERY gets its meaning only from the content type. The name also maps to the query component of the URI. Early drafts used SEARCH.</p></div></details>
+    <details class="qa" id="q-b12"><summary>Q-B12. Can a QUERY request also have a query component in its URI?</summary><div class="a"><p>Yes. Its effect is specific to the resource and outside the scope of the RFC (§2).</p></div></details>
+    <details class="qa" id="q-b13"><summary>Q-B13. Is QUERY in the IANA registry?</summary><div class="a"><p>Yes. The HTTP Method Registry lists QUERY as safe and idempotent (§5.1). <code>Accept-Query</code> is a permanent field with the structured type List (§5.2).</p></div></details>
+  </div>
+
+  <div class="qa-group">
+    <h3>C. Security <small></small></h3>
+    <details class="qa" id="q-c1"><summary>Q-C1. Is QUERY more secure than GET?</summary><div class="a"><p>Not by itself. It keeps the input out of the URI, so fewer logs and headers copy it. A cross-site page cannot send it without a preflight. But bodies can be logged, the cache key is more difficult, signatures need <code>Content-Digest</code>, and every hop must support it. The result depends on the implementation.</p></div></details>
+    <details class="qa" id="q-c2"><summary>Q-C2. Does a body stop the data from being logged?</summary><div class="a"><p>No. Body logs, WAF and APM tools and TLS-terminating hops can see it. RFC 10008 §4 says that URIs are "more likely" to be logged. QUERY decreases exposure. It does not remove it.</p></div></details>
+    <details class="qa" id="q-c3"><summary>Q-C3. Why is safe not the same as secure?</summary><div class="a"><p>Safe describes what the client intends. RFC 9110 §9.2.1 says that safety does not prevent harmful behaviour. A safe QUERY can still carry SQL injection, read data that the caller must not see, or use a lot of CPU.</p></div></details>
+    <details class="qa" id="q-c4"><summary>Q-C4. How can a cache leak data with QUERY? Does a real CDN do this?</summary><div class="a"><p>If the cache key leaves out part of the body, two different queries share one key. Then one user gets another user's results. <code>cache-key.mjs</code> shows it. I do not say that a specific CDN does this. QUERY caching is new code, and the cache papers show that cache and origin disagreements are exploitable.</p></div></details>
+    <details class="qa" id="q-c5"><summary>Q-C5. What is CPDoS, and how is it related?</summary><div class="a"><p>Cache-poisoned denial of service (Nguyen et al., CCS 2019). An attacker makes the origin send an error with a header that the cache ignores, and the cache keeps that error for all users. For QUERY, any part of the request that the origin uses but the key ignores is the same type of risk (Analysis).</p></div></details>
+    <details class="qa" id="q-c6"><summary>Q-C6. Does a browser always send a preflight for QUERY?</summary><div class="a"><p>For a cross-origin request, yes. Only GET, HEAD and POST are CORS-safelisted methods (Fetch; RFC 10008 §4). Same-origin requests and non-browser clients have no preflight.</p></div></details>
+    <details class="qa" id="q-c7"><summary>Q-C7. Does QUERY help against CSRF?</summary><div class="a"><p>Partly. Forms cannot send QUERY, and <code>no-cors</code> rejects it, so a cross-site page needs a successful preflight. Also, QUERY is safe, so it must not change state. But a permissive CORS policy with credentials still lets a page read the results. That is a data leak, not CSRF.</p></div></details>
+    <details class="qa" id="q-c8"><summary>Q-C8. Why must a signature cover Content-Digest?</summary><div class="a"><p>RFC 9421 does not sign the content directly (§7.2.8). For a QUERY, <code>@query</code> is only <code>?</code> (§2.2.7). Thus a GET signing policy, copied with no change, covers everything except the query. Sign <code>content-digest</code>, and calculate the digest again at the receiver.</p></div></details>
+    <details class="qa" id="q-c9"><summary>Q-C9. What is request smuggling, and why does a new method matter?</summary><div class="a"><p>Two hops disagree about where one request ends. The attacker hides a second request inside the first one. A new method with a body is new input for the parsers, and a hop that does not know QUERY can handle its body differently. T-Reqs (CCS 2021) found such differences between real servers.</p></div></details>
+    <details class="qa" id="q-c10"><summary>Q-C10. How can QUERY get around a WAF?</summary><div class="a"><p>If the WAF examines only GET URIs and POST bodies, a QUERY body goes through with no check. OWASP WSTG-CONF-06 tests this type of method tampering. Add QUERY to the body rules and the size limits.</p></div></details>
+    <details class="qa" id="q-c11"><summary>Q-C11. What is the risk of the stored-query URIs?</summary><div class="a"><p>Two risks. First, the URI must not contain sensitive parts of the query (§4, SHOULD). Second, my demo uses a counter, so another client can guess a URI and run a query that it did not write (Analysis). Check authorization on each GET, or use an unguessable ID.</p></div></details>
+  </div>
+
+  <div class="qa-group">
+    <h3>D. Code <small></small></h3>
+    <details class="qa" id="q-d1"><summary>Q-D1. What does your server do with a missing Content-Type?</summary><div class="a"><p>It sends 400 with <code>{"error":"Content-Type is required"}</code> (lines 22 to 23). That follows "MUST fail" in §2 (Tested).</p></div></details>
+    <details class="qa" id="q-d2"><summary>Q-D2. Why did <code>method: 'query'</code> fail?</summary><div class="a"><p>Method names are case-sensitive, and <code>fetch()</code> changes only DELETE, GET, HEAD, OPTIONS, POST and PUT to upper case. It sent <code>query</code>. Node's HTTP parser rejected it with 400 before my handler ran (Tested).</p></div></details>
+    <details class="qa" id="q-d3"><summary>Q-D3. Why does the server limit the body and the results?</summary><div class="a"><p>A safe method can still be expensive. The 16 KiB body limit protects the memory. The limit of 100 results protects the CPU and the network. Safe is not cheap.</p></div></details>
+    <details class="qa" id="q-d4"><summary>Q-D4. What does cache-key.mjs show?</summary><div class="a"><p>Two normalisers for the same two queries. <code>canonical</code> sorts the keys and gives two different cache keys, which is correct. <code>lossy</code> drops <code>role</code> and gives the same key for the admin query and the user query (real output on slide 20).</p></div></details>
+    <details class="qa" id="q-d5"><summary>Q-D5. How did you compute the Content-Digest on slide 22?</summary><div class="a"><p>SHA-256 of the exact body bytes, then Base64: <code>printf '%s' '{"q":"security","limit":10}' | openssl dgst -sha256 -binary | base64</code>. The result matches the slide. The <code>Signature</code> value itself is shortened and is not real.</p></div></details>
+    <details class="qa" id="q-d6"><summary>Q-D6. What would you change in server.mjs for production?</summary><div class="a"><p>Send 413 for a large body, not 400 (change tested). Send 404 for an unknown stored-query URI. Handle HEAD, so that <code>Accept-Query</code> discovery works (App. A.3). Link stored queries to their owner and check authorization. Give them an expiry time. Check <code>Accept</code> and send 406 when necessary.</p></div></details>
+    <details class="qa" id="q-d7"><summary>Q-D7. RFC 9110 says 501 for an unknown method. Why did Node send 400?</summary><div class="a"><p>Node's HTTP parser accepts only the method names that it knows. It rejects other names, such as <code>FOO</code> or lower-case <code>query</code>, with 400 before the application sees the request (Tested). The 501 rule is a SHOULD for origin servers.</p></div></details>
+    <details class="qa" id="q-d8"><summary>Q-D8. Can you show the injection on slide 19?</summary><div class="a"><p>Line 6 puts <code>query.q</code> into the SQL text. A value with a quote, such as <code>' OR '1'='1</code>, changes the SQL. Lines 7 to 8 send the value as the parameter <code>$1</code>. The method of the request does not change this.</p></div></details>
+  </div>
+
+  <div class="qa-group">
+    <h3>E. Deployment <small></small></h3>
+    <details class="qa" id="q-e1"><summary>Q-E1. What must a CDN do to support QUERY?</summary><div class="a"><p>Forward it with its body. Key the cache on the method, the URI, the content type and the content. Normalise only safe differences. If it cannot do this, it must not store QUERY responses.</p></div></details>
+    <details class="qa" id="q-e2"><summary>Q-E2. What happens if one hop does not support QUERY?</summary><div class="a"><p>The request fails with 405 or 501, or the hop handles the body in a different way. That can cause request smuggling. A hop that passes QUERY without the controls that it has for POST becomes a bypass.</p></div></details>
+    <details class="qa" id="q-e3"><summary>Q-E3. Should we change all POST searches to QUERY now?</summary><div class="a"><p>Only where every hop supports it. Test the full path first (part 06). Until then, a read-only POST route with the same controls is a fallback.</p></div></details>
+    <details class="qa" id="q-e4"><summary>Q-E4. How does a client know if a server supports QUERY?</summary><div class="a"><p>Send OPTIONS and look for QUERY in <code>Allow</code> (App. A.2). Send HEAD and read <code>Accept-Query</code> (App. A.3). Or send a QUERY and expect 405 if it is not supported.</p></div></details>
+    <details class="qa" id="q-e5"><summary>Q-E5. How do you document a QUERY endpoint?</summary><div class="a"><p>OpenAPI 3.2.0 (September 2025) has a <code>query</code> operation in the Path Item Object. List the request media types, and give the <code>Accept-Query</code> value.</p></div></details>
+  </div>
+
+  <div class="qa-group">
+    <h3>F. Literature and the talk <small></small></h3>
+    <details class="qa" id="q-f1"><summary>Q-F1. Why is there no paper about QUERY itself in your review?</summary><div class="a"><p>I found no peer-reviewed study of RFC 10008 (Crossref and web search, October 2026). The RFC is from June 2026, so this is normal. I reviewed studies of the mechanisms that QUERY uses: caches, parsers and CORS.</p></div></details>
+    <details class="qa" id="q-f2"><summary>Q-F2. Why these four studies?</summary><div class="a"><p>Each one matches one new risk of QUERY: CPDoS and web cache deception for the cache key, T-Reqs for body parsing, and the CORS study for the preflight. All four are from ACM CCS or USENIX Security.</p></div></details>
+    <details class="qa" id="q-f3"><summary>Q-F3. Where are the other sources, such as Starov or Cha?</summary><div class="a"><p>In the references. Starov et al. (2016) measured PII leaks through the Referer header. Cha et al. (2020) and Hartig &amp; Pérez (2018) show that queries can be expensive. The slides cite them where they are used.</p></div></details>
+    <details class="qa" id="q-f4"><summary>Q-F4. Did you run the code?</summary><div class="a"><p>Yes. <code>server.mjs</code> with curl, <code>fetch()</code> and Python <code>urllib</code>, on Node 24.18, curl 8.7.1 and Python 3.14, on 17 October 2026. The outputs on the slides are from those runs.</p></div></details>
+    <details class="qa" id="q-f5"><summary>Q-F5. What is your main recommendation?</summary><div class="a"><p>Use GET when the query fits in a URI. Use QUERY for a safe query with large or structured input, when every hop supports it. Use POST when the request changes state. Involve the security team from the start.</p></div></details>
+  </div>
+</section>
+
+<!-- ================= 10 GLOSSARY ================= -->
+<section class="sec" id="glossary" data-num="10" data-toc="Glossary">
+  <h2><span class="num">10</span> Glossary</h2>
+  <p class="intro">Short definitions of the terms in the talk.</p>
+  <dl class="kv">
+    <dt>APM</dt><dd>Application performance monitoring. A tool that records requests in an application, sometimes with their bodies.</dd>
+    <dt>CDN</dt><dd>Content delivery network. Caches near the users.</dd>
+    <dt>Content-Digest</dt><dd>A header with a hash of the body (RFC 9530).</dd>
+    <dt>CORS</dt><dd>Cross-Origin Resource Sharing. The browser rules for requests to another origin.</dd>
+    <dt>CPDoS</dt><dd>Cache-poisoned denial of service. A cache keeps an error page and sends it to all users.</dd>
+    <dt>CSRF</dt><dd>Cross-site request forgery. A page makes the browser send a request with the user's cookies.</dd>
+    <dt>Equivalent resource</dt><dd>A resource that answers a GET with the same result as a QUERY (RFC 10008 §2.2).</dd>
+    <dt>Hop</dt><dd>One system between the client and the origin.</dd>
+    <dt>IANA</dt><dd>The organisation that keeps the registries of protocol values, such as HTTP methods.</dd>
+    <dt>IDOR</dt><dd>Insecure direct object reference. Access to an object only because its ID is known or guessed.</dd>
+    <dt>Idempotent</dt><dd>Repeated requests have the same intended effect as one request.</dd>
+    <dt>Normalisation</dt><dd>A change that removes differences with no meaning, for example the order of JSON keys.</dd>
+    <dt>Origin (server)</dt><dd>The server that owns the resource.</dd>
+    <dt>Origin (browser)</dt><dd>Scheme, host and port of a page, for example <code>https://app.example</code>.</dd>
+    <dt>Preflight</dt><dd>An OPTIONS request that the browser sends to ask if a cross-origin request is allowed.</dd>
+    <dt>Query component</dt><dd>The part of a URI after <code>?</code>.</dd>
+    <dt>Query content</dt><dd>The body of a QUERY request.</dd>
+    <dt>Referer</dt><dd>A request header with the URL of the page that made the request. The spelling is historical.</dd>
+    <dt>Request smuggling</dt><dd>An attack where two hops disagree about where a request ends.</dd>
+    <dt>Safe</dt><dd>The client does not ask for a change of state.</dd>
+    <dt>SIEM</dt><dd>Security information and event management. A system that collects, indexes and keeps logs.</dd>
+    <dt>Structured Field</dt><dd>A header with a strict, typed syntax (RFC 9651). <code>Accept-Query</code> is a List.</dd>
+    <dt>TLS termination</dt><dd>The point where TLS ends and the hop can read the request in clear text.</dd>
+    <dt>WAF</dt><dd>Web application firewall. It examines requests and blocks attacks.</dd>
+    <dt>Web cache deception</dt><dd>An attack that makes a cache store a private page as public.</dd>
+  </dl>
+</section>
+
+<!-- ================= 11 TIPS ================= -->
+<section class="sec" id="tips" data-num="11" data-toc="Tips for the talk">
+  <h2><span class="num">11</span> Tips for the live talk</h2>
+  <ul class="check">
+    <li>The notes are timed for 18:30 at about 130 words a minute. The college rule is at least 18 minutes of talk and 2 minutes of questions.</li>
+    <li>Slide 8 has the only click. All other slides are static.</li>
+    <li>If you are late, read only the SAY text, and skip the CLARIFY and NOTICE lines. Slides 7, 20 and 23 have the most text to cut.</li>
+    <li>On a code slide, say the line number first, then the point. The panel can then follow.</li>
+    <li>Do not say that a specific CDN, WAF or framework supports QUERY, or fails with it. Say what you tested: Node 24, curl, fetch and Python.</li>
+    <li>Say the number as "RFC ten thousand and eight". Say "QUERY method" when you mean the method, and "query component" when you mean the URI part.</li>
+    <li>Keep the server running in a terminal during the talk. If the panel asks "did it work?", run <code>bash client.sh</code>.</li>
+    <li>If a question goes outside the talk, use the labels in this guide: give tested facts first, then sources, then your analysis.</li>
+  </ul>
+  <p class="foot">The listings in part 04 are embedded copies of <code>server.mjs</code>, <code>cache-key.mjs</code> and <code>search-handler.js</code> from <code>decks/http-query/snippets/</code>, as they were on 17 October 2026. If you change a file, update this guide too.</p>
+</section>
+
+</main>
+</div>
+
+<dialog class="zoom" id="zoom" aria-label="Diagram viewer">
+  <header>
+    <b id="zoom-title">Diagram</b>
+    <button class="btn" id="z-out" type="button" aria-label="Zoom out">−</button>
+    <button class="btn" id="z-in" type="button" aria-label="Zoom in">+</button>
+    <button class="btn" id="z-fit" type="button">Fit</button>
+    <button class="btn" id="z-close" type="button">Close</button>
+  </header>
+  <div class="zbody" id="zoom-body"></div>
+</dialog>
+
+<!-- Embedded copy of decks/http-query/snippets/server.mjs. The listing and the line tables are built from this text. -->
+<script type="text/plain" data-src="server" data-lang="js">
+// A QUERY endpoint that follows RFC 10008 (sections in the comments).
+// Run: node server.mjs   then try client.sh, client.mjs or client.py
+import { createServer } from 'node:http'
+
+const JSON_TYPE = 'application/json'
+const Allow = 'GET, QUERY, OPTIONS'
+const CONTACTS = [
+  { surname: 'Smith', givenname: 'John', email: 'smith@example.org' },
+  { surname: 'Jones', givenname: 'Sally', email: 'sally.jones@example.com' },
+  { surname: 'Dubois', givenname: 'Camille', email: 'camille.dubois@example.net' },
+]
+const stored = new Map() // URI -> query: the "equivalent resource" (§2.2)
+
+createServer(async (req, res) => {
+  if (req.method === 'OPTIONS') // discovery, Appendix A.2 and A.3
+    return send(res, 204, null, { Allow, 'Accept-Query': JSON_TYPE })
+  if (req.method === 'GET' && stored.has(req.url)) // GET the Location, §2.4
+    return send(res, 200, search(stored.get(req.url)))
+  if (req.method !== 'QUERY')
+    return send(res, 405, null, { Allow })
+  const type = req.headers['content-type']?.split(';')[0].trim()
+  if (!type) // §2: MUST fail
+    return send(res, 400, { error: 'Content-Type is required' })
+  if (type !== JSON_TYPE) // §2.1 and §3
+    return send(res, 415, null, { 'Accept-Query': JSON_TYPE })
+  let query
+  try { query = JSON.parse(await readBody(req, 16 * 1024)) }
+  catch { return send(res, 400, { error: 'not valid JSON' }) } // no sniffing
+  if (typeof query.q !== 'string') // §2.1: understood, cannot run
+    return send(res, 422, { error: '"q" must be a string' })
+  const location = `/contacts/stored-queries/${stored.size + 1}`
+  stored.set(location, query)
+  send(res, 200, search(query), { Location: location })
+}).listen(8787, () => console.log('listening on :8787'))
+
+function search({ q, limit = 10 }) {
+  const n = Math.min(Number(limit) || 10, 100) // cost cap: safe is not cheap
+  return CONTACTS.filter(c => c.email.includes(q)).slice(0, n)
+}
+
+function send(res, status, body, headers = {}) {
+  if (body !== null)
+    headers['Content-Type'] = JSON_TYPE
+  res.writeHead(status, headers)
+  res.end(body === null ? undefined : `${JSON.stringify(body)}\n`)
+}
+
+async function readBody(req, max) {
+  let text = ''
+  for await (const chunk of req) {
+    text += chunk
+    if (text.length > max)
+      throw new Error('too large')
+  }
+  return text
+}
+</script>
+
+<!-- Embedded copy of decks/http-query/snippets/cache-key.mjs. The listing and the line tables are built from this text. -->
+<script type="text/plain" data-src="cachekey" data-lang="js">
+// RFC 10008 §2.7: the key MUST include the content. Run: node cache-key.mjs
+import { createHash } from 'node:crypto'
+
+const key = (...parts) =>
+  createHash('sha256').update(parts.join('\n')).digest('hex').slice(0, 8)
+
+// allowed: ignore what does not change the meaning (key order)
+const canonical = q => JSON.stringify(q, Object.keys(q).sort())
+// wrong: keep only the fields this cache knows, so `role` is lost
+const lossy = ({ q, limit }) => JSON.stringify({ q, limit })
+
+const admins = { q: 'a', limit: 10, role: 'admin' }
+const users = { role: 'user', limit: 10, q: 'a' }
+
+for (const norm of [canonical, lossy]) {
+  const k1 = key('QUERY', '/users/search', 'application/json', norm(admins))
+  const k2 = key('QUERY', '/users/search', 'application/json', norm(users))
+  const verdict = k1 === k2 ? 'SAME KEY' : 'distinct'
+  console.log(norm.name.padEnd(10), k1, k2, verdict)
+}
+</script>
+
+<!-- Embedded copy of decks/http-query/snippets/search-handler.js. The listing and the line tables are built from this text. -->
+<script type="text/plain" data-src="handler" data-lang="js">
+// excerpt: QUERY content is untrusted input, like any other
+async function searchUsers(user, query) {
+  if (!user.roles.includes('admin')) // read-only is not "allowed"
+    throw new HttpError(403)
+  const limit = Math.min(Number(query.limit) || 20, 100) // cost cap
+  return db.query(`SELECT email FROM users WHERE email LIKE '%${query.q}%'`)
+  return db.query('SELECT email FROM users WHERE email LIKE $1 LIMIT $2',
+    [`%${query.q}%`, limit], { timeout: 2000 })
+}
+</script>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- helpers ---------- */
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
+  var esc = function (s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); };
+  var store = {
+    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+  };
+  var root = document.documentElement;
+
+  /* ---------- theme ---------- */
+  var MODES = ['auto', 'light', 'dark'];
+  var mode = store.get('httpquery-guide-theme');
+  if (MODES.indexOf(mode) < 0) mode = 'auto';
+  function currentTheme() {
+    var t = root.getAttribute('data-theme');
+    if (t === 'light' || t === 'dark') return t;
+    return window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  function applyMode() {
+    if (mode === 'auto') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', mode);
+    $('#theme').textContent = 'Theme: ' + mode;
+  }
+  applyMode();
+  $('#theme').addEventListener('click', function () {
+    mode = MODES[(MODES.indexOf(mode) + 1) % MODES.length];
+    store.set('httpquery-guide-theme', mode);
+    applyMode();
+    renderDiagrams();
+  });
+  if (window.matchMedia) {
+    var mq = matchMedia('(prefers-color-scheme: dark)');
+    var onMq = function () { if (mode === 'auto') renderDiagrams(); };
+    if (mq.addEventListener) mq.addEventListener('change', onMq); else if (mq.addListener) mq.addListener(onMq);
+  }
+
+  /* ---------- contents ---------- */
+  var secs = $$('section.sec');
+  secs.forEach(function (s) {
+    var a = document.createElement('a');
+    a.href = '#' + s.id;
+    a.innerHTML = '<b>' + s.dataset.num + '</b><span>' + esc(s.dataset.toc) + '</span>';
+    $('#toc').appendChild(a);
+    $('#toc-m').appendChild(a.cloneNode(true));
+  });
+  $('#toc-m').addEventListener('click', function (e) {
+    if (e.target.closest('a')) $('.toc-m').removeAttribute('open');
+  });
+  if ('IntersectionObserver' in window) {
+    var links = $$('#toc a');
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (l) { l.classList.toggle('on', l.getAttribute('href') === '#' + en.target.id); });
+      });
+    }, { rootMargin: '-25% 0px -65% 0px' });
+    secs.forEach(function (s) { io.observe(s); });
+  }
+
+  /* ---------- syntax colours ---------- */
+  // Small tokenizers: enough for the files in this guide, not general parsers.
+  var KW = {
+    js: /^(?:const|let|var|function|async|await|return|if|else|for|of|in|try|catch|throw|new|import|from|export|default|typeof|null|undefined|true|false|while|break|continue)$/,
+    python: /^(?:import|from|as|with|def|return|if|else|elif|for|in|try|except|raise|None|True|False|print)$/
+  };
+  function tokCode(src, lang) {
+    var out = [], n = src.length, i = 0, plain = '', kw = KW[lang] || KW.js, line = lang === 'python' ? '#' : '//';
+    function flush() { if (plain) { out.push(['', plain]); plain = ''; } }
+    function push(c, t) { flush(); out.push([c, t]); }
+    while (i < n) {
+      var c = src[i], m;
+      if (src.substr(i, line.length) === line) {
+        var e = src.indexOf('\n', i); if (e < 0) e = n;
+        push('c', src.slice(i, e)); i = e; continue;
+      }
+      if (c === '"' || c === "'" || c === '`') {
+        var j = i + 1;
+        while (j < n && src[j] !== c) { if (src[j] === '\\') j++; if (c !== '`' && src[j] === '\n') break; j++; }
+        j = Math.min(j + 1, n);
+        push('s', src.slice(i, j)); i = j; continue;
+      }
+      if (/[0-9]/.test(c) && !/[A-Za-z_$0-9]/.test(src[i - 1] || '')) {
+        m = /^[0-9][0-9_.]*/.exec(src.slice(i, i + 30));
+        push('n', m[0]); i += m[0].length; continue;
+      }
+      if (/[A-Za-z_$]/.test(c)) {
+        m = /^[A-Za-z_$][A-Za-z0-9_$]*/.exec(src.slice(i, i + 80));
+        var w = m[0];
+        if (kw.test(w)) push('kw', w);
+        else if (src[i + w.length] === '(') push('f', w);
+        else plain += w;
+        i += w.length; continue;
+      }
+      plain += c; i++;
+    }
+    flush();
+    return out;
+  }
+  function tokHttp(src) {
+    var out = [];
+    src.split('\n').forEach(function (ln, idx) {
+      if (idx > 0) out.push(['', '\n']);
+      var m;
+      if ((m = /^([A-Za-z]+) (\S+) (HTTP\/[\d.]+)$/.exec(ln))) { out.push(['kw', m[1]], ['', ' '], ['s', m[2]], ['', ' '], ['c', m[3]]); return; }
+      if ((m = /^(HTTP\/[\d.]+) (\d{3})(.*)$/.exec(ln))) { out.push(['c', m[1]], ['', ' '], ['n', m[2]], ['', m[3]]); return; }
+      if ((m = /^([A-Za-z0-9-]+):(.*)$/.exec(ln))) { out.push(['f', m[1]], ['p', ':'], ['', m[2]]); return; }
+      if (/^\s*[[{]/.test(ln)) { out = out.concat(tokCode(ln, 'js')); return; }
+      out.push(['', ln]);
+    });
+    return out;
+  }
+  function tokBash(src) {
+    var out = [], n = src.length, i = 0, plain = '';
+    function flush() { if (plain) { out.push(['', plain]); plain = ''; } }
+    function push(c, t) { flush(); out.push([c, t]); }
+    var CMD = { curl: 1, node: 1, bash: 1, python3: 1, printf: 1, openssl: 1, base64: 1, grep: 1, head: 1 };
+    while (i < n) {
+      var c = src[i], m;
+      if (c === '#' && (i === 0 || /[\s;|&(]/.test(src[i - 1]))) {
+        var e = src.indexOf('\n', i); if (e < 0) e = n;
+        push('c', src.slice(i, e)); i = e; continue;
+      }
+      if (c === '"' || c === "'") {
+        var k = src.indexOf(c, i + 1); k = k < 0 ? n : k + 1;
+        push('s', src.slice(i, k)); i = k; continue;
+      }
+      if (c === '-' && (i === 0 || /\s/.test(src[i - 1]))) {
+        m = /^--?[A-Za-z0-9_][A-Za-z0-9_=-]*/.exec(src.slice(i, i + 40));
+        if (m) { push('o', m[0]); i += m[0].length; continue; }
+      }
+      if (/[A-Za-z_]/.test(c) && (i === 0 || /[\s|;(]/.test(src[i - 1]))) {
+        m = /^[A-Za-z_][A-Za-z0-9_.]*/.exec(src.slice(i, i + 80));
+        if (CMD[m[0]]) push('b', m[0]); else plain += m[0];
+        i += m[0].length; continue;
+      }
+      if (c === '|') { push('p', c); i++; continue; }
+      plain += c; i++;
+    }
+    flush();
+    return out;
+  }
+  function tokens(src, lang) {
+    if (lang === 'http') return tokHttp(src);
+    if (lang === 'bash') return tokBash(src);
+    if (lang === 'js' || lang === 'python') return tokCode(src, lang);
+    return [['', src]];
+  }
+  function toLines(toks) {
+    var lines = [''];
+    toks.forEach(function (t) {
+      var cls = t[0], parts = t[1].split('\n');
+      parts.forEach(function (p, idx) {
+        if (idx > 0) lines.push('');
+        if (p) lines[lines.length - 1] += cls ? '<span class="t-' + cls + '">' + esc(p) + '</span>' : esc(p);
+      });
+    });
+    return lines;
+  }
+
+  /* ---------- embedded sources: listings and line tables ---------- */
+  var SRC = {};
+  $$('script[type="text/plain"][data-src]').forEach(function (s) {
+    var text = s.textContent.replace(/^\n/, '').replace(/\n$/, '');
+    SRC[s.dataset.src] = { text: text, lines: toLines(tokens(text, s.dataset.lang)), raw: text.split('\n') };
+  });
+  function range(spec) {
+    var p = String(spec).split('-').map(Number);
+    return [p[0], p[1] || p[0]];
+  }
+  var targets = {};
+  $$('.walk[data-src]').forEach(function (w) {
+    var src = SRC[w.dataset.src];
+    if (!src) return;
+    targets[w.dataset.src] = targets[w.dataset.src] || {};
+    $$('tr[data-l]', w).forEach(function (tr) {
+      var r = range(tr.dataset.l);
+      var id = w.dataset.src + '-L' + r[0];
+      tr.id = id;
+      for (var n = r[0]; n <= r[1]; n++) targets[w.dataset.src][n] = id;
+      var ln = tr.insertCell(0); ln.className = 'ln'; ln.textContent = r[0] === r[1] ? r[0] : r[0] + '–' + r[1];
+      var cd = tr.insertCell(1); cd.className = 'cd'; cd.innerHTML = src.lines.slice(r[0] - 1, r[1]).join('\n');
+    });
+  });
+  $$('.listing[data-src]').forEach(function (el) {
+    var name = el.dataset.src, src = SRC[name];
+    if (!src) return;
+    var zones = {};
+    (el.dataset.zones || '').split(',').forEach(function (z) { if (z) zones[Number(z)] = 1; });
+    var t = targets[name] || {}, buf = [];
+    for (var n = 1; n <= src.raw.length; n++) {
+      var num = t[n] ? '<a href="#' + t[n] + '" title="Go to the explanation of line ' + n + '">' + n + '</a>' : String(n);
+      buf.push('<div class="cl' + (zones[n] ? ' zone' : '') + '"><span class="n">' + num + '</span><span class="tx">' + (src.lines[n - 1] || ' ') + '</span></div>');
+    }
+    el.innerHTML = buf.join('');
+  });
+  $$('pre.hl').forEach(function (pre) {
+    var c = pre.querySelector('code');
+    c.innerHTML = toLines(tokens(c.textContent, pre.dataset.lang)).join('\n');
+  });
+  $$('pre.copyable').forEach(function (pre) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'copy'; b.textContent = 'Copy';
+    b.addEventListener('click', function () {
+      var text = pre.querySelector('code').textContent;
+      var done = function () { b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy'; }, 1500); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, function () {});
+      else {
+        var ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); done(); } catch (e) {}
+        ta.remove();
+      }
+    });
+    pre.appendChild(b);
+  });
+
+  /* ---------- diagrams ---------- */
+  var CDN = 'https://cdn.jsdelivr.net/npm/mermaid@12.0.0/dist/mermaid.min.js';
+  var LOCAL = '../../node_modules/mermaid/dist/mermaid.min.js';
+  var PAL = {
+    light: { fg: '#1c1917', bg: '#ffffff', node: '#ffffff', nodeBd: '#a8a29e', line: '#57534e',
+      okBg: '#eaf6ee', okBd: '#15803d', warnBg: '#fff3dc', warnBd: '#d97706', badBg: '#fdecec', badBd: '#dc2626',
+      blueBg: '#ededf8', blueBd: '#333399', qBg: '#fdf1e6', qBd: '#cc6600', muteBg: '#f5f5f4', muteBd: '#a8a29e',
+      cluster: '#faf8f6', clusterBd: '#d6cfc8' },
+    dark: { fg: '#f5f2ef', bg: '#171412', node: '#1f1b18', nodeBd: '#57534e', line: '#a8a29e',
+      okBg: '#0f2a1b', okBd: '#43c07a', warnBg: '#3a2a08', warnBd: '#f59e0b', badBg: '#3a1214', badBd: '#ff6467',
+      blueBg: '#1b1b3a', blueBd: '#a5a5f5', qBg: '#2b1a0b', qBd: '#f08a2c', muteBg: '#292524', muteBd: '#78716c',
+      cluster: '#1c1917', clusterBd: '#433c37' }
+  };
+  var FONT = 'Calibri, Carlito, "Segoe UI", ui-sans-serif, system-ui, -apple-system, sans-serif';
+  var seq = 0, runId = 0;
+
+  function themeVars(p) {
+    return {
+      fontFamily: FONT, fontSize: '15px', background: p.bg,
+      primaryColor: p.node, primaryTextColor: p.fg, primaryBorderColor: p.nodeBd, lineColor: p.line,
+      secondaryColor: p.muteBg, tertiaryColor: p.cluster, textColor: p.fg, mainBkg: p.node, nodeBorder: p.nodeBd,
+      nodeTextColor: p.fg, clusterBkg: p.cluster, clusterBorder: p.clusterBd, titleColor: p.fg, edgeLabelBackground: p.bg,
+      noteBkgColor: p.warnBg, noteTextColor: p.fg, noteBorderColor: p.warnBd,
+      actorBkg: p.blueBg, actorBorder: p.blueBd, actorTextColor: p.fg, actorLineColor: p.line,
+      signalColor: p.line, signalTextColor: p.fg, labelBoxBkgColor: p.muteBg, labelBoxBorderColor: p.nodeBd,
+      labelTextColor: p.fg, loopTextColor: p.fg, activationBkgColor: p.qBg, activationBorderColor: p.qBd,
+      sequenceNumberColor: '#ffffff'
+    };
+  }
+  function classDefs(p) {
+    function d(n, bg, bd) { return 'classDef ' + n + ' fill:' + bg + ',stroke:' + bd + ',color:' + p.fg + ',stroke-width:1.5px'; }
+    return [d('ok', p.okBg, p.okBd), d('warn', p.warnBg, p.warnBd), d('bad', p.badBg, p.badBd), d('blue', p.blueBg, p.blueBd), d('q', p.qBg, p.qBd), d('mute', p.muteBg, p.muteBd)].join('\n');
+  }
+  function loadScript(src) {
+    return new Promise(function (res, rej) {
+      var s = document.createElement('script');
+      s.src = src; s.onload = res; s.onerror = function () { s.remove(); rej(new Error('Could not load ' + src)); };
+      document.head.appendChild(s);
+    });
+  }
+  var mermaidP;
+  function loadMermaid() {
+    if (window.mermaid) return Promise.resolve(window.mermaid);
+    if (!mermaidP) {
+      mermaidP = loadScript(CDN).catch(function () { return loadScript(LOCAL); }).then(function () { return window.mermaid; });
+    }
+    return mermaidP;
+  }
+
+  var figs = $$('figure.diagram');
+  $('#dg-count').textContent = figs.length;
+  figs.forEach(function (fig, idx) {
+    var title = fig.dataset.title || '';
+    var top = document.createElement('div');
+    top.className = 'dg-top';
+    top.innerHTML = '<b>Diagram ' + (idx + 1) + ' · ' + esc(title) + '</b><span class="dg-hint">Swipe sideways to see more</span><button class="btn expand" type="button" aria-label="Expand diagram ' + (idx + 1) + '">Expand</button>';
+    var body = document.createElement('div');
+    body.className = 'dg-body';
+    body.setAttribute('role', 'img');
+    body.setAttribute('aria-label', title + '. A text version is below the diagram.');
+    body.innerHTML = '<div class="pending">Drawing the diagram…</div>';
+    fig.insertBefore(body, fig.firstChild);
+    fig.insertBefore(top, fig.firstChild);
+  });
+
+  function sizeSvg(fig, body) {
+    var svg = body.querySelector('svg');
+    if (!svg) return;
+    var nat = parseFloat(String(svg.style.maxWidth || '').replace('px', ''));
+    if (!nat || isNaN(nat)) {
+      var vb = svg.viewBox && svg.viewBox.baseVal;
+      nat = vb && vb.width ? vb.width : svg.getBoundingClientRect().width;
+    }
+    fig.dataset.nat = String(nat);
+    var minw = Math.min(nat, Math.max(0.78 * nat, 300));
+    svg.style.minWidth = minw + 'px';
+    fig.classList.toggle('pannable', body.scrollWidth > body.clientWidth + 2);
+  }
+
+  function showSource(fig, msg) {
+    var src = fig.querySelector('script.mm').textContent.trim();
+    fig.querySelector('.dg-body').innerHTML = '<pre class="mm-error">' + esc(msg) + '\n\nDiagram source:\n' + esc(src) + '</pre>';
+  }
+
+  async function renderDiagrams() {
+    var my = ++runId;
+    var m;
+    try { m = await loadMermaid(); }
+    catch (e) { figs.forEach(function (f) { showSource(f, 'The diagram library did not load. Connect to the internet, or run pnpm install in the repo.'); }); return; }
+    var p = PAL[currentTheme()];
+    m.initialize({
+      startOnLoad: false, theme: 'base', securityLevel: 'strict', fontFamily: FONT,
+      suppressErrorRendering: true, themeVariables: themeVars(p),
+      flowchart: { useMaxWidth: true, htmlLabels: true, curve: 'basis', nodeSpacing: 26, rankSpacing: 34, padding: 10, wrappingWidth: 200 },
+      sequence: { useMaxWidth: true, mirrorActors: false, wrap: true, width: 170, diagramMarginX: 20, noteMargin: 10 }
+    });
+    try { await document.fonts.ready; } catch (e) {}
+    for (var i = 0; i < figs.length; i++) {
+      if (my !== runId) return;
+      var fig = figs[i], body = fig.querySelector('.dg-body');
+      var src = fig.querySelector('script.mm').textContent.trim();
+      if (/^(flowchart|graph)\b/.test(src)) src += '\n' + classDefs(p);
+      var id = 'mmd' + (++seq);
+      try {
+        var out = await m.render(id, src);
+        if (my !== runId) return;
+        body.innerHTML = out.svg;
+        sizeSvg(fig, body);
+      } catch (err) {
+        var junk = document.getElementById('d' + id); if (junk) junk.remove();
+        showSource(fig, 'Diagram error: ' + (err && err.message ? err.message : err));
+      }
+    }
+  }
+
+  var rz;
+  window.addEventListener('resize', function () {
+    clearTimeout(rz);
+    rz = setTimeout(function () {
+      figs.forEach(function (f) { var b = f.querySelector('.dg-body'); if (b.querySelector('svg')) f.classList.toggle('pannable', b.scrollWidth > b.clientWidth + 2); });
+    }, 200);
+  });
+
+  /* ---------- diagram viewer ---------- */
+  var dlg = $('#zoom'), zbody = $('#zoom-body'), zsvg = null, znat = 600, zw = 600;
+  function setZ(w) {
+    zw = Math.max(240, Math.min(w, 4000));
+    if (zsvg) { zsvg.style.width = zw + 'px'; }
+  }
+  function openZoom(fig) {
+    var svg = fig.querySelector('.dg-body svg');
+    if (!svg || !dlg.showModal) return;
+    $('#zoom-title').textContent = fig.dataset.title || 'Diagram';
+    zbody.textContent = '';
+    zsvg = svg.cloneNode(true);
+    zsvg.style.maxWidth = 'none'; zsvg.style.minWidth = '0'; zsvg.removeAttribute('height');
+    zbody.appendChild(zsvg);
+    znat = parseFloat(fig.dataset.nat) || 600;
+    dlg.showModal();
+    var avail = zbody.clientWidth - 32;
+    setZ(znat > avail ? znat : Math.min(avail, znat * 1.6));
+  }
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('.expand');
+    if (b) openZoom(b.closest('figure.diagram'));
+  });
+  $('#z-in').addEventListener('click', function () { setZ(zw * 1.25); });
+  $('#z-out').addEventListener('click', function () { setZ(zw / 1.25); });
+  $('#z-fit').addEventListener('click', function () { setZ(zbody.clientWidth - 32); });
+  $('#z-close').addEventListener('click', function () { dlg.close(); });
+  dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+
+  /* ---------- question bank ---------- */
+  var items = $$('details.qa'), groups = $$('.qa-group'), filter = $('#qa-filter'), count = $('#qa-count');
+  $('#qa-total').textContent = items.length;
+  groups.forEach(function (g) {
+    var s = $('h3 small', g);
+    if (s) s.textContent = $$('details.qa', g).length + ' questions';
+  });
+  function applyFilter() {
+    var q = filter.value.trim().toLowerCase(), shown = 0;
+    items.forEach(function (d) {
+      var hit = !q || d.textContent.toLowerCase().indexOf(q) >= 0;
+      d.hidden = !hit;
+      if (hit) shown++;
+      if (q && hit) d.open = true;
+    });
+    groups.forEach(function (g) { g.hidden = $$('details.qa:not([hidden])', g).length === 0; });
+    count.textContent = q ? shown + ' of ' + items.length + ' shown' : items.length + ' questions';
+  }
+  filter.addEventListener('input', applyFilter);
+  $('#qa-open').addEventListener('click', function () { items.forEach(function (d) { if (!d.hidden) d.open = true; }); });
+  $('#qa-close').addEventListener('click', function () { items.forEach(function (d) { d.open = false; }); });
+  applyFilter();
+  // links such as "(Q-A8)" in part 08 open their answer
+  function openHash() {
+    var t = location.hash && document.getElementById(location.hash.slice(1));
+    if (t && t.matches('details.qa')) t.open = true;
+  }
+  window.addEventListener('hashchange', openHash);
+  openHash();
+
+  /* ---------- go ---------- */
+  renderDiagrams();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,3 @@
+GET /users/7 HTTP/1.1
+Host: admin.example
+Referer: https://admin.example/users/search?email=alice@example.com&role=admin

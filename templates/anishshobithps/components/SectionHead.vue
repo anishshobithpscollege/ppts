@@ -25,6 +25,6 @@ const pad = (n: number | string) => String(n).padStart(2, '0')
 .rule {
   flex: 1;
   height: 1px;
-  background: var(--line);
+  background: var(--border);
 }
 </style>

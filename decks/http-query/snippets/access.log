@@ -1,0 +1,2 @@
+203.0.113.7 - - [17/Oct/2026:10:42:07 +0530] "GET /users/search?email=alice@example.com&role=admin HTTP/1.1" 200 512 "-" "Mozilla/5.0"
+203.0.113.7 - - [17/Oct/2026:10:42:09 +0530] "QUERY /users/search HTTP/1.1" 200 512 "-" "Mozilla/5.0"

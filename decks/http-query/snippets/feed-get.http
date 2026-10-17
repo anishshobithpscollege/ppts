@@ -1,0 +1,2 @@
+GET /feed?q=foo&limit=10&sort=-published HTTP/1.1
+Host: example.org

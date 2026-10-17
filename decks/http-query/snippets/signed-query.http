@@ -1,0 +1,8 @@
+QUERY /contacts HTTP/1.1
+Host: api.example
+Content-Type: application/json
+Content-Digest: sha-256=:GjhZOZY3l3wb+QJHAv9VxkZ0ELmAZyVIh7P1ySNLh/U=:
+Signature-Input: sig1=("@method" "@target-uri" "content-type" "content-digest");created=1792226000;keyid="svc-a"
+Signature: sig1=:MEUCIQ…:
+
+{"q":"security","limit":10}
