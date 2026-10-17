@@ -6,7 +6,7 @@ info: |
   {{TITLE}}. Technical seminar, Manipal School of Information Sciences, MAHE, Manipal.
 duration: 18min # 18 min talk + 2 min Q&A (college guideline); drives the presenter timer
 exportFilename: {{NAME}}
-download: true # adds a PDF download button to the built site
+download: {{NAME}}.pdf # download button on the built site; serves exports/{{NAME}}.pdf (from `pnpm export`)
 
 # Title slide: every field below is printed by the `title` layout.
 layout: title

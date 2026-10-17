@@ -95,7 +95,11 @@ output `dist`), so leave the dashboard's build settings alone. Two things in it 
   `packageManager` version in `package.json`. It cannot be set in `vercel.json`. Without it,
   `installCommand` may pick an older pnpm and fail.
 - `installCommand` sets `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1`: Chromium is only needed for
-  `pnpm export`, not for the site build.
+  `pnpm export`, and Vercel's build image has no browser for it. So the site build never
+  renders a PDF itself: each deck sets `download: <exportFilename>.pdf` (not `download: true`,
+  which would make `slidev build` launch Chromium), and `pnpm build` copies that file from
+  `decks/<deck>/exports/` into `dist/<deck>/`. Run `pnpm export <deck>` and commit the PDF
+  before deploying, or the download button will 404.
 
 The build runs on Node 24 (`engines` in `package.json`). From the CLI: `vercel` for a preview,
 `vercel --prod` for production. `.vercel/` (written by `vercel link`) is git-ignored.

@@ -7,7 +7,7 @@ info: |
   Built on the anishshobithps template (the look of anishshobithps.com).
 duration: 5min
 exportFilename: exifleak
-download: true
+download: exifleak.pdf
 layout: cover
 kicker: Shell scripting / M.E. CyberSecurity
 ---

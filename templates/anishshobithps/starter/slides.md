@@ -6,7 +6,7 @@ info: |
   {{TITLE}}. Built on the anishshobithps template.
 duration: 5min # drives the presenter timer
 exportFilename: {{NAME}}
-download: true # adds a PDF download button to the built site
+download: {{NAME}}.pdf # download button on the built site; serves exports/{{NAME}}.pdf (from `pnpm export`)
 layout: cover
 kicker: Talk · {{YEAR}}
 ---

@@ -8,7 +8,7 @@ info: |
   Built on the MSIS Seminar Template 2026-27 with shadcn-vue primitives (addons/shadcn).
 duration: 21min # 18:30 of talk (notes are timed) + 2 to 3 min of questions
 exportFilename: HTTP_QUERY_CyberSecurity_Seminar
-download: true
+download: HTTP_QUERY_CyberSecurity_Seminar.pdf
 layout: title
 kind: Technical Seminar
 heading:

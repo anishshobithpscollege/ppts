@@ -184,6 +184,11 @@ async function cmdBuild(argv) {
     console.log(`\n== building ${deck.name} -> dist/${deck.name}/`)
     const code = await slidev(['build', deck.entry, '--base', `${prefix}${deck.name}/`, '--out', join(dist, deck.name), ...forward])
     if (code !== 0) return code
+    // The download button serves the PDF that `export` committed to exports/. (`download: true`
+    // would make Slidev render one here with Chromium, which CI hosts such as Vercel do not have.)
+    const pdf = join(deck.dir, 'exports', `${deck.exportFilename}.pdf`)
+    if (existsSync(pdf)) cpSync(pdf, join(dist, deck.name, `${deck.exportFilename}.pdf`))
+    else console.warn(`   no ${relative(ROOT, pdf)}; the download button will 404 (run: pnpm export ${deck.name} pdf)`)
   }
   if (all) {
     writeFileSync(join(dist, 'index.html'), indexPage(decks))
