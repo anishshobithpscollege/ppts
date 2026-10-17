@@ -89,11 +89,13 @@ single-page app at `dist/<name>/`. `netlify.toml` and `vercel.json` publish `dis
 **Vercel.** Import the repo as a project; `vercel.json` sets everything (framework "Other",
 output `dist`), so leave the dashboard's build settings alone. Two things in it are deliberate:
 
-- Vercel's built-in pnpm support stops at v10 and this repo uses pnpm 11, so `installCommand`
-  runs `npx pnpm@11.10.0` itself. When you bump `packageManager` in `package.json`, bump the
-  version in `vercel.json` too.
-- It sets `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1`: Chromium is only needed for `pnpm export`, not
-  for the site build.
+- Vercel's docs list pnpm up to v10 and this repo uses pnpm 11. The project needs the env var
+  `ENABLE_EXPERIMENTAL_COREPACK=1` (Settings → Environment Variables, or
+  `npx vercel env add ENABLE_EXPERIMENTAL_COREPACK`) so that plain `pnpm` resolves to the
+  `packageManager` version in `package.json`. It cannot be set in `vercel.json`. Without it,
+  `installCommand` may pick an older pnpm and fail.
+- `installCommand` sets `PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1`: Chromium is only needed for
+  `pnpm export`, not for the site build.
 
 The build runs on Node 24 (`engines` in `package.json`). From the CLI: `vercel` for a preview,
 `vercel --prod` for production. `.vercel/` (written by `vercel link`) is git-ignored.
